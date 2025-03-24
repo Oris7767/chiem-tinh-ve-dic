@@ -6,74 +6,60 @@ import { BirthChartData } from '../pages/BirthChartPage';
 import { format } from 'date-fns';
 import { Earth, CalendarIcon, Clock, MapPin, Info } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from '@/components/ui/table';
+import { ChartData, SIGNS, getPlanetAbbr } from '../utils/vedicAstrology';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 interface BirthChartDisplayProps {
   chartData: BirthChartData;
+  vedicChart: ChartData | null;
 }
 
-const BirthChartDisplay: React.FC<BirthChartDisplayProps> = ({ chartData }) => {
+const BirthChartDisplay: React.FC<BirthChartDisplayProps> = ({ chartData, vedicChart }) => {
   const { t, language } = useLanguage();
   
-  // Example planet positions - this would come from actual calculations in a full implementation
-  const planetData = [
-    { planet: 'Ascendant', position: 'Scorpio', house: 1 },
-    { planet: 'Sun', position: 'Aries', house: 6 },
-    { planet: 'Moon', position: 'Sagittarius', house: 2 },
-    { planet: 'Mars', position: 'Gemini', house: 8 },
-    { planet: 'Mercury', position: 'Aries', house: 6 },
-    { planet: 'Jupiter', position: 'Cancer', house: 9 },
-    { planet: 'Venus', position: 'Aries', house: 6 },
-    { planet: 'Saturn', position: 'Capricorn', house: 3 },
-    { planet: 'Rahu', position: 'Aries', house: 6 },
-    { planet: 'Ketu', position: 'Libra', house: 12 },
+  // If we have real vedic chart data, use it. Otherwise, use placeholder data
+  const planetData = vedicChart ? vedicChart.planets : [
+    { id: "as", name: "Ascendant", symbol: "⬆️", longitude: 210, sign: 7, house: 1, retrograde: false, color: "#FF00FF" },
+    { id: "su", name: "Sun", symbol: "☉", longitude: 15, sign: 0, house: 6, retrograde: false, color: "#FFB900" },
+    { id: "mo", name: "Moon", symbol: "☽", longitude: 255, sign: 8, house: 2, retrograde: false, color: "#DDDDDD" },
+    { id: "ma", name: "Mars", symbol: "♂", longitude: 75, sign: 2, house: 8, retrograde: false, color: "#FF3300" },
+    { id: "me", name: "Mercury", symbol: "☿", longitude: 25, sign: 0, house: 6, retrograde: false, color: "#33CC33" },
+    { id: "ju", name: "Jupiter", symbol: "♃", longitude: 105, sign: 3, house: 9, retrograde: false, color: "#FFCC00" },
+    { id: "ve", name: "Venus", symbol: "♀", longitude: 20, sign: 0, house: 6, retrograde: false, color: "#FF66FF" },
+    { id: "sa", name: "Saturn", symbol: "♄", longitude: 300, sign: 10, house: 3, retrograde: false, color: "#0066CC" },
+    { id: "ra", name: "Rahu", symbol: "☊", longitude: 10, sign: 0, house: 6, retrograde: false, color: "#666666" },
+    { id: "ke", name: "Ketu", symbol: "☋", longitude: 190, sign: 6, house: 12, retrograde: false, color: "#996633" },
   ];
   
   // Color mapping for planets
   const planetColors: Record<string, string> = {
-    Ascendant: 'text-pink-600',
-    Sun: 'text-amber-500',
-    Moon: 'text-cyan-500',
-    Mars: 'text-red-600',
-    Mercury: 'text-green-500',
-    Jupiter: 'text-orange-500',
-    Venus: 'text-purple-500',
-    Saturn: 'text-blue-800',
-    Rahu: 'text-indigo-600',
-    Ketu: 'text-amber-800',
+    Ascendant: '#FF00FF',
+    Sun: '#FFB900',
+    Moon: '#DDDDDD',
+    Mars: '#FF3300',
+    Mercury: '#33CC33',
+    Jupiter: '#FFCC00',
+    Venus: '#FF66FF',
+    Saturn: '#0066CC',
+    Rahu: '#666666',
+    Ketu: '#996633',
   };
   
-  // Create a 4x3 grid for the South Indian chart style
-  const chartGrid = Array(12).fill(null).map((_, i) => {
-    const houseNumber = ((i + 1) % 12) + 1;
-    const planetsInHouse = planetData.filter(p => p.house === houseNumber);
-    return { house: houseNumber, planets: planetsInHouse };
-  });
-  
-  // Reorder houses for South Indian chart layout
-  const southIndianOrder = [
-    // Order is: top-left to bottom-right by rows
-    1, 12, 11,  // First row
-    2, 0, 10,   // Second row (0 is center - unused)
-    3, 4, 9,    // Third row
-    4, 5, 8,    // Fourth row
-  ];
-  
-  // Abbreviate planet names for chart display
-  const getPlanetAbbr = (planet: string) => {
-    const abbrs: Record<string, string> = {
-      'Ascendant': 'As',
-      'Sun': 'Su',
-      'Moon': 'Mo',
-      'Mars': 'Ma',
-      'Mercury': 'Me',
-      'Jupiter': 'Ju',
-      'Venus': 'Ve',
-      'Saturn': 'Sa',
-      'Rahu': 'Ra',
-      'Ketu': 'Ke',
-    };
-    return abbrs[planet] || planet.substring(0, 2);
+  // Chart rendering data for the South Indian style chart
+  const prepareChartData = () => {
+    // Create 12 segments for the houses
+    return Array.from({ length: 12 }, (_, i) => {
+      const houseNumber = i + 1;
+      return {
+        name: `House ${houseNumber}`,
+        value: 1,
+        sign: (i) % 12,
+        planets: planetData.filter(p => p.house === houseNumber)
+      };
+    });
   };
+  
+  const chartSegments = prepareChartData();
   
   return (
     <div className="space-y-6">
@@ -137,40 +123,37 @@ const BirthChartDisplay: React.FC<BirthChartDisplayProps> = ({ chartData }) => {
       </div>
       
       <div className="border-t border-amber-200 pt-6">
-        <h2 className="text-2xl font-semibold text-amber-800 mb-4 flex items-center">
-          {t('birthChart.chartPlaceholder') || 'Birth Chart'}
-          <span className="ml-2 text-sm bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">
-            {t('birthChart.comingSoon') || 'Coming Soon'}
-          </span>
+        <h2 className="text-2xl font-semibold text-amber-800 mb-4">
+          {t('birthChart.chart') || 'Birth Chart'}
         </h2>
         
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-6">
           <div className="max-w-3xl mx-auto">
-            {/* South Indian Style Chart Grid */}
-            <div className="aspect-square w-full border-2 border-amber-300 mb-6 overflow-hidden">
+            {/* Vedic Birth Chart Visualization */}
+            <div className="aspect-square w-full border-2 border-amber-300 mb-6">
               <div className="grid grid-cols-3 h-full">
                 {/* Row 1 */}
                 <div className="border border-amber-300 p-2 text-xs relative flex flex-col">
                   <span className="text-gray-400 text-[10px] absolute top-1 left-1">1</span>
                   {planetData.filter(p => p.house === 1).map((p, i) => (
-                    <span key={i} className={`${planetColors[p.planet]} font-bold text-center`}>
-                      {getPlanetAbbr(p.planet)}
+                    <span key={i} className="font-bold text-center" style={{ color: p.color }}>
+                      {getPlanetAbbr(p.name)}
                     </span>
                   ))}
                 </div>
                 <div className="border border-amber-300 p-2 text-xs relative flex flex-col">
                   <span className="text-gray-400 text-[10px] absolute top-1 left-1">12</span>
                   {planetData.filter(p => p.house === 12).map((p, i) => (
-                    <span key={i} className={`${planetColors[p.planet]} font-bold text-center`}>
-                      {getPlanetAbbr(p.planet)}
+                    <span key={i} className="font-bold text-center" style={{ color: p.color }}>
+                      {getPlanetAbbr(p.name)}
                     </span>
                   ))}
                 </div>
                 <div className="border border-amber-300 p-2 text-xs relative flex flex-col">
                   <span className="text-gray-400 text-[10px] absolute top-1 left-1">11</span>
                   {planetData.filter(p => p.house === 11).map((p, i) => (
-                    <span key={i} className={`${planetColors[p.planet]} font-bold text-center`}>
-                      {getPlanetAbbr(p.planet)}
+                    <span key={i} className="font-bold text-center" style={{ color: p.color }}>
+                      {getPlanetAbbr(p.name)}
                     </span>
                   ))}
                 </div>
@@ -179,8 +162,8 @@ const BirthChartDisplay: React.FC<BirthChartDisplayProps> = ({ chartData }) => {
                 <div className="border border-amber-300 p-2 text-xs relative flex flex-col">
                   <span className="text-gray-400 text-[10px] absolute top-1 left-1">2</span>
                   {planetData.filter(p => p.house === 2).map((p, i) => (
-                    <span key={i} className={`${planetColors[p.planet]} font-bold text-center`}>
-                      {getPlanetAbbr(p.planet)}
+                    <span key={i} className="font-bold text-center" style={{ color: p.color }}>
+                      {getPlanetAbbr(p.name)}
                     </span>
                   ))}
                 </div>
@@ -193,8 +176,8 @@ const BirthChartDisplay: React.FC<BirthChartDisplayProps> = ({ chartData }) => {
                 <div className="border border-amber-300 p-2 text-xs relative flex flex-col">
                   <span className="text-gray-400 text-[10px] absolute top-1 left-1">10</span>
                   {planetData.filter(p => p.house === 10).map((p, i) => (
-                    <span key={i} className={`${planetColors[p.planet]} font-bold text-center`}>
-                      {getPlanetAbbr(p.planet)}
+                    <span key={i} className="font-bold text-center" style={{ color: p.color }}>
+                      {getPlanetAbbr(p.name)}
                     </span>
                   ))}
                 </div>
@@ -203,83 +186,67 @@ const BirthChartDisplay: React.FC<BirthChartDisplayProps> = ({ chartData }) => {
                 <div className="border border-amber-300 p-2 text-xs relative flex flex-col">
                   <span className="text-gray-400 text-[10px] absolute top-1 left-1">3</span>
                   {planetData.filter(p => p.house === 3).map((p, i) => (
-                    <span key={i} className={`${planetColors[p.planet]} font-bold text-center`}>
-                      {getPlanetAbbr(p.planet)}
+                    <span key={i} className="font-bold text-center" style={{ color: p.color }}>
+                      {getPlanetAbbr(p.name)}
                     </span>
                   ))}
                 </div>
                 <div className="border border-amber-300 p-2 text-xs relative flex flex-col">
                   <span className="text-gray-400 text-[10px] absolute top-1 left-1">4</span>
                   {planetData.filter(p => p.house === 4).map((p, i) => (
-                    <span key={i} className={`${planetColors[p.planet]} font-bold text-center`}>
-                      {getPlanetAbbr(p.planet)}
+                    <span key={i} className="font-bold text-center" style={{ color: p.color }}>
+                      {getPlanetAbbr(p.name)}
                     </span>
                   ))}
                 </div>
                 <div className="border border-amber-300 p-2 text-xs relative flex flex-col">
                   <span className="text-gray-400 text-[10px] absolute top-1 left-1">9</span>
                   {planetData.filter(p => p.house === 9).map((p, i) => (
-                    <span key={i} className={`${planetColors[p.planet]} font-bold text-center`}>
-                      {getPlanetAbbr(p.planet)}
+                    <span key={i} className="font-bold text-center" style={{ color: p.color }}>
+                      {getPlanetAbbr(p.name)}
                     </span>
                   ))}
                 </div>
                 
                 {/* Row 4 */}
                 <div className="border border-amber-300 p-2 text-xs relative flex flex-col">
-                  <span className="text-gray-400 text-[10px] absolute top-1 left-1">4</span>
-                  {planetData.filter(p => p.house === 4).map((p, i) => (
-                    <span key={i} className={`${planetColors[p.planet]} font-bold text-center`}>
-                      {getPlanetAbbr(p.planet)}
+                  <span className="text-gray-400 text-[10px] absolute top-1 left-1">6</span>
+                  {planetData.filter(p => p.house === 6).map((p, i) => (
+                    <span key={i} className="font-bold text-center" style={{ color: p.color }}>
+                      {getPlanetAbbr(p.name)}
                     </span>
                   ))}
                 </div>
                 <div className="border border-amber-300 p-2 text-xs relative flex flex-col">
                   <span className="text-gray-400 text-[10px] absolute top-1 left-1">5</span>
                   {planetData.filter(p => p.house === 5).map((p, i) => (
-                    <span key={i} className={`${planetColors[p.planet]} font-bold text-center`}>
-                      {getPlanetAbbr(p.planet)}
+                    <span key={i} className="font-bold text-center" style={{ color: p.color }}>
+                      {getPlanetAbbr(p.name)}
                     </span>
                   ))}
                 </div>
                 <div className="border border-amber-300 p-2 text-xs relative flex flex-col">
                   <span className="text-gray-400 text-[10px] absolute top-1 left-1">8</span>
                   {planetData.filter(p => p.house === 8).map((p, i) => (
-                    <span key={i} className={`${planetColors[p.planet]} font-bold text-center`}>
-                      {getPlanetAbbr(p.planet)}
+                    <span key={i} className="font-bold text-center" style={{ color: p.color }}>
+                      {getPlanetAbbr(p.name)}
                     </span>
                   ))}
                 </div>
                 
                 {/* Row 5 */}
                 <div className="border border-amber-300 p-2 text-xs relative flex flex-col">
-                  <span className="text-gray-400 text-[10px] absolute top-1 left-1">5</span>
-                  {planetData.filter(p => p.house === 5).map((p, i) => (
-                    <span key={i} className={`${planetColors[p.planet]} font-bold text-center`}>
-                      {getPlanetAbbr(p.planet)}
-                    </span>
-                  ))}
-                </div>
-                <div className="border border-amber-300 p-2 text-xs relative flex flex-col">
-                  <span className="text-gray-400 text-[10px] absolute top-1 left-1">6</span>
-                  {planetData.filter(p => p.house === 6).map((p, i) => (
-                    <span key={i} className={`${planetColors[p.planet]} font-bold text-center`}>
-                      {getPlanetAbbr(p.planet)}
-                    </span>
-                  ))}
-                </div>
-                <div className="border border-amber-300 p-2 text-xs relative flex flex-col">
                   <span className="text-gray-400 text-[10px] absolute top-1 left-1">7</span>
                   {planetData.filter(p => p.house === 7).map((p, i) => (
-                    <span key={i} className={`${planetColors[p.planet]} font-bold text-center`}>
-                      {getPlanetAbbr(p.planet)}
+                    <span key={i} className="font-bold text-center" style={{ color: p.color }}>
+                      {getPlanetAbbr(p.name)}
                     </span>
                   ))}
                 </div>
               </div>
             </div>
             
-            {/* Planet Positions Table */}
+            {/* Planet Positions and Additional Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <Card>
                 <CardHeader className="pb-2">
@@ -300,10 +267,10 @@ const BirthChartDisplay: React.FC<BirthChartDisplayProps> = ({ chartData }) => {
                     <TableBody>
                       {planetData.map((planet, index) => (
                         <TableRow key={index}>
-                          <TableCell className={`font-medium ${planetColors[planet.planet]}`}>
-                            {planet.planet}
+                          <TableCell className="font-medium" style={{ color: planet.color }}>
+                            {planet.name} {planet.symbol} {planet.retrograde && <span className="text-red-500">R</span>}
                           </TableCell>
-                          <TableCell>{planet.position}</TableCell>
+                          <TableCell>{SIGNS[planet.sign]}</TableCell>
                           <TableCell>{planet.house}</TableCell>
                         </TableRow>
                       ))}
@@ -323,32 +290,37 @@ const BirthChartDisplay: React.FC<BirthChartDisplayProps> = ({ chartData }) => {
                   <ul className="space-y-2">
                     <li className="flex justify-between">
                       <span className="text-amber-800">Ascendant:</span> 
-                      <span>Scorpio</span>
+                      <span>{vedicChart ? SIGNS[Math.floor(vedicChart.ascendant / 30)] : SIGNS[7]}</span>
                     </li>
                     <li className="flex justify-between">
                       <span className="text-amber-800">Moon Sign:</span> 
-                      <span>Sagittarius</span>
+                      <span>{SIGNS[planetData.find(p => p.id === "mo")?.sign || 0]}</span>
                     </li>
                     <li className="flex justify-between">
                       <span className="text-amber-800">Sun Sign:</span> 
-                      <span>Aries</span>
+                      <span>{SIGNS[planetData.find(p => p.id === "su")?.sign || 0]}</span>
                     </li>
                     <li className="flex justify-between">
                       <span className="text-amber-800">Nakshatra:</span> 
-                      <span>Mula (19)</span>
+                      <span>{vedicChart ? vedicChart.moonNakshatra : "Mula"}</span>
                     </li>
                     <li className="flex justify-between">
-                      <span className="text-amber-800">Ayana:</span> 
-                      <span>Uttara-Ayana</span>
+                      <span className="text-amber-800">Lunar Day (Tithi):</span> 
+                      <span>{vedicChart ? vedicChart.lunarDay : 5}</span>
+                    </li>
+                    <li className="flex justify-between">
+                      <span className="text-amber-800">Element Distribution:</span> 
+                      <span>
+                        Fire: {planetData.filter(p => [0, 4, 8].includes(p.sign)).length} | 
+                        Earth: {planetData.filter(p => [1, 5, 9].includes(p.sign)).length} | 
+                        Air: {planetData.filter(p => [2, 6, 10].includes(p.sign)).length} | 
+                        Water: {planetData.filter(p => [3, 7, 11].includes(p.sign)).length}
+                      </span>
                     </li>
                   </ul>
                 </CardContent>
               </Card>
             </div>
-          </div>
-          
-          <div className="text-center mt-8 text-amber-800 italic text-sm">
-            <p>{t('birthChart.implementationInProgress') || 'The Vedic birth chart calculation and visualization is still under development with actual calculations coming soon.'}</p>
           </div>
         </div>
       </div>

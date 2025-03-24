@@ -68,6 +68,21 @@
     "title": "Ý nghĩa các con số",
     "subtitle": "Mỗi con số từ 1 đến 9 đều mang những ý nghĩa và năng lượng riêng biệt, gắn liền với các hành tinh."
   },
+  "birthChart": {
+    "title": "Bản đồ Sao Chiêm tinh Vệ Đà",
+    "subtitle": "Tính toán bản đồ sao chiêm tinh Vệ Đà dựa trên chi tiết sinh của bạn và khám phá ảnh hưởng của các thiên thể lên cuộc sống của bạn",
+    "birthDetails": "Chi tiết ngày sinh",
+    "date": "Ngày",
+    "time": "Giờ",
+    "location": "Địa điểm",
+    "timezone": "Múi giờ",
+    "chart": "Bản đồ Sao",
+    "planetPositions": "Vị trí các hành tinh",
+    "additionalInfo": "Thông tin thêm",
+    "calculationSuccess": "Tính toán bản đồ sao thành công",
+    "calculationError": "Lỗi khi tính toán bản đồ sao",
+    "comingSoon": "Sắp ra mắt"
+  },
   "number": {
     "1": {
       "title": "Mặt Trời",

@@ -68,6 +68,21 @@
     "title": "Meanings of Numbers",
     "subtitle": "Each number from 1 to 9 carries unique meanings and energies, linked to the planets."
   },
+  "birthChart": {
+    "title": "Vedic Birth Chart",
+    "subtitle": "Calculate your Vedic astrology birth chart based on your birth details and discover the celestial influences on your life",
+    "birthDetails": "Birth Details",
+    "date": "Date",
+    "time": "Time",
+    "location": "Location",
+    "timezone": "Timezone",
+    "chart": "Birth Chart",
+    "planetPositions": "Planet Positions",
+    "additionalInfo": "Additional Information",
+    "calculationSuccess": "Chart calculated successfully",
+    "calculationError": "Error calculating chart",
+    "comingSoon": "Coming Soon"
+  },
   "number": {
     "1": {
       "title": "The Sun",

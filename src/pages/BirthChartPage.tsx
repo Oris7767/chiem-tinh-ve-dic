@@ -1,11 +1,14 @@
 
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
+import { DateTime } from 'luxon';
 import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
 import BirthChartForm from '../components/BirthChartForm';
 import BirthChartDisplay from '../components/BirthChartDisplay';
 import { Badge } from '@/components/ui/badge';
+import { calculateChart, ChartData as VedicChartData } from '../utils/vedicAstrology';
+import { toast } from '@/hooks/use-toast';
 
 export interface BirthChartData {
   date: Date;
@@ -19,10 +22,41 @@ export interface BirthChartData {
 const BirthChartPage = () => {
   const { t } = useLanguage();
   const [chartData, setChartData] = useState<BirthChartData | null>(null);
+  const [vedicChart, setVedicChart] = useState<VedicChartData | null>(null);
   
   const handleCalculate = (data: BirthChartData) => {
-    console.log('Calculating chart with data:', data);
-    setChartData(data);
+    try {
+      console.log('Calculating chart with data:', data);
+      
+      // Parse date and time into Luxon DateTime
+      const [hours, minutes] = data.time.split(':').map(Number);
+      const dateTime = DateTime.fromJSDate(data.date)
+        .set({ hour: hours, minute: minutes })
+        .setZone(data.timezone);
+      
+      if (!dateTime.isValid) {
+        throw new Error(`Invalid date/time: ${dateTime.invalidExplanation}`);
+      }
+      
+      // Calculate the Vedic chart
+      const chart = calculateChart(dateTime, data.latitude, data.longitude);
+      
+      // Set chart data
+      setChartData(data);
+      setVedicChart(chart);
+      
+      toast({
+        title: t('birthChart.calculationSuccess') || 'Chart calculated successfully',
+        description: dateTime.toFormat('ff'),
+      });
+    } catch (error) {
+      console.error('Error calculating chart:', error);
+      toast({
+        title: t('birthChart.calculationError') || 'Error calculating chart',
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
+        variant: 'destructive',
+      });
+    }
   };
   
   return (
@@ -32,14 +66,9 @@ const BirthChartPage = () => {
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-8">
-              <div className="flex justify-center items-center gap-3 mb-2">
-                <h1 className="text-3xl md:text-4xl font-bold text-amber-900">
-                  {t('birthChart.title') || 'Vedic Birth Chart'}
-                </h1>
-                <Badge variant="outline" className="bg-amber-600 text-white border-amber-700">
-                  {t('birthChart.comingSoon') || 'Coming Soon'}
-                </Badge>
-              </div>
+              <h1 className="text-3xl md:text-4xl font-bold text-amber-900 mb-2">
+                {t('birthChart.title') || 'Vedic Birth Chart'}
+              </h1>
               <p className="text-lg text-amber-800 max-w-2xl mx-auto">
                 {t('birthChart.subtitle') || 'Calculate your Vedic astrology birth chart based on your birth details and discover the celestial influences on your life'}
               </p>
@@ -51,7 +80,7 @@ const BirthChartPage = () => {
             
             {chartData && (
               <div className="bg-white rounded-lg shadow-xl p-6 mt-8">
-                <BirthChartDisplay chartData={chartData} />
+                <BirthChartDisplay chartData={chartData} vedicChart={vedicChart} />
               </div>
             )}
           </div>
