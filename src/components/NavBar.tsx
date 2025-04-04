@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { cn } from '../lib/utils';
 import { useLanguage } from '../context/LanguageContext';
 import { Languages } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 
 const NavBar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -79,30 +79,35 @@ const NavBar = () => {
             ) : (
               <>
                 <li>
-                  <a href="/" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in">
+                  <Link to="/" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in">
                     {t('nav.home') || 'Home'}
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="/numerology" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
+                  <Link to="/numerology" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
                     {t('nav.numerology') || 'Numerology'}
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="/birth-chart" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
+                  <Link to="/birth-chart" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
                     {t('nav.birthChart') || 'Birth Chart'}
-                  </a>
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/blog" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
+                    {t('nav.blog') || 'Blog'}
+                  </Link>
                 </li>
               </>
             )}
           </ul>
           
-          <a 
-            href={isHomePage ? "#calculator" : "/numerology"} 
+          <Link 
+            to={isHomePage ? "/#calculator" : "/numerology"} 
             className="btn-primary animate-fade-in-delay"
           >
             {t('nav.start')}
-          </a>
+          </Link>
         </div>
       </div>
     </nav>

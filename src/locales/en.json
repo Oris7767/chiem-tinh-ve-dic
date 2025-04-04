@@ -4,7 +4,11 @@
     "calculate": "Calculate",
     "about": "About",
     "meanings": "Meanings",
-    "start": "Get Started"
+    "start": "Get Started",
+    "home": "Home",
+    "numerology": "Numerology",
+    "birthChart": "Birth Chart",
+    "blog": "Blog"
   },
   "hero": {
     "title": "Vedic Numerology",
@@ -82,6 +86,40 @@
     "calculationSuccess": "Chart calculated successfully",
     "calculationError": "Error calculating chart",
     "comingSoon": "Coming Soon"
+  },
+  "blog": {
+    "title": "Vedic Wisdom Blog",
+    "subtitle": "Explore the ancient wisdom of Vedic numerology and astrology through our articles and insights",
+    "searchPlaceholder": "Search articles...",
+    "adminPanel": "Admin Panel",
+    "allPosts": "All Posts",
+    "readMore": "Read More",
+    "backToBlog": "Back to Blog",
+    "stayUpdated": "Stay Updated",
+    "viewMorePosts": "View More Posts",
+    "loginTitle": "Admin Login",
+    "loginDesc": "Please login to access the blog admin panel",
+    "adminDesc": "Manage your blog posts and content"
+  },
+  "newsletter": {
+    "title": "Subscribe to Our Newsletter",
+    "description": "Stay updated with our latest articles, insights, and special offers.",
+    "nameLabel": "Your Name",
+    "namePlaceholder": "Enter your name",
+    "emailLabel": "Your Email",
+    "emailPlaceholder": "Enter your email",
+    "submit": "Subscribe Now",
+    "submitting": "Subscribing...",
+    "privacyNote": "We respect your privacy and will never share your information.",
+    "successTitle": "Subscription Successful!",
+    "successMessage": "Thank you! You're now subscribed to our newsletter."
+  },
+  "blogPopup": {
+    "title": "Discover Our New Blog!",
+    "description": "We've just launched our Vedic Wisdom Blog with insights about numerology and astrology.",
+    "content": "Read our latest articles about Vedic numerology, birth charts, and more. Stay updated with weekly posts!",
+    "visitBlog": "Visit Our Blog",
+    "notNow": "Not Now"
   },
   "number": {
     "1": {
