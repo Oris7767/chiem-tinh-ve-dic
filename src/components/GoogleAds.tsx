@@ -1,6 +1,13 @@
 
 import React, { useEffect, useRef } from 'react';
 
+// Add global type declaration for adsbygoogle
+declare global {
+  interface Window {
+    adsbygoogle: any[];
+  }
+}
+
 interface GoogleAdProps {
   adSlot: string;
   adFormat?: 'auto' | 'rectangle' | 'horizontal' | 'vertical';
@@ -31,7 +38,7 @@ const GoogleAd: React.FC<GoogleAdProps> = ({
   }, [adSlot]);
 
   return (
-    <div className={className} style={style}>
+    <div className={className} style={style} ref={adRef}>
       <ins
         className="adsbygoogle"
         style={{
@@ -43,7 +50,6 @@ const GoogleAd: React.FC<GoogleAdProps> = ({
         data-ad-slot={adSlot}
         data-ad-format={adFormat}
         data-full-width-responsive="true"
-        ref={adRef}
       />
     </div>
   );

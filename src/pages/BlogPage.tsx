@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CalendarIcon, Tag, User } from 'lucide-react';
+import { CalendarIcon, Tag, User, LogIn } from 'lucide-react';
 import NewsletterSignup from '../components/NewsletterSignup';
 
 const BlogPage = () => {
@@ -58,15 +58,22 @@ const BlogPage = () => {
                 />
               </div>
               
-              {isLoggedIn && (
-                <div className="flex justify-end">
-                  <Button asChild>
+              <div className="flex space-x-4">
+                {isLoggedIn ? (
+                  <Button asChild variant="default">
                     <Link to="/blog/admin">
                       {t('blog.adminPanel') || 'Admin Panel'}
                     </Link>
                   </Button>
-                </div>
-              )}
+                ) : (
+                  <Button asChild variant="outline">
+                    <Link to="/blog/admin" className="flex items-center space-x-2">
+                      <LogIn size={16} />
+                      <span>{t('blog.adminLogin') || 'Admin Login'}</span>
+                    </Link>
+                  </Button>
+                )}
+              </div>
             </div>
 
             <Tabs defaultValue="all" className="mb-8">
