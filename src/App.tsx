@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "./context/LanguageContext";
 import Index from "./pages/Index";
 import NumerologyPage from "./pages/NumerologyPage";
@@ -19,16 +19,14 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/numerology" element={<NumerologyPage />} />
-            <Route path="/birth-chart" element={<BirthChartPage />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <ChatBot />
-        </BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/numerology" element={<NumerologyPage />} />
+          <Route path="/birth-chart" element={<BirthChartPage />} />
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        <ChatBot />
       </TooltipProvider>
     </LanguageProvider>
   </QueryClientProvider>
