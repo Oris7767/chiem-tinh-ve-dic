@@ -3,6 +3,7 @@ import NavBar from '../components/NavBar';
 import Hero from '../components/Hero';
 import Calculator from '../components/Calculator';
 import Footer from '../components/Footer';
+import GoogleAd from '../components/GoogleAds';
 import { numberMeanings } from '../utils/data';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -15,6 +16,15 @@ const Index = () => {
       <main className="flex-grow">
         <Hero />
         <Calculator />
+        
+        {/* Ad display example after calculator section */}
+        <div className="container mx-auto px-4 py-6">
+          <GoogleAd 
+            adSlot="1234567890" 
+            className="mx-auto my-8" 
+            style={{ minHeight: "250px", width: "100%" }} 
+          />
+        </div>
         
         <section id="about" className="py-24 relative">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
