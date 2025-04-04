@@ -75,6 +75,11 @@ const NavBar = () => {
                     {t('nav.meanings')}
                   </a>
                 </li>
+                <li>
+                  <Link to="/blog" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
+                    {t('nav.blog')}
+                  </Link>
+                </li>
               </>
             ) : (
               <>
@@ -115,3 +120,4 @@ const NavBar = () => {
 };
 
 export default NavBar;
+
