@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useBlog } from '../context/BlogContext';
@@ -70,7 +69,7 @@ const BlogLoginPage = () => {
       author: postToEdit?.author || 'Admin',
       imageUrl: postToEdit?.imageUrl || '',
       // Convert tags array back to comma-separated string for the form
-      tags: postToEdit?.tags?.join(', ') || 'vedic, numerology',
+      tags: postToEdit?.tags ? postToEdit.tags.join(', ') : 'vedic, numerology',
     },
   });
   
