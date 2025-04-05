@@ -15,7 +15,6 @@ import BlogPostPage from "./pages/BlogPostPage";
 import BlogLoginPage from "./pages/BlogLoginPage";
 import NotFound from "./pages/NotFound";
 import ChatBot from "./components/ChatBot";
-import BlogPopup from "./components/BlogPopup";
 
 const queryClient = new QueryClient();
 
@@ -45,7 +44,6 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
             <ChatBot />
-            <BlogPopup />
           </TooltipProvider>
         </BlogProvider>
       </LanguageProvider>
