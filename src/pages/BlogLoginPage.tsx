@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useBlog } from '../context/BlogContext';
@@ -58,7 +59,8 @@ const BlogLoginPage = () => {
     },
   });
   
-  // Properly handle tags field for postForm
+  // Fix: Make sure tags is properly handled as a string in the form
+  // but will be transformed to string[] through zod's transform
   const postForm = useForm<PostFormValues>({
     resolver: zodResolver(postSchema),
     defaultValues: {
@@ -69,6 +71,7 @@ const BlogLoginPage = () => {
       author: postToEdit?.author || 'Admin',
       imageUrl: postToEdit?.imageUrl || '',
       // Convert tags array back to comma-separated string for the form
+      // tags is expected to be a string in the form, not a string[]
       tags: postToEdit?.tags ? postToEdit.tags.join(', ') : 'vedic, numerology',
     },
   });
