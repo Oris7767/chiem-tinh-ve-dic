@@ -32,6 +32,7 @@ const postSchema = z.object({
   }),
   author: z.string().min(2, 'Author must be at least 2 characters'),
   imageUrl: z.string().optional(),
+  // Convert string of comma-separated tags to array of strings
   tags: z.string().transform(val => val.split(',').map(tag => tag.trim().toLowerCase())),
 });
 
@@ -58,24 +59,18 @@ const BlogLoginPage = () => {
     },
   });
   
+  // Properly handle tags field for postForm
   const postForm = useForm<PostFormValues>({
     resolver: zodResolver(postSchema),
-    defaultValues: postToEdit ? {
-      title: postToEdit.title,
-      excerpt: postToEdit.excerpt,
-      content: postToEdit.content,
-      slug: postToEdit.slug,
-      author: postToEdit.author,
-      imageUrl: postToEdit.imageUrl || '',
-      tags: postToEdit.tags.join(', '),
-    } : {
-      title: '',
-      excerpt: '',
-      content: '',
-      slug: '',
-      author: 'Admin',
-      imageUrl: '',
-      tags: 'vedic, numerology',
+    defaultValues: {
+      title: postToEdit?.title || '',
+      excerpt: postToEdit?.excerpt || '',
+      content: postToEdit?.content || '',
+      slug: postToEdit?.slug || '',
+      author: postToEdit?.author || 'Admin',
+      imageUrl: postToEdit?.imageUrl || '',
+      // Convert tags array back to comma-separated string for the form
+      tags: postToEdit?.tags?.join(', ') || 'vedic, numerology',
     },
   });
   
@@ -100,24 +95,31 @@ const BlogLoginPage = () => {
   // Handle post form submission
   const onPostSubmit = (data: PostFormValues) => {
     try {
-      // Transform tags field to ensure it's an array
-      const tagsArray = typeof data.tags === 'string' 
-        ? data.tags.split(',').map(tag => tag.trim())
-        : data.tags;
-        
       if (editPostId && postToEdit) {
+        // For editing a post - all fields with proper types are now included
         editPost(editPostId, {
-          ...data,
-          tags: tagsArray
+          title: data.title,
+          excerpt: data.excerpt,
+          content: data.content,
+          slug: data.slug,
+          author: data.author,
+          imageUrl: data.imageUrl,
+          tags: data.tags // This is already an array thanks to zod transform
         });
         toast({
           title: 'Post Updated',
           description: 'Your post has been successfully updated.',
         });
       } else {
+        // For creating a new post - ensure all required fields are provided
         addPost({
-          ...data,
-          tags: tagsArray
+          title: data.title,
+          excerpt: data.excerpt,
+          content: data.content,
+          slug: data.slug,
+          author: data.author,
+          imageUrl: data.imageUrl,
+          tags: data.tags // This is already an array thanks to zod transform
         });
         toast({
           title: 'Post Created',

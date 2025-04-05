@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
 export type BlogPost = {
@@ -89,6 +89,12 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
   };
 
   const addPost = (post: Omit<BlogPost, 'id' | 'date'>) => {
+    // Validate that post has all required fields with correct types
+    if (!post.title || !post.content || !post.excerpt || !post.slug || !post.author) {
+      console.error("Missing required fields in post data");
+      return;
+    }
+    
     // Ensure tags is always an array
     const ensuredPost = {
       ...post,
