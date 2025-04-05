@@ -1,317 +1,438 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useLanguage } from '../context/LanguageContext';
-import { useBlog, BlogPost } from '../context/BlogContext';
+import { useBlog } from '../context/BlogContext';
 import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { toast } from '@/hooks/use-toast';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useForm } from 'react-hook-form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from '@/components/ui/toast';
+import { ChevronLeft, Mail, Key, FileText, Users } from 'lucide-react';
 
-type LoginFormData = {
-  email: string;
-  password: string;
-};
+// Admin Login Form Schema
+const loginSchema = z.object({
+  email: z.string().email('Please enter a valid email'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+});
 
-type PostFormData = {
-  title: string;
-  slug: string;
-  excerpt: string;
-  content: string;
-  author: string;
-  imageUrl: string;
-  tags: string;
-};
+// Post Creation/Edit Form Schema
+const postSchema = z.object({
+  title: z.string().min(3, 'Title must be at least 3 characters'),
+  excerpt: z.string().min(10, 'Excerpt must be at least 10 characters'),
+  content: z.string().min(20, 'Content must be at least 20 characters'),
+  slug: z.string().min(3, 'Slug must be at least 3 characters').regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
+    message: 'Slug must be lowercase with hyphens between words (e.g. my-post-title)',
+  }),
+  author: z.string().min(2, 'Author must be at least 2 characters'),
+  imageUrl: z.string().optional(),
+  tags: z.string().transform(val => val.split(',').map(tag => tag.trim().toLowerCase())),
+});
+
+type LoginFormValues = z.infer<typeof loginSchema>;
+type PostFormValues = z.infer<typeof postSchema>;
 
 const BlogLoginPage = () => {
-  const { t } = useLanguage();
-  const { isLoggedIn, login, logout, posts, addPost, editPost } = useBlog();
   const navigate = useNavigate();
   const location = useLocation();
-  
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { isLoggedIn, login, logout, posts, addPost, editPost, getPostBySlug } = useBlog();
   const [activeTab, setActiveTab] = useState('login');
-  const [editingPostId, setEditingPostId] = useState<string | null>(null);
   
-  const { register: registerLogin, handleSubmit: handleLoginSubmit, formState: { errors: loginErrors } } = useForm<LoginFormData>();
-  const { register: registerPost, handleSubmit: handlePostSubmit, formState: { errors: postErrors }, reset: resetPostForm, setValue } = useForm<PostFormData>();
+  // Extract post ID from URL if editing
+  const queryParams = new URLSearchParams(location.search);
+  const editPostId = queryParams.get('edit');
+  const postToEdit = editPostId ? posts.find(p => p.id === editPostId) : null;
   
-  useEffect(() => {
-    const queryParams = new URLSearchParams(location.search);
-    const editId = queryParams.get('edit');
-    
-    if (editId) {
-      const postToEdit = posts.find(p => p.id === editId);
-      if (postToEdit) {
-        setEditingPostId(editId);
-        setActiveTab('create');
-        
-        setValue('title', postToEdit.title);
-        setValue('slug', postToEdit.slug);
-        setValue('excerpt', postToEdit.excerpt);
-        setValue('content', postToEdit.content);
-        setValue('author', postToEdit.author);
-        setValue('imageUrl', postToEdit.imageUrl || '');
-        setValue('tags', postToEdit.tags.join(', '));
-      }
+  // Set up forms
+  const loginForm = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
+  
+  const postForm = useForm<PostFormValues>({
+    resolver: zodResolver(postSchema),
+    defaultValues: postToEdit ? {
+      title: postToEdit.title,
+      excerpt: postToEdit.excerpt,
+      content: postToEdit.content,
+      slug: postToEdit.slug,
+      author: postToEdit.author,
+      imageUrl: postToEdit.imageUrl || '',
+      tags: postToEdit.tags.join(', '),
+    } : {
+      title: '',
+      excerpt: '',
+      content: '',
+      slug: '',
+      author: 'Admin',
+      imageUrl: '',
+      tags: 'vedic, numerology',
+    },
+  });
+  
+  // Handle login form submission
+  const onLoginSubmit = async (data: LoginFormValues) => {
+    const success = await login(data.email, data.password);
+    if (success) {
+      toast({
+        title: 'Login Successful',
+        description: 'Welcome to the blog admin area!',
+        variant: 'default',
+      });
+    } else {
+      toast({
+        title: 'Login Failed',
+        description: 'Invalid email or password. Please try again.',
+        variant: 'destructive',
+      });
     }
-  }, [location.search, posts, setValue]);
+  };
   
-  useEffect(() => {
-    if (!isLoggedIn && activeTab !== 'login') {
-      setActiveTab('login');
-    }
-  }, [isLoggedIn, activeTab]);
-  
-  const onLoginSubmit = async (data: LoginFormData) => {
-    setIsSubmitting(true);
+  // Handle post form submission
+  const onPostSubmit = (data: PostFormValues) => {
     try {
-      const success = await login(data.email, data.password);
-      if (success) {
-        toast({
-          title: 'Login Successful',
-          description: 'You are now logged in as an admin.',
+      if (editPostId && postToEdit) {
+        editPost(editPostId, {
+          ...data,
+          tags: Array.isArray(data.tags) ? data.tags : data.tags.split(',').map(tag => tag.trim())
         });
-        setActiveTab('create');
+        toast({
+          title: 'Post Updated',
+          description: 'Your post has been successfully updated.',
+        });
       } else {
-        toast({
-          title: 'Login Failed',
-          description: 'Invalid email or password.',
-          variant: 'destructive',
+        addPost({
+          ...data,
+          tags: Array.isArray(data.tags) ? data.tags : data.tags.split(',').map(tag => tag.trim())
         });
+        toast({
+          title: 'Post Created',
+          description: 'Your new post has been successfully created.',
+        });
+        postForm.reset();
       }
     } catch (error) {
       toast({
-        title: 'Login Error',
-        description: 'An error occurred during login.',
+        title: 'Error',
+        description: 'Something went wrong. Please try again.',
         variant: 'destructive',
       });
-    } finally {
-      setIsSubmitting(false);
     }
   };
   
-  const onPostSubmit = (data: PostFormData) => {
-    const tagArray = data.tags.split(',').map(tag => tag.trim().toLowerCase());
-    
-    if (editingPostId) {
-      editPost(editingPostId, {
-        title: data.title,
-        slug: data.slug,
-        excerpt: data.excerpt,
-        content: data.content,
-        author: data.author,
-        imageUrl: data.imageUrl,
-        tags: tagArray,
-      });
-      
-      toast({
-        title: 'Post Updated',
-        description: 'Your post has been updated successfully.',
-      });
-      
-      setEditingPostId(null);
+  // Auto-generate slug from title
+  const generateSlug = () => {
+    const title = postForm.getValues('title');
+    if (title) {
+      const slug = title
+        .toLowerCase()
+        .replace(/[^\w\s]/gi, '')
+        .replace(/\s+/g, '-');
+      postForm.setValue('slug', slug);
+    }
+  };
+  
+  // Effect to update active tab and form based on login status
+  useEffect(() => {
+    if (isLoggedIn) {
+      setActiveTab(editPostId ? 'edit-post' : 'create-post');
     } else {
-      addPost({
-        title: data.title,
-        slug: data.slug,
-        excerpt: data.excerpt,
-        content: data.content,
-        author: data.author,
-        imageUrl: data.imageUrl,
-        tags: tagArray,
-      });
-      
-      toast({
-        title: 'Post Created',
-        description: 'Your post has been created successfully.',
-      });
+      setActiveTab('login');
     }
-    
-    resetPostForm();
-    navigate('/blog');
-  };
-  
-  const handleLogout = () => {
-    logout();
-    toast({
-      title: 'Logged Out',
-      description: 'You have been logged out successfully.',
-    });
-    navigate('/blog');
-  };
-  
-  const generateSlug = (title: string) => {
-    return title
-      .toLowerCase()
-      .replace(/[^\w\s]/gi, '')
-      .replace(/\s+/g, '-');
-  };
+  }, [isLoggedIn, editPostId]);
   
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-amber-50 to-amber-100">
       <NavBar />
-      <main className="flex-grow pt-16">
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-8">
-              <h1 className="text-3xl md:text-4xl font-bold text-amber-900 mb-2">
-                {isLoggedIn ? (t('blog.adminPanel') || 'Blog Admin Panel') : (t('blog.loginTitle') || 'Admin Login')}
-              </h1>
-              <p className="text-lg text-amber-800 max-w-2xl mx-auto">
-                {isLoggedIn 
-                  ? (t('blog.adminDesc') || 'Manage your blog posts and content')
-                  : (t('blog.loginDesc') || 'Please login to access the blog admin panel')}
-              </p>
+      <main className="flex-grow pt-16 pb-12">
+        <div className="container mx-auto px-4">
+          <div className="max-w-2xl mx-auto">
+            {/* Back button */}
+            <div className="mb-6">
+              <Button variant="outline" onClick={() => navigate('/blog')} className="flex items-center">
+                <ChevronLeft className="mr-2 h-4 w-4" /> Back to Blog
+              </Button>
             </div>
             
-            <Card className="shadow-xl">
-              <CardContent className="pt-6">
-                <Tabs value={activeTab} onValueChange={setActiveTab}>
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="login" disabled={isLoggedIn}>Login</TabsTrigger>
-                    <TabsTrigger value="create" disabled={!isLoggedIn}>
-                      {editingPostId ? 'Edit Post' : 'Create Post'}
-                    </TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="login">
-                    <form onSubmit={handleLoginSubmit(onLoginSubmit)} className="space-y-4 py-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          placeholder="Enter your email"
-                          {...registerLogin('email', { required: 'Email is required' })}
-                        />
-                        {loginErrors.email && (
-                          <p className="text-sm text-red-500">{loginErrors.email.message}</p>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl font-bold text-amber-900">
+                  Blog Administration
+                </CardTitle>
+                <CardDescription>
+                  {isLoggedIn 
+                    ? 'Manage your blog posts and content' 
+                    : 'Login to manage your blog'}
+                </CardDescription>
+              </CardHeader>
+              
+              <CardContent>
+                {!isLoggedIn ? (
+                  <Form {...loginForm}>
+                    <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
+                      <FormField
+                        control={loginForm.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center">
+                              <Mail className="mr-2 h-4 w-4" /> Email
+                            </FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter your email" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
                         )}
-                      </div>
+                      />
                       
-                      <div className="space-y-2">
-                        <Label htmlFor="password">Password</Label>
-                        <Input
-                          id="password"
-                          type="password"
-                          placeholder="Enter your password"
-                          {...registerLogin('password', { required: 'Password is required' })}
-                        />
-                        {loginErrors.password && (
-                          <p className="text-sm text-red-500">{loginErrors.password.message}</p>
+                      <FormField
+                        control={loginForm.control}
+                        name="password"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center">
+                              <Key className="mr-2 h-4 w-4" /> Password
+                            </FormLabel>
+                            <FormControl>
+                              <Input type="password" placeholder="Enter your password" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
                         )}
-                      </div>
+                      />
                       
-                      <Button type="submit" className="w-full" disabled={isSubmitting}>
-                        {isSubmitting ? 'Logging in...' : 'Login'}
+                      <Button type="submit" className="w-full">
+                        Login
                       </Button>
                     </form>
-                  </TabsContent>
+                  </Form>
+                ) : (
+                  <>
+                    <div className="flex justify-between items-center mb-6">
+                      <h2 className="text-xl font-semibold">Welcome, Admin!</h2>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          className="flex items-center" 
+                          onClick={() => navigate('/subscribers')}
+                        >
+                          <Users className="mr-2 h-4 w-4" />
+                          Subscriber List
+                        </Button>
+                        <Button variant="secondary" onClick={logout}>
+                          Logout
+                        </Button>
+                      </div>
+                    </div>
                   
-                  <TabsContent value="create">
-                    {isLoggedIn && (
-                      <form onSubmit={handlePostSubmit(onPostSubmit)} className="space-y-4 py-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="title">Title</Label>
-                          <Input
-                            id="title"
-                            {...registerPost('title', { required: 'Title is required' })}
-                            onChange={(e) => {
-                              registerPost('title').onChange(e);
-                              if (!editingPostId) {
-                                setValue('slug', generateSlug(e.target.value));
-                              }
-                            }}
-                          />
-                          {postErrors.title && (
-                            <p className="text-sm text-red-500">{postErrors.title.message}</p>
+                    <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab}>
+                      <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="create-post">
+                          <FileText className="mr-2 h-4 w-4" /> 
+                          {editPostId ? 'Edit Post' : 'Create Post'}
+                        </TabsTrigger>
+                        <TabsTrigger 
+                          value="manage-posts"
+                          disabled={!!editPostId}
+                        >
+                          Manage Posts
+                        </TabsTrigger>
+                      </TabsList>
+                      
+                      <TabsContent value="create-post" className="pt-4">
+                        <Form {...postForm}>
+                          <form onSubmit={postForm.handleSubmit(onPostSubmit)} className="space-y-4">
+                            <FormField
+                              control={postForm.control}
+                              name="title"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Post Title</FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      placeholder="Enter post title" 
+                                      {...field} 
+                                      onBlur={() => {
+                                        if (!editPostId && !postForm.getValues('slug')) {
+                                          generateSlug();
+                                        }
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <div className="grid grid-cols-2 gap-4">
+                              <FormField
+                                control={postForm.control}
+                                name="slug"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Slug</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="post-url-slug" {...field} />
+                                    </FormControl>
+                                    <FormDescription>
+                                      URL-friendly version of title
+                                    </FormDescription>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <FormField
+                                control={postForm.control}
+                                name="author"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Author</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="Author name" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                            
+                            <FormField
+                              control={postForm.control}
+                              name="excerpt"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Excerpt</FormLabel>
+                                  <FormControl>
+                                    <Textarea 
+                                      placeholder="Brief summary of the post" 
+                                      className="h-20"
+                                      {...field} 
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={postForm.control}
+                              name="content"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Content</FormLabel>
+                                  <FormControl>
+                                    <Textarea 
+                                      placeholder="Write your post content here (HTML supported)" 
+                                      className="h-48"
+                                      {...field} 
+                                    />
+                                  </FormControl>
+                                  <FormDescription>
+                                    HTML tags are supported for formatting
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={postForm.control}
+                              name="imageUrl"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Featured Image URL</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="/path/to/image.jpg" {...field} />
+                                  </FormControl>
+                                  <FormDescription>
+                                    Optional image URL for the post
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={postForm.control}
+                              name="tags"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Tags</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="numerology, vedic, basics" {...field} />
+                                  </FormControl>
+                                  <FormDescription>
+                                    Comma-separated tags for the post
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <Button type="submit" className="w-full">
+                              {editPostId ? 'Update Post' : 'Create Post'}
+                            </Button>
+                          </form>
+                        </Form>
+                      </TabsContent>
+                      
+                      <TabsContent value="manage-posts" className="pt-4">
+                        <div className="space-y-4">
+                          {posts.length === 0 ? (
+                            <p className="text-center text-gray-500 py-8">No posts yet. Create your first post!</p>
+                          ) : (
+                            posts.map(post => (
+                              <Card key={post.id} className="overflow-hidden">
+                                <CardContent className="p-0">
+                                  <div className="p-4">
+                                    <h3 className="font-bold truncate">{post.title}</h3>
+                                    <p className="text-sm text-gray-500 mt-1">
+                                      {new Date(post.date).toLocaleDateString()} • {post.author}
+                                    </p>
+                                  </div>
+                                  <div className="bg-gray-50 px-4 py-3 flex justify-end gap-2">
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm"
+                                      onClick={() => navigate(`/blog/${post.slug}`)}
+                                    >
+                                      View
+                                    </Button>
+                                    <Button 
+                                      variant="default" 
+                                      size="sm"
+                                      onClick={() => navigate(`/blog/admin?edit=${post.id}`)}
+                                    >
+                                      Edit
+                                    </Button>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            ))
                           )}
                         </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="slug">Slug</Label>
-                          <Input
-                            id="slug"
-                            {...registerPost('slug', { required: 'Slug is required' })}
-                          />
-                          {postErrors.slug && (
-                            <p className="text-sm text-red-500">{postErrors.slug.message}</p>
-                          )}
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="excerpt">Excerpt</Label>
-                          <Textarea
-                            id="excerpt"
-                            {...registerPost('excerpt', { required: 'Excerpt is required' })}
-                          />
-                          {postErrors.excerpt && (
-                            <p className="text-sm text-red-500">{postErrors.excerpt.message}</p>
-                          )}
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="content">Content (HTML)</Label>
-                          <Textarea
-                            id="content"
-                            rows={10}
-                            {...registerPost('content', { required: 'Content is required' })}
-                          />
-                          {postErrors.content && (
-                            <p className="text-sm text-red-500">{postErrors.content.message}</p>
-                          )}
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="author">Author</Label>
-                          <Input
-                            id="author"
-                            {...registerPost('author', { required: 'Author is required' })}
-                          />
-                          {postErrors.author && (
-                            <p className="text-sm text-red-500">{postErrors.author.message}</p>
-                          )}
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="imageUrl">Image URL (optional)</Label>
-                          <Input
-                            id="imageUrl"
-                            {...registerPost('imageUrl')}
-                          />
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="tags">Tags (comma separated)</Label>
-                          <Input
-                            id="tags"
-                            {...registerPost('tags', { required: 'At least one tag is required' })}
-                            placeholder="numerology, vedic, astrology"
-                          />
-                          {postErrors.tags && (
-                            <p className="text-sm text-red-500">{postErrors.tags.message}</p>
-                          )}
-                        </div>
-                        
-                        <div className="flex space-x-2">
-                          <Button type="submit" className="flex-1">
-                            {editingPostId ? 'Update Post' : 'Create Post'}
-                          </Button>
-                          <Button type="button" variant="outline" onClick={handleLogout}>
-                            Logout
-                          </Button>
-                        </div>
-                      </form>
-                    )}
-                  </TabsContent>
-                </Tabs>
+                      </TabsContent>
+                    </Tabs>
+                  </>
+                )}
               </CardContent>
+              
+              <CardFooter className="flex justify-center border-t pt-4">
+                <p className="text-sm text-gray-500">
+                  Vedic Wisdom Admin Portal • v1.0
+                </p>
+              </CardFooter>
             </Card>
           </div>
         </div>

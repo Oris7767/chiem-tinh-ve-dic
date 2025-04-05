@@ -1,11 +1,12 @@
 
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
+import { useSubscribers } from '../context/SubscriberContext';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 import { Mail } from 'lucide-react';
 
 type FormData = {
@@ -15,14 +16,17 @@ type FormData = {
 
 const NewsletterSignup = () => {
   const { t } = useLanguage();
+  const { addSubscriber } = useSubscribers();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>();
   
   const onSubmit = (data: FormData) => {
     setIsSubmitting(true);
     
-    // In a real implementation, this would send data to a backend API
-    // For demo purposes, we'll just simulate a successful submission
+    // Add the subscriber to our context
+    addSubscriber(data.name, data.email);
+    
+    // Show success message
     setTimeout(() => {
       toast({
         title: t('newsletter.successTitle') || 'Subscription Successful!',
