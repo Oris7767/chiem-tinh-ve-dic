@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
@@ -76,10 +75,9 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
   const isLoggedIn = !!blogToken;
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    // In a real app, you would validate credentials against a backend
-    // For demo purposes, we'll use a hardcoded admin email and password
-    if (email === 'admin@example.com' && password === 'admin123') {
-      setBlogToken('demo-token-' + Date.now());
+    // Master account login
+    if (email === 'votiveacademy@gmail.com' && password === 'Votive@6789') {
+      setBlogToken('master-token-' + Date.now());
       return true;
     }
     return false;

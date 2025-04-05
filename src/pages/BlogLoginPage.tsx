@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
@@ -42,7 +41,6 @@ const BlogLoginPage = () => {
   const { register: registerLogin, handleSubmit: handleLoginSubmit, formState: { errors: loginErrors } } = useForm<LoginFormData>();
   const { register: registerPost, handleSubmit: handlePostSubmit, formState: { errors: postErrors }, reset: resetPostForm, setValue } = useForm<PostFormData>();
   
-  // Check if we need to edit a post based on URL query params
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
     const editId = queryParams.get('edit');
@@ -53,7 +51,6 @@ const BlogLoginPage = () => {
         setEditingPostId(editId);
         setActiveTab('create');
         
-        // Pre-fill the form with post data
         setValue('title', postToEdit.title);
         setValue('slug', postToEdit.slug);
         setValue('excerpt', postToEdit.excerpt);
@@ -65,7 +62,6 @@ const BlogLoginPage = () => {
     }
   }, [location.search, posts, setValue]);
   
-  // Redirect if not logged in (except for login tab)
   useEffect(() => {
     if (!isLoggedIn && activeTab !== 'login') {
       setActiveTab('login');
@@ -191,7 +187,7 @@ const BlogLoginPage = () => {
                         <Input
                           id="email"
                           type="email"
-                          placeholder="admin@example.com"
+                          placeholder="Enter your email"
                           {...registerLogin('email', { required: 'Email is required' })}
                         />
                         {loginErrors.email && (
@@ -204,7 +200,7 @@ const BlogLoginPage = () => {
                         <Input
                           id="password"
                           type="password"
-                          placeholder="********"
+                          placeholder="Enter your password"
                           {...registerLogin('password', { required: 'Password is required' })}
                         />
                         {loginErrors.password && (
@@ -215,10 +211,6 @@ const BlogLoginPage = () => {
                       <Button type="submit" className="w-full" disabled={isSubmitting}>
                         {isSubmitting ? 'Logging in...' : 'Login'}
                       </Button>
-                      
-                      <p className="text-sm text-amber-700 text-center">
-                        For demo purposes, use: admin@example.com / admin123
-                      </p>
                     </form>
                   </TabsContent>
                   
