@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import ImageUpload from '@/components/ImageUpload';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from '@/hooks/use-toast';
@@ -184,6 +185,7 @@ const BlogLoginPage = () => {
               
               <CardContent>
                 {!isLoggedIn ? (
+                  // ... keep existing code (login form)
                   <Form {...loginForm}>
                     <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
                       <FormField
@@ -353,18 +355,18 @@ const BlogLoginPage = () => {
                               )}
                             />
                             
+                            {/* Replace URL input with image upload component */}
                             <FormField
                               control={postForm.control}
                               name="imageUrl"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>Featured Image URL</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="/path/to/image.jpg" {...field} />
+                                    <ImageUpload 
+                                      value={field.value || ''} 
+                                      onChange={field.onChange}
+                                    />
                                   </FormControl>
-                                  <FormDescription>
-                                    Optional image URL for the post
-                                  </FormDescription>
                                   <FormMessage />
                                 </FormItem>
                               )}
