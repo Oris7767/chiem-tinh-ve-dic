@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { toast } from '@/components/ui/toast';
+import { toast } from '@/hooks/use-toast';
 import { ChevronLeft, Mail, Key, FileText, Users } from 'lucide-react';
 
 // Admin Login Form Schema
@@ -100,10 +100,15 @@ const BlogLoginPage = () => {
   // Handle post form submission
   const onPostSubmit = (data: PostFormValues) => {
     try {
+      // Transform tags field to ensure it's an array
+      const tagsArray = typeof data.tags === 'string' 
+        ? data.tags.split(',').map(tag => tag.trim())
+        : data.tags;
+        
       if (editPostId && postToEdit) {
         editPost(editPostId, {
           ...data,
-          tags: Array.isArray(data.tags) ? data.tags : data.tags.split(',').map(tag => tag.trim())
+          tags: tagsArray
         });
         toast({
           title: 'Post Updated',
@@ -112,7 +117,7 @@ const BlogLoginPage = () => {
       } else {
         addPost({
           ...data,
-          tags: Array.isArray(data.tags) ? data.tags : data.tags.split(',').map(tag => tag.trim())
+          tags: tagsArray
         });
         toast({
           title: 'Post Created',

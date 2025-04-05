@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
@@ -88,8 +89,14 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
   };
 
   const addPost = (post: Omit<BlogPost, 'id' | 'date'>) => {
-    const newPost: BlogPost = {
+    // Ensure tags is always an array
+    const ensuredPost = {
       ...post,
+      tags: Array.isArray(post.tags) ? post.tags : []
+    };
+    
+    const newPost: BlogPost = {
+      ...ensuredPost,
       id: Date.now().toString(),
       date: new Date().toISOString().split('T')[0]
     };
@@ -97,9 +104,15 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
   };
 
   const editPost = (id: string, updates: Partial<Omit<BlogPost, 'id'>>) => {
+    // Ensure tags is always an array if it exists in updates
+    const ensuredUpdates = {
+      ...updates,
+      tags: updates.tags ? (Array.isArray(updates.tags) ? updates.tags : []) : undefined
+    };
+    
     setPosts(prevPosts => 
       prevPosts.map(post => 
-        post.id === id ? { ...post, ...updates } : post
+        post.id === id ? { ...post, ...ensuredUpdates } : post
       )
     );
   };
