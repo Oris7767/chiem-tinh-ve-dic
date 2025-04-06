@@ -6,7 +6,6 @@ import { useToast } from '@/hooks/use-toast';
 
 // Import type from Supabase generated types
 import type { Database } from '@/integrations/supabase/types';
-type SubscriberRow = Database['public']['Tables']['subscribers']['Row'];
 
 export type Subscriber = {
   id: string;
@@ -47,15 +46,17 @@ export const SubscriberProvider: React.FC<{children: React.ReactNode}> = ({ chil
           return;
         }
         
-        // Map Supabase data to our Subscriber type
-        const formattedSubscribers = data.map((sub: SubscriberRow) => ({
-          id: sub.id,
-          name: sub.name,
-          email: sub.email,
-          date: sub.created_at
-        }));
-        
-        setSubscribers(formattedSubscribers);
+        if (data) {
+          // Map Supabase data to our Subscriber type
+          const formattedSubscribers = data.map((sub) => ({
+            id: sub.id,
+            name: sub.name,
+            email: sub.email,
+            date: sub.created_at
+          }));
+          
+          setSubscribers(formattedSubscribers);
+        }
       } catch (err) {
         console.error('Failed to fetch subscribers:', err);
         // Fallback to local storage
@@ -101,26 +102,30 @@ export const SubscriberProvider: React.FC<{children: React.ReactNode}> = ({ chil
         return false;
       }
       
-      // Add to local state with Supabase returned data
-      const newSubscriber: Subscriber = {
-        id: data[0].id,
-        name: data[0].name,
-        email: data[0].email,
-        date: data[0].created_at
-      };
+      if (data && data.length > 0) {
+        // Add to local state with Supabase returned data
+        const newSubscriber: Subscriber = {
+          id: data[0].id,
+          name: data[0].name,
+          email: data[0].email,
+          date: data[0].created_at
+        };
+        
+        const updatedSubscribers = [...subscribers, newSubscriber];
+        setSubscribers(updatedSubscribers);
+        
+        // Update local storage as backup
+        setStoredSubscribers(updatedSubscribers);
+        
+        toast({
+          title: 'Success',
+          description: 'Thank you for subscribing to our newsletter!',
+        });
+        
+        return true;
+      }
       
-      const updatedSubscribers = [...subscribers, newSubscriber];
-      setSubscribers(updatedSubscribers);
-      
-      // Update local storage as backup
-      setStoredSubscribers(updatedSubscribers);
-      
-      toast({
-        title: 'Success',
-        description: 'Thank you for subscribing to our newsletter!',
-      });
-      
-      return true;
+      return false;
     } catch (err) {
       console.error('Failed to add subscriber:', err);
       toast({

@@ -3,6 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import type { Database } from '@/integrations/supabase/types';
 
 export type BlogPost = {
   id: string;
@@ -98,7 +99,7 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
             description: 'Using sample posts instead.',
             variant: 'destructive'
           });
-        } else {
+        } else if (data) {
           // Map the database schema to our BlogPost type
           const formattedPosts = data.map(post => ({
             id: post.id,
@@ -153,15 +154,18 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
       };
       
       // Insert into Supabase
-      const { data, error } = await supabase.from('blog_posts').insert({
-        title: ensuredPost.title,
-        content: ensuredPost.content,
-        excerpt: ensuredPost.excerpt,
-        slug: ensuredPost.slug,
-        author: ensuredPost.author,
-        image_url: ensuredPost.imageUrl || null,
-        tags: ensuredPost.tags
-      }).select();
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .insert({
+          title: ensuredPost.title,
+          content: ensuredPost.content,
+          excerpt: ensuredPost.excerpt,
+          slug: ensuredPost.slug,
+          author: ensuredPost.author,
+          image_url: ensuredPost.imageUrl || null,
+          tags: ensuredPost.tags
+        })
+        .select();
       
       if (error) {
         console.error('Error adding post to Supabase:', error);
@@ -173,24 +177,26 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
         return;
       }
       
-      // Add the new post to local state
-      const newPost: BlogPost = {
-        id: data[0].id,
-        title: data[0].title,
-        content: data[0].content,
-        excerpt: data[0].excerpt,
-        slug: data[0].slug,
-        author: data[0].author,
-        date: data[0].date,
-        imageUrl: data[0].image_url || undefined,
-        tags: data[0].tags || []
-      };
-      
-      setPosts([newPost, ...posts]);
-      toast({
-        title: 'Success',
-        description: 'Post has been published.',
-      });
+      if (data && data.length > 0) {
+        // Add the new post to local state
+        const newPost: BlogPost = {
+          id: data[0].id,
+          title: data[0].title,
+          content: data[0].content,
+          excerpt: data[0].excerpt,
+          slug: data[0].slug,
+          author: data[0].author,
+          date: data[0].date,
+          imageUrl: data[0].image_url || undefined,
+          tags: data[0].tags || []
+        };
+        
+        setPosts([newPost, ...posts]);
+        toast({
+          title: 'Success',
+          description: 'Post has been published.',
+        });
+      }
     } catch (err) {
       console.error('Failed to add post:', err);
       toast({

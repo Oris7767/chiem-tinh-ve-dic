@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
@@ -20,10 +19,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Download, Search, Trash2, LogOut } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
-// Import type from Supabase generated types
-import type { Database } from '@/integrations/supabase/types';
-type SubscriberRow = Database['public']['Tables']['subscribers']['Row'];
 
 type Subscriber = {
   id: string;
@@ -72,16 +67,18 @@ const SubscribersAdminPage = () => {
           return;
         }
         
-        // Map Supabase data to our Subscriber type
-        const formattedSubscribers = data.map((sub: SubscriberRow) => ({
-          id: sub.id,
-          name: sub.name,
-          email: sub.email,
-          date: sub.created_at
-        }));
-        
-        setSubscribers(formattedSubscribers);
-        setFilteredSubscribers(formattedSubscribers);
+        if (data) {
+          // Map Supabase data to our Subscriber type
+          const formattedSubscribers = data.map((sub) => ({
+            id: sub.id,
+            name: sub.name,
+            email: sub.email,
+            date: sub.created_at
+          }));
+          
+          setSubscribers(formattedSubscribers);
+          setFilteredSubscribers(formattedSubscribers);
+        }
       } catch (err) {
         console.error('Failed to fetch subscribers:', err);
         toast({
