@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
 export type BlogPost = {
@@ -70,7 +70,7 @@ const samplePosts: BlogPost[] = [
 const BlogContext = createContext<BlogContextType | undefined>(undefined);
 
 export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
-  const [posts, setPosts] = useState<BlogPost[]>(samplePosts);
+  const [posts, setPosts] = useLocalStorage<BlogPost[]>('blog-posts', samplePosts);
   const [blogToken, setBlogToken] = useLocalStorage<string | null>('blog-admin-token', null);
 
   const isLoggedIn = !!blogToken;
