@@ -1,6 +1,8 @@
 
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export type BlogPost = {
   id: string;
@@ -19,13 +21,14 @@ type BlogContextType = {
   isLoggedIn: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
-  addPost: (post: Omit<BlogPost, 'id' | 'date'>) => void;
-  editPost: (id: string, post: Partial<Omit<BlogPost, 'id'>>) => void;
-  deletePost: (id: string) => void;
+  addPost: (post: Omit<BlogPost, 'id' | 'date'>) => Promise<void>;
+  editPost: (id: string, post: Partial<Omit<BlogPost, 'id'>>) => Promise<void>;
+  deletePost: (id: string) => Promise<void>;
   getPostBySlug: (slug: string) => BlogPost | undefined;
+  loading: boolean;
 };
 
-// Sample blog posts for demonstration
+// Sample blog posts for local development if Supabase fetch fails
 const samplePosts: BlogPost[] = [
   {
     id: '1',
@@ -70,10 +73,57 @@ const samplePosts: BlogPost[] = [
 const BlogContext = createContext<BlogContextType | undefined>(undefined);
 
 export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
-  const [posts, setPosts] = useLocalStorage<BlogPost[]>('blog-posts', samplePosts);
+  const [posts, setPosts] = useState<BlogPost[]>([]);
   const [blogToken, setBlogToken] = useLocalStorage<string | null>('blog-admin-token', null);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   const isLoggedIn = !!blogToken;
+  
+  // Fetch posts from Supabase on initial load
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('blog_posts')
+          .select('*')
+          .order('date', { ascending: false });
+        
+        if (error) {
+          console.error('Error fetching blog posts:', error);
+          setPosts(samplePosts);
+          toast({
+            title: 'Error fetching posts',
+            description: 'Using sample posts instead.',
+            variant: 'destructive'
+          });
+        } else {
+          // Map the database schema to our BlogPost type
+          const formattedPosts = data.map(post => ({
+            id: post.id,
+            title: post.title,
+            content: post.content,
+            excerpt: post.excerpt,
+            slug: post.slug,
+            author: post.author,
+            date: post.date,
+            imageUrl: post.image_url || undefined,
+            tags: post.tags || []
+          }));
+          
+          setPosts(formattedPosts);
+        }
+      } catch (err) {
+        console.error('Failed to fetch posts:', err);
+        setPosts(samplePosts);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, [toast]);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     // Master account login
@@ -88,48 +138,156 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
     setBlogToken(null);
   };
 
-  const addPost = (post: Omit<BlogPost, 'id' | 'date'>) => {
-    // Validate that post has all required fields with correct types
-    if (!post.title || !post.content || !post.excerpt || !post.slug || !post.author) {
-      console.error("Missing required fields in post data");
-      return;
+  const addPost = async (post: Omit<BlogPost, 'id' | 'date'>) => {
+    try {
+      // Validate that post has all required fields with correct types
+      if (!post.title || !post.content || !post.excerpt || !post.slug || !post.author) {
+        console.error("Missing required fields in post data");
+        return;
+      }
+      
+      // Ensure tags is always an array
+      const ensuredPost = {
+        ...post,
+        tags: Array.isArray(post.tags) ? post.tags : []
+      };
+      
+      // Insert into Supabase
+      const { data, error } = await supabase.from('blog_posts').insert({
+        title: ensuredPost.title,
+        content: ensuredPost.content,
+        excerpt: ensuredPost.excerpt,
+        slug: ensuredPost.slug,
+        author: ensuredPost.author,
+        image_url: ensuredPost.imageUrl || null,
+        tags: ensuredPost.tags
+      }).select();
+      
+      if (error) {
+        console.error('Error adding post to Supabase:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to add post. Please try again.',
+          variant: 'destructive'
+        });
+        return;
+      }
+      
+      // Add the new post to local state
+      const newPost: BlogPost = {
+        id: data[0].id,
+        title: data[0].title,
+        content: data[0].content,
+        excerpt: data[0].excerpt,
+        slug: data[0].slug,
+        author: data[0].author,
+        date: data[0].date,
+        imageUrl: data[0].image_url || undefined,
+        tags: data[0].tags || []
+      };
+      
+      setPosts([newPost, ...posts]);
+      toast({
+        title: 'Success',
+        description: 'Post has been published.',
+      });
+    } catch (err) {
+      console.error('Failed to add post:', err);
+      toast({
+        title: 'Error',
+        description: 'An unexpected error occurred.',
+        variant: 'destructive'
+      });
     }
-    
-    // Ensure tags is always an array
-    const ensuredPost = {
-      ...post,
-      tags: Array.isArray(post.tags) ? post.tags : []
-    };
-    
-    const newPost: BlogPost = {
-      ...ensuredPost,
-      id: Date.now().toString(),
-      date: new Date().toISOString().split('T')[0]
-    };
-    
-    // Fix: Correctly type the setter function
-    setPosts([newPost, ...posts]);
   };
 
-  const editPost = (id: string, updates: Partial<Omit<BlogPost, 'id'>>) => {
-    // Ensure tags is always an array if it exists in updates
-    const ensuredUpdates = {
-      ...updates,
-      tags: updates.tags ? (Array.isArray(updates.tags) ? updates.tags : []) : undefined
-    };
-    
-    // Fix: Correctly type the setter function
-    const updatedPosts = posts.map(post => 
-      post.id === id ? { ...post, ...ensuredUpdates } : post
-    );
-    
-    setPosts(updatedPosts);
+  const editPost = async (id: string, updates: Partial<Omit<BlogPost, 'id'>>) => {
+    try {
+      // Ensure tags is always an array if it exists in updates
+      const ensuredUpdates = {
+        ...updates,
+        tags: updates.tags ? (Array.isArray(updates.tags) ? updates.tags : []) : undefined,
+        image_url: updates.imageUrl
+      };
+      
+      // Remove imageUrl from updates as we're using image_url in Supabase
+      if (ensuredUpdates.imageUrl) {
+        delete ensuredUpdates.imageUrl;
+      }
+      
+      // Update in Supabase
+      const { error } = await supabase
+        .from('blog_posts')
+        .update(ensuredUpdates)
+        .eq('id', id);
+      
+      if (error) {
+        console.error('Error updating post in Supabase:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to update post. Please try again.',
+          variant: 'destructive'
+        });
+        return;
+      }
+      
+      // Update local state
+      const updatedPosts = posts.map(post => 
+        post.id === id ? { 
+          ...post, 
+          ...updates,
+          imageUrl: updates.imageUrl || post.imageUrl 
+        } : post
+      );
+      
+      setPosts(updatedPosts);
+      toast({
+        title: 'Success',
+        description: 'Post has been updated.',
+      });
+    } catch (err) {
+      console.error('Failed to update post:', err);
+      toast({
+        title: 'Error',
+        description: 'An unexpected error occurred.',
+        variant: 'destructive'
+      });
+    }
   };
 
-  const deletePost = (id: string) => {
-    // Fix: Correctly type the setter function
-    const filteredPosts = posts.filter(post => post.id !== id);
-    setPosts(filteredPosts);
+  const deletePost = async (id: string) => {
+    try {
+      // Delete from Supabase
+      const { error } = await supabase
+        .from('blog_posts')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        console.error('Error deleting post from Supabase:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to delete post. Please try again.',
+          variant: 'destructive'
+        });
+        return;
+      }
+      
+      // Update local state
+      const filteredPosts = posts.filter(post => post.id !== id);
+      setPosts(filteredPosts);
+      toast({
+        title: 'Success',
+        description: 'Post has been deleted.',
+      });
+    } catch (err) {
+      console.error('Failed to delete post:', err);
+      toast({
+        title: 'Error',
+        description: 'An unexpected error occurred.',
+        variant: 'destructive'
+      });
+    }
   };
 
   const getPostBySlug = (slug: string) => {
@@ -146,7 +304,8 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
         addPost, 
         editPost, 
         deletePost,
-        getPostBySlug
+        getPostBySlug,
+        loading
       }}
     >
       {children}

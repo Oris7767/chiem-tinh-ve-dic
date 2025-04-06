@@ -9,7 +9,87 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      blog_posts: {
+        Row: {
+          author: string
+          content: string
+          created_at: string
+          date: string
+          excerpt: string
+          id: string
+          image_url: string | null
+          slug: string
+          tags: string[] | null
+          title: string
+        }
+        Insert: {
+          author: string
+          content: string
+          created_at?: string
+          date?: string
+          excerpt: string
+          id?: string
+          image_url?: string | null
+          slug: string
+          tags?: string[] | null
+          title: string
+        }
+        Update: {
+          author?: string
+          content?: string
+          created_at?: string
+          date?: string
+          excerpt?: string
+          id?: string
+          image_url?: string | null
+          slug?: string
+          tags?: string[] | null
+          title?: string
+        }
+        Relationships: []
+      }
+      calculator_users: {
+        Row: {
+          created_at: string
+          date_of_birth: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          date_of_birth: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          date_of_birth?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      subscribers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
