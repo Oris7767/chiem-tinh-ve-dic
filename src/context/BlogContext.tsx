@@ -144,6 +144,11 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
       // Validate that post has all required fields with correct types
       if (!post.title || !post.content || !post.excerpt || !post.slug || !post.author) {
         console.error("Missing required fields in post data");
+        toast({
+          title: 'Error',
+          description: 'Missing required fields in post data.',
+          variant: 'destructive'
+        });
         return;
       }
       
@@ -153,18 +158,21 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
         tags: Array.isArray(post.tags) ? post.tags : []
       };
       
+      // Prepare data for Supabase
+      const supabaseData = {
+        title: ensuredPost.title,
+        content: ensuredPost.content,
+        excerpt: ensuredPost.excerpt,
+        slug: ensuredPost.slug,
+        author: ensuredPost.author,
+        image_url: ensuredPost.imageUrl || null,
+        tags: ensuredPost.tags
+      };
+      
       // Insert into Supabase
       const { data, error } = await supabase
         .from('blog_posts')
-        .insert({
-          title: ensuredPost.title,
-          content: ensuredPost.content,
-          excerpt: ensuredPost.excerpt,
-          slug: ensuredPost.slug,
-          author: ensuredPost.author,
-          image_url: ensuredPost.imageUrl || null,
-          tags: ensuredPost.tags
-        })
+        .insert(supabaseData)
         .select();
       
       if (error) {
@@ -209,22 +217,23 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
 
   const editPost = async (id: string, updates: Partial<Omit<BlogPost, 'id'>>) => {
     try {
-      // Ensure tags is always an array if it exists in updates
-      const ensuredUpdates = {
-        ...updates,
-        tags: updates.tags ? (Array.isArray(updates.tags) ? updates.tags : []) : undefined,
-        image_url: updates.imageUrl
-      };
+      // Prepare data for Supabase
+      const supabaseData: Record<string, any> = {};
       
-      // Remove imageUrl from updates as we're using image_url in Supabase
-      if (ensuredUpdates.imageUrl) {
-        delete ensuredUpdates.imageUrl;
-      }
+      // Only add fields that exist in updates
+      if (updates.title) supabaseData.title = updates.title;
+      if (updates.content) supabaseData.content = updates.content;
+      if (updates.excerpt) supabaseData.excerpt = updates.excerpt;
+      if (updates.slug) supabaseData.slug = updates.slug;
+      if (updates.author) supabaseData.author = updates.author;
+      if (updates.date) supabaseData.date = updates.date;
+      if ('imageUrl' in updates) supabaseData.image_url = updates.imageUrl || null;
+      if (updates.tags) supabaseData.tags = Array.isArray(updates.tags) ? updates.tags : [];
       
       // Update in Supabase
       const { error } = await supabase
         .from('blog_posts')
-        .update(ensuredUpdates)
+        .update(supabaseData)
         .eq('id', id);
       
       if (error) {
@@ -242,7 +251,7 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
         post.id === id ? { 
           ...post, 
           ...updates,
-          imageUrl: updates.imageUrl || post.imageUrl 
+          imageUrl: 'imageUrl' in updates ? updates.imageUrl : post.imageUrl 
         } : post
       );
       

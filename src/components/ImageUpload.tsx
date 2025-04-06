@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Upload, XCircle, Image as ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ImageUploadProps {
   value: string;
@@ -13,6 +15,7 @@ interface ImageUploadProps {
 const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, className }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string>(value || '');
+  const { toast } = useToast();
   
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -20,13 +23,21 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, className })
     
     // Check file type
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
+      toast({
+        title: 'Error',
+        description: 'Please select an image file',
+        variant: 'destructive'
+      });
       return;
     }
     
     // Check file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image size must be less than 5MB');
+      toast({
+        title: 'Error',
+        description: 'Image size must be less than 5MB',
+        variant: 'destructive'
+      });
       return;
     }
     
@@ -37,30 +48,49 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, className })
       const objectUrl = URL.createObjectURL(file);
       setPreviewUrl(objectUrl);
       
-      // Create FormData for the upload
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      // The public URL will be in the format: /lovable-uploads/[filename]
-      // We're simulating the upload here since we're using Lovable's built-in upload
-      // In a real app with Supabase, you'd upload to Supabase storage
-      
-      // Set the value with the uploaded file path
+      // Generate a unique file path for the upload
       const fileName = file.name.replace(/\s+/g, '-').toLowerCase();
       const randomId = Math.random().toString(36).substring(2, 15);
-      const uploadPath = `/lovable-uploads/${randomId}-${fileName}`;
+      const filePath = `${randomId}-${fileName}`;
       
-      // In a real app, you would make an actual upload request here
-      // For now, we simulate a successful upload
-      setTimeout(() => {
-        onChange(uploadPath);
-        setIsUploading(false);
-      }, 1000);
+      // Upload to Supabase Storage if connected
+      let uploadPath;
+      try {
+        // Try to upload to Supabase Storage
+        const { data, error } = await supabase.storage
+          .from('blog-images')
+          .upload(filePath, file);
+          
+        if (error) throw error;
+        
+        // Get the public URL
+        const { data: publicUrlData } = supabase.storage
+          .from('blog-images')
+          .getPublicUrl(data.path);
+          
+        uploadPath = publicUrlData.publicUrl;
+      } catch (uploadError) {
+        console.error('Supabase upload failed:', uploadError);
+        // Fallback to Lovable's built-in upload
+        uploadPath = `/lovable-uploads/${filePath}`;
+      }
+      
+      // Set the image URL
+      onChange(uploadPath);
+      toast({
+        title: 'Upload successful',
+        description: 'Image has been uploaded',
+      });
       
     } catch (error) {
       console.error('Error uploading image:', error);
+      toast({
+        title: 'Upload failed',
+        description: 'Failed to upload image. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
       setIsUploading(false);
-      alert('Failed to upload image. Please try again.');
     }
   };
   
