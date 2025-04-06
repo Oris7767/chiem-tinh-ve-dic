@@ -32,23 +32,26 @@ const Hero = () => {
       </div>
       
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto text-center">
-          <span className="inline-block py-1 px-3 rounded-full bg-primary/10 text-primary mb-4 animate-fade-in">
-            Khám phá con số của bạn
-          </span>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 animate-fade-in">
-            Số học <span className="text-primary">Vệ Đà</span>
-          </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed animate-fade-in-delay">
-            Khám phá ý nghĩa sâu sắc đằng sau những con số trong cuộc sống của bạn dựa trên nguyên lý cổ đại của số học Vệ Đà.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-delay">
-            <a href="#calculator" className="btn-primary w-full sm:w-auto">
-              Tính toán ngay
-            </a>
-            <a href="#about" className="px-6 py-3 text-gray-700 hover:text-primary transition-colors w-full sm:w-auto">
-              Tìm hiểu thêm
-            </a>
+        <div className="max-w-3xl mx-auto">
+          <div className="mb-8 text-center">
+            <img 
+              src="/lovable-uploads/e277c328-3b78-4167-95e7-ae0ec31b2995.png" 
+              alt="Số học Vệ Đà" 
+              className="w-full max-w-2xl mx-auto rounded-lg shadow-md animate-fade-in" 
+            />
+          </div>
+          <div className="text-center">
+            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed animate-fade-in-delay">
+              Khám phá ý nghĩa sâu sắc đằng sau những con số trong cuộc sống của bạn dựa trên nguyên lý cổ đại của số học Vệ Đà.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-delay">
+              <a href="#calculator" className="btn-primary w-full sm:w-auto">
+                Tính toán ngay
+              </a>
+              <a href="#about" className="px-6 py-3 text-gray-700 hover:text-primary transition-colors w-full sm:w-auto">
+                Tìm hiểu thêm
+              </a>
+            </div>
           </div>
         </div>
       </div>
