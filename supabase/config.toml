@@ -2,4 +2,4 @@
 project_id = "fccsmfhjcyztrymcsbki"
 
 [functions.create-bucket]
-verify_jwt = true
+verify_jwt = false

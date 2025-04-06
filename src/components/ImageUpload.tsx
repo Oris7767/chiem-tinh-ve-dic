@@ -53,10 +53,22 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, className })
       const randomId = Math.random().toString(36).substring(2, 15);
       const filePath = `${randomId}-${fileName}`;
       
-      // Upload to Supabase Storage if connected
-      let uploadPath;
+      // Test if storage is accessible
       try {
-        // Try to upload to Supabase Storage
+        const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+        
+        if (bucketsError) {
+          console.error("Error accessing Supabase storage:", bucketsError);
+          throw new Error("Cannot access storage");
+        }
+
+        const hasBucket = buckets?.some(bucket => bucket.name === 'blog-images');
+        if (!hasBucket) {
+          console.log("Blog-images bucket not found, attempting to create it...");
+          await supabase.functions.invoke('create-bucket');
+        }
+        
+        // Upload to Supabase Storage
         const { data, error } = await supabase.storage
           .from('blog-images')
           .upload(filePath, file);
@@ -68,20 +80,26 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, className })
           .from('blog-images')
           .getPublicUrl(data.path);
           
-        uploadPath = publicUrlData.publicUrl;
+        console.log("Upload successful:", publicUrlData);
+        
+        // Set the image URL
+        onChange(publicUrlData.publicUrl);
+        toast({
+          title: 'Upload successful',
+          description: 'Image has been uploaded',
+        });
       } catch (uploadError) {
         console.error('Supabase upload failed:', uploadError);
+        
         // Fallback to Lovable's built-in upload
-        uploadPath = `/lovable-uploads/${filePath}`;
+        const uploadPath = `/lovable-uploads/${filePath}`;
+        onChange(uploadPath);
+        
+        toast({
+          title: 'Using local storage',
+          description: 'Image will be stored locally',
+        });
       }
-      
-      // Set the image URL
-      onChange(uploadPath);
-      toast({
-        title: 'Upload successful',
-        description: 'Image has been uploaded',
-      });
-      
     } catch (error) {
       console.error('Error uploading image:', error);
       toast({

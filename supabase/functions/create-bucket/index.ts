@@ -13,14 +13,18 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders })
   }
 
-  // Get the Supabase URL and key from environment variables
-  const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-  const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
-
-  // Create a Supabase client with the admin key
-  const supabase = createClient(supabaseUrl, supabaseKey);
-
   try {
+    // Get the Supabase URL and key from environment variables
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Missing environment variables for Supabase connection');
+    }
+
+    // Create a Supabase client with the admin key
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
     // Check if the bucket already exists
     const { data: existingBuckets, error: listError } = await supabase
       .storage
