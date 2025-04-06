@@ -69,12 +69,6 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, className })
     setPreviewUrl('');
   };
   
-  const handleUseDemo = () => {
-    const demoImagePath = '/lovable-uploads/e277c328-3b78-4167-95e7-ae0ec31b2995.png';
-    setPreviewUrl(demoImagePath);
-    onChange(demoImagePath);
-  };
-  
   return (
     <div className={cn("space-y-4", className)}>
       <div className="flex items-center justify-between">
@@ -114,8 +108,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, className })
         </div>
       )}
       
-      <div className="flex gap-2">
-        <label htmlFor="image-upload" className="flex-1">
+      <div>
+        <label htmlFor="image-upload" className="w-full">
           <Button 
             type="button" 
             variant="outline" 
@@ -126,23 +120,15 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, className })
             {isUploading ? 'Uploading...' : 'Upload Image'}
           </Button>
         </label>
-        <Button 
-          type="button" 
-          variant="secondary" 
-          className="flex-1"
-          onClick={handleUseDemo}
-        >
-          Use Demo Image
-        </Button>
+        <input 
+          id="image-upload"
+          type="file" 
+          accept="image/*" 
+          onChange={handleFileChange}
+          className="sr-only"
+          disabled={isUploading}
+        />
       </div>
-      <input 
-        id="image-upload"
-        type="file" 
-        accept="image/*" 
-        onChange={handleFileChange}
-        className="sr-only"
-        disabled={isUploading}
-      />
     </div>
   );
 };
