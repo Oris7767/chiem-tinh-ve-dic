@@ -10,6 +10,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { toast } from '@/hooks/use-toast';
 import { useBlog } from '@/context/BlogContext';
 import ImageUpload from '@/components/ImageUpload';
+import { Loader2 } from 'lucide-react';
 
 // Post Creation/Edit Form Schema
 const postSchema = z.object({
@@ -33,7 +34,7 @@ interface PostFormProps {
 }
 
 const PostForm = ({ editPostId, postToEdit }: PostFormProps) => {
-  const { addPost, editPost } = useBlog();
+  const { addPost, editPost, isLoading } = useBlog();
   
   const form = useForm<PostFormValues>({
     resolver: zodResolver(postSchema),
@@ -60,11 +61,11 @@ const PostForm = ({ editPostId, postToEdit }: PostFormProps) => {
     }
   };
   
-  const onSubmit = (data: PostFormValues) => {
+  const onSubmit = async (data: PostFormValues) => {
     try {
       if (editPostId && postToEdit) {
         // For editing a post - all fields with proper types are now included
-        editPost(editPostId, {
+        await editPost(editPostId, {
           title: data.title,
           excerpt: data.excerpt,
           content: data.content,
@@ -79,7 +80,7 @@ const PostForm = ({ editPostId, postToEdit }: PostFormProps) => {
         });
       } else {
         // For creating a new post - ensure all required fields are provided
-        addPost({
+        await addPost({
           title: data.title,
           excerpt: data.excerpt,
           content: data.content,
@@ -233,8 +234,15 @@ const PostForm = ({ editPostId, postToEdit }: PostFormProps) => {
           )}
         />
         
-        <Button type="submit" className="w-full">
-          {editPostId ? 'Update Post' : 'Create Post'}
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              {editPostId ? 'Updating...' : 'Creating...'}
+            </>
+          ) : (
+            editPostId ? 'Update Post' : 'Create Post'
+          )}
         </Button>
       </form>
     </Form>

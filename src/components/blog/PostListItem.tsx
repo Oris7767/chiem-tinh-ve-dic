@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { BlogPost } from '@/context/BlogContext';
+import { useBlog } from '@/context/BlogContext';
+import { Loader2 } from 'lucide-react';
 
 interface PostListItemProps {
   post: BlogPost;
@@ -11,6 +13,7 @@ interface PostListItemProps {
 
 const PostListItem = ({ post }: PostListItemProps) => {
   const navigate = useNavigate();
+  const { isLoading } = useBlog();
   
   return (
     <Card className="overflow-hidden">
@@ -26,15 +29,17 @@ const PostListItem = ({ post }: PostListItemProps) => {
             variant="outline" 
             size="sm"
             onClick={() => navigate(`/blog/${post.slug}`)}
+            disabled={isLoading}
           >
-            View
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'View'}
           </Button>
           <Button 
             variant="default" 
             size="sm"
             onClick={() => navigate(`/blog/admin?edit=${post.id}`)}
+            disabled={isLoading}
           >
-            Edit
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Edit'}
           </Button>
         </div>
       </CardContent>

@@ -9,12 +9,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CalendarIcon, Tag, User, LogIn } from 'lucide-react';
+import { CalendarIcon, Tag, User, LogIn, Loader2 } from 'lucide-react';
 import NewsletterSignup from '../components/NewsletterSignup';
+import { Skeleton } from "@/components/ui/skeleton";
 
 const BlogPage = () => {
   const { t } = useLanguage();
-  const { posts, isLoggedIn } = useBlog();
+  const { posts, isLoggedIn, isLoading } = useBlog();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
@@ -55,6 +56,7 @@ const BlogPage = () => {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full"
+                  disabled={isLoading}
                 />
               </div>
               
@@ -81,6 +83,7 @@ const BlogPage = () => {
                 <TabsTrigger 
                   value="all"
                   onClick={() => setSelectedTag(null)}
+                  disabled={isLoading}
                 >
                   {t('blog.allPosts') || 'All Posts'}
                 </TabsTrigger>
@@ -89,6 +92,7 @@ const BlogPage = () => {
                     key={tag} 
                     value={tag}
                     onClick={() => setSelectedTag(tag)}
+                    disabled={isLoading}
                   >
                     {tag.charAt(0).toUpperCase() + tag.slice(1)}
                   </TabsTrigger>
@@ -96,61 +100,93 @@ const BlogPage = () => {
               </TabsList>
             </Tabs>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-              {filteredPosts.map(post => (
-                <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  {post.imageUrl && (
-                    <div className="h-48 overflow-hidden">
-                      <img 
-                        src={post.imageUrl} 
-                        alt={post.title}
-                        className="w-full h-full object-cover transition-transform hover:scale-105 duration-300"
-                      />
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <Card key={i} className="overflow-hidden">
+                    <div className="h-48">
+                      <Skeleton className="h-full w-full" />
                     </div>
-                  )}
-                  <CardHeader>
-                    <CardTitle>
-                      <Link to={`/blog/${post.slug}`} className="hover:text-amber-700 transition-colors">
-                        {post.title}
-                      </Link>
-                    </CardTitle>
-                    <CardDescription>
-                      <div className="flex items-center text-sm space-x-4 mt-2">
-                        <span className="flex items-center">
-                          <User size={14} className="mr-1" />
-                          {post.author}
-                        </span>
-                        <span className="flex items-center">
-                          <CalendarIcon size={14} className="mr-1" />
-                          {post.date}
-                        </span>
+                    <CardHeader>
+                      <Skeleton className="h-6 w-3/4" />
+                      <Skeleton className="h-4 w-1/2 mt-2" />
+                    </CardHeader>
+                    <CardContent>
+                      <Skeleton className="h-20 w-full" />
+                      <div className="flex flex-wrap gap-2 mt-4">
+                        <Skeleton className="h-5 w-16 rounded-full" />
+                        <Skeleton className="h-5 w-16 rounded-full" />
                       </div>
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-gray-600 mb-4">{post.excerpt}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {post.tags.map(tag => (
-                        <span 
-                          key={tag} 
-                          className="inline-flex items-center bg-amber-100 px-2 py-1 rounded-full text-xs text-amber-800"
-                        >
-                          <Tag size={10} className="mr-1" />
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Button asChild variant="outline" className="w-full">
-                      <Link to={`/blog/${post.slug}`}>
-                        {t('blog.readMore') || 'Read More'}
-                      </Link>
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
+                    </CardContent>
+                    <CardFooter>
+                      <Skeleton className="h-10 w-full" />
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                {filteredPosts.length === 0 ? (
+                  <div className="col-span-full text-center py-10">
+                    <p className="text-gray-500">No posts found matching your criteria</p>
+                  </div>
+                ) : (
+                  filteredPosts.map(post => (
+                    <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                      {post.imageUrl && (
+                        <div className="h-48 overflow-hidden">
+                          <img 
+                            src={post.imageUrl} 
+                            alt={post.title}
+                            className="w-full h-full object-cover transition-transform hover:scale-105 duration-300"
+                          />
+                        </div>
+                      )}
+                      <CardHeader>
+                        <CardTitle>
+                          <Link to={`/blog/${post.slug}`} className="hover:text-amber-700 transition-colors">
+                            {post.title}
+                          </Link>
+                        </CardTitle>
+                        <CardDescription>
+                          <div className="flex items-center text-sm space-x-4 mt-2">
+                            <span className="flex items-center">
+                              <User size={14} className="mr-1" />
+                              {post.author}
+                            </span>
+                            <span className="flex items-center">
+                              <CalendarIcon size={14} className="mr-1" />
+                              {post.date}
+                            </span>
+                          </div>
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-gray-600 mb-4">{post.excerpt}</p>
+                        <div className="flex flex-wrap gap-2">
+                          {post.tags.map(tag => (
+                            <span 
+                              key={tag} 
+                              className="inline-flex items-center bg-amber-100 px-2 py-1 rounded-full text-xs text-amber-800"
+                            >
+                              <Tag size={10} className="mr-1" />
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      </CardContent>
+                      <CardFooter>
+                        <Button asChild variant="outline" className="w-full">
+                          <Link to={`/blog/${post.slug}`}>
+                            {t('blog.readMore') || 'Read More'}
+                          </Link>
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))
+                )}
+              </div>
+            )}
 
             <div className="bg-white rounded-lg shadow-lg p-8 mb-12">
               <NewsletterSignup />

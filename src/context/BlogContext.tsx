@@ -1,6 +1,6 @@
-
-import React, { createContext, useContext } from 'react';
-import { useLocalStorage } from '../hooks/useLocalStorage';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../integrations/supabase/client';
+import { useToast } from "@/hooks/use-toast";
 
 export type BlogPost = {
   id: string;
@@ -17,15 +17,16 @@ export type BlogPost = {
 type BlogContextType = {
   posts: BlogPost[];
   isLoggedIn: boolean;
+  isLoading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
-  addPost: (post: Omit<BlogPost, 'id' | 'date'>) => void;
-  editPost: (id: string, post: Partial<Omit<BlogPost, 'id'>>) => void;
-  deletePost: (id: string) => void;
+  addPost: (post: Omit<BlogPost, 'id' | 'date'>) => Promise<void>;
+  editPost: (id: string, post: Partial<Omit<BlogPost, 'id'>>) => Promise<void>;
+  deletePost: (id: string) => Promise<void>;
   getPostBySlug: (slug: string) => BlogPost | undefined;
 };
 
-// Sample blog posts for demonstration
+// Sample blog posts for demonstration (will be used as fallback if database fetch fails)
 const samplePosts: BlogPost[] = [
   {
     id: '1',
@@ -70,25 +71,81 @@ const samplePosts: BlogPost[] = [
 const BlogContext = createContext<BlogContextType | undefined>(undefined);
 
 export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
-  const [posts, setPosts] = useLocalStorage<BlogPost[]>('blog-posts', samplePosts);
-  const [blogToken, setBlogToken] = useLocalStorage<string | null>('blog-admin-token', null);
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [blogToken, setBlogToken] = useState<string | null>(localStorage.getItem('blog-admin-token'));
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
   const isLoggedIn = !!blogToken;
+  
+  // Fetch posts from Supabase
+  useEffect(() => {
+    const fetchPosts = async () => {
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('blog_posts')
+          .select('*')
+          .order('date', { ascending: false });
+        
+        if (error) {
+          console.error('Error fetching posts:', error);
+          // Use sample posts as fallback
+          setPosts(samplePosts);
+          toast({
+            title: "Error fetching posts",
+            description: "Using sample posts instead",
+            variant: "destructive",
+          });
+        } else {
+          // Transform Supabase data format to match our BlogPost type
+          const formattedPosts: BlogPost[] = data.map(post => ({
+            id: post.id,
+            title: post.title,
+            content: post.content,
+            excerpt: post.excerpt,
+            slug: post.slug,
+            author: post.author,
+            date: new Date(post.date).toISOString().split('T')[0],
+            imageUrl: post.image_url || undefined,
+            tags: post.tags || []
+          }));
+          setPosts(formattedPosts);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        // Use sample posts as fallback
+        setPosts(samplePosts);
+        toast({
+          title: "Error fetching posts",
+          description: "Using sample posts instead",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     // Master account login
     if (email === 'votiveacademy@gmail.com' && password === 'Votive@6789') {
-      setBlogToken('master-token-' + Date.now());
+      const token = 'master-token-' + Date.now();
+      localStorage.setItem('blog-admin-token', token);
+      setBlogToken(token);
       return true;
     }
     return false;
   };
 
   const logout = () => {
+    localStorage.removeItem('blog-admin-token');
     setBlogToken(null);
   };
 
-  const addPost = (post: Omit<BlogPost, 'id' | 'date'>) => {
+  const addPost = async (post: Omit<BlogPost, 'id' | 'date'>) => {
     // Validate that post has all required fields with correct types
     if (!post.title || !post.content || !post.excerpt || !post.slug || !post.author) {
       console.error("Missing required fields in post data");
@@ -101,35 +158,146 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
       tags: Array.isArray(post.tags) ? post.tags : []
     };
     
-    const newPost: BlogPost = {
-      ...ensuredPost,
-      id: Date.now().toString(),
-      date: new Date().toISOString().split('T')[0]
-    };
+    setIsLoading(true);
     
-    // Fix type issue: Create a new array instead of using functional update
-    setPosts([newPost, ...posts]);
+    try {
+      // Insert the post into Supabase
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .insert([
+          {
+            title: ensuredPost.title,
+            content: ensuredPost.content,
+            excerpt: ensuredPost.excerpt,
+            slug: ensuredPost.slug,
+            author: ensuredPost.author,
+            image_url: ensuredPost.imageUrl,
+            tags: ensuredPost.tags
+          }
+        ])
+        .select();
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Add the new post to the state
+      if (data && data[0]) {
+        const newPost: BlogPost = {
+          id: data[0].id,
+          title: data[0].title,
+          content: data[0].content,
+          excerpt: data[0].excerpt,
+          slug: data[0].slug,
+          author: data[0].author,
+          date: new Date(data[0].date).toISOString().split('T')[0],
+          imageUrl: data[0].image_url || undefined,
+          tags: data[0].tags || []
+        };
+        
+        setPosts([newPost, ...posts]);
+        
+        toast({
+          title: "Post created",
+          description: "Your post has been successfully created",
+        });
+      }
+    } catch (error) {
+      console.error('Error adding post:', error);
+      toast({
+        title: "Error creating post",
+        description: "There was a problem creating your post",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const editPost = (id: string, updates: Partial<Omit<BlogPost, 'id'>>) => {
+  const editPost = async (id: string, updates: Partial<Omit<BlogPost, 'id'>>) => {
     // Ensure tags is always an array if it exists in updates
     const ensuredUpdates = {
       ...updates,
-      tags: updates.tags ? (Array.isArray(updates.tags) ? updates.tags : []) : undefined
+      tags: updates.tags ? (Array.isArray(updates.tags) ? updates.tags : []) : undefined,
+      image_url: updates.imageUrl // Map to the correct field name for Supabase
     };
     
-    // Fix type issue: Create a new array instead of using functional update
-    const updatedPosts = posts.map(post => 
-      post.id === id ? { ...post, ...ensuredUpdates } : post
-    );
+    // Remove the imageUrl field as we're using image_url for Supabase
+    if ('imageUrl' in ensuredUpdates) {
+      delete ensuredUpdates.imageUrl;
+    }
     
-    setPosts(updatedPosts);
+    setIsLoading(true);
+    
+    try {
+      const { error } = await supabase
+        .from('blog_posts')
+        .update(ensuredUpdates)
+        .eq('id', id);
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Update the post in the state
+      const updatedPosts = posts.map(post => 
+        post.id === id ? { 
+          ...post, 
+          ...updates,
+          // Make sure we keep imageUrl in our state (from image_url in updates)
+          imageUrl: updates.imageUrl !== undefined ? updates.imageUrl : post.imageUrl
+        } : post
+      );
+      
+      setPosts(updatedPosts);
+      
+      toast({
+        title: "Post updated",
+        description: "Your post has been successfully updated",
+      });
+    } catch (error) {
+      console.error('Error updating post:', error);
+      toast({
+        title: "Error updating post",
+        description: "There was a problem updating your post",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const deletePost = (id: string) => {
-    // Fix type issue: Create a new array instead of using functional update
-    const filteredPosts = posts.filter(post => post.id !== id);
-    setPosts(filteredPosts);
+  const deletePost = async (id: string) => {
+    setIsLoading(true);
+    
+    try {
+      const { error } = await supabase
+        .from('blog_posts')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Remove the post from the state
+      const filteredPosts = posts.filter(post => post.id !== id);
+      setPosts(filteredPosts);
+      
+      toast({
+        title: "Post deleted",
+        description: "Your post has been successfully deleted",
+      });
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      toast({
+        title: "Error deleting post",
+        description: "There was a problem deleting your post",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getPostBySlug = (slug: string) => {
@@ -140,7 +308,8 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
     <BlogContext.Provider 
       value={{ 
         posts, 
-        isLoggedIn, 
+        isLoggedIn,
+        isLoading,
         login, 
         logout, 
         addPost, 
