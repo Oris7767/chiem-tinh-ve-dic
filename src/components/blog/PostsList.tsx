@@ -1,13 +1,33 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useBlog } from '@/context/BlogContext';
 import PostListItem from './PostListItem';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 const PostsList = () => {
-  const { posts, isLoading } = useBlog();
+  const { posts, isLoading, fetchPosts } = useBlog();
+  
+  // Fetch posts when component mounts
+  useEffect(() => {
+    const loadPosts = async () => {
+      try {
+        await fetchPosts();
+        console.log("Posts loaded on mount:", posts.length);
+      } catch (error) {
+        console.error("Error fetching posts on mount:", error);
+        toast({
+          title: "Error loading posts",
+          description: "Could not load posts. Please try refreshing.",
+          variant: "destructive",
+        });
+      }
+    };
+    
+    loadPosts();
+  }, [fetchPosts]);
   
   if (isLoading) {
     return (
@@ -26,9 +46,21 @@ const PostsList = () => {
     );
   }
   
-  const handleRefresh = () => {
-    // Force page reload to refresh data from Supabase
-    window.location.reload();
+  const handleRefresh = async () => {
+    try {
+      await fetchPosts();
+      toast({
+        title: "Success",
+        description: "Posts refreshed successfully",
+      });
+    } catch (error) {
+      console.error("Error refreshing posts:", error);
+      toast({
+        title: "Error refreshing posts",
+        description: "Please try again later",
+        variant: "destructive",
+      });
+    }
   };
   
   return (

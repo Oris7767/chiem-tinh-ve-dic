@@ -27,6 +27,11 @@ const PostListItem = ({ post }: PostListItemProps) => {
         });
       } catch (error) {
         console.error("Error deleting post:", error);
+        toast({
+          title: "Error deleting post",
+          description: "Please try again later",
+          variant: "destructive",
+        });
       }
     }
   };

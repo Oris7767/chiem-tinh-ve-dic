@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from "@/hooks/use-toast";
 
@@ -24,6 +24,7 @@ type BlogContextType = {
   editPost: (id: string, post: Partial<Omit<BlogPost, 'id'>>) => Promise<void>;
   deletePost: (id: string) => Promise<void>;
   getPostBySlug: (slug: string) => BlogPost | undefined;
+  fetchPosts: () => Promise<void>;
 };
 
 // Sample blog posts for demonstration (will be used as fallback if database fetch fails)
@@ -79,60 +80,61 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
   const isLoggedIn = !!blogToken;
   
   // Fetch posts from Supabase
-  useEffect(() => {
-    const fetchPosts = async () => {
-      setIsLoading(true);
-      try {
-        console.log('Fetching posts from Supabase...');
-        const { data, error } = await supabase
-          .from('blog_posts')
-          .select('*')
-          .order('date', { ascending: false });
-        
-        if (error) {
-          console.error('Error fetching posts:', error);
-          // Use sample posts as fallback
-          setPosts(samplePosts);
-          toast({
-            title: "Error fetching posts",
-            description: "Using sample posts instead. Error: " + error.message,
-            variant: "destructive",
-          });
-        } else if (data) {
-          console.log('Successfully fetched posts:', data.length);
-          // Transform Supabase data format to match our BlogPost type
-          const formattedPosts: BlogPost[] = data.map(post => ({
-            id: post.id,
-            title: post.title,
-            content: post.content,
-            excerpt: post.excerpt,
-            slug: post.slug,
-            author: post.author,
-            date: new Date(post.date).toISOString().split('T')[0],
-            imageUrl: post.image_url || undefined,
-            tags: post.tags || []
-          }));
-          setPosts(formattedPosts);
-        } else {
-          console.log('No posts returned, using sample posts');
-          setPosts(samplePosts);
-        }
-      } catch (error) {
-        console.error('Unexpected error fetching posts:', error);
+  const fetchPosts = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      console.log('Fetching posts from Supabase...');
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .order('date', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching posts:', error);
         // Use sample posts as fallback
         setPosts(samplePosts);
         toast({
           title: "Error fetching posts",
-          description: "Using sample posts instead. Unexpected error occurred.",
+          description: "Using sample posts instead. Error: " + error.message,
           variant: "destructive",
         });
-      } finally {
-        setIsLoading(false);
+      } else if (data) {
+        console.log('Successfully fetched posts:', data.length);
+        // Transform Supabase data format to match our BlogPost type
+        const formattedPosts: BlogPost[] = data.map(post => ({
+          id: post.id,
+          title: post.title,
+          content: post.content,
+          excerpt: post.excerpt,
+          slug: post.slug,
+          author: post.author,
+          date: new Date(post.date).toISOString().split('T')[0],
+          imageUrl: post.image_url || undefined,
+          tags: post.tags || []
+        }));
+        setPosts(formattedPosts);
+      } else {
+        console.log('No posts returned, using sample posts');
+        setPosts(samplePosts);
       }
-    };
-
+    } catch (error) {
+      console.error('Unexpected error fetching posts:', error);
+      // Use sample posts as fallback
+      setPosts(samplePosts);
+      toast({
+        title: "Error fetching posts",
+        description: "Using sample posts instead. Unexpected error occurred.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
+  
+  // Initial fetch on mount
+  useEffect(() => {
     fetchPosts();
-  }, []);
+  }, [fetchPosts]);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     // Master account login
@@ -328,7 +330,8 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
         addPost, 
         editPost, 
         deletePost,
-        getPostBySlug
+        getPostBySlug,
+        fetchPosts
       }}
     >
       {children}
