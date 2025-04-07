@@ -83,6 +83,7 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
     const fetchPosts = async () => {
       setIsLoading(true);
       try {
+        console.log('Fetching posts from Supabase...');
         const { data, error } = await supabase
           .from('blog_posts')
           .select('*')
@@ -94,10 +95,11 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
           setPosts(samplePosts);
           toast({
             title: "Error fetching posts",
-            description: "Using sample posts instead",
+            description: "Using sample posts instead. Error: " + error.message,
             variant: "destructive",
           });
-        } else {
+        } else if (data) {
+          console.log('Successfully fetched posts:', data.length);
           // Transform Supabase data format to match our BlogPost type
           const formattedPosts: BlogPost[] = data.map(post => ({
             id: post.id,
@@ -111,14 +113,17 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
             tags: post.tags || []
           }));
           setPosts(formattedPosts);
+        } else {
+          console.log('No posts returned, using sample posts');
+          setPosts(samplePosts);
         }
       } catch (error) {
-        console.error('Error:', error);
+        console.error('Unexpected error fetching posts:', error);
         // Use sample posts as fallback
         setPosts(samplePosts);
         toast({
           title: "Error fetching posts",
-          description: "Using sample posts instead",
+          description: "Using sample posts instead. Unexpected error occurred.",
           variant: "destructive",
         });
       } finally {
@@ -161,6 +166,7 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
     setIsLoading(true);
     
     try {
+      console.log('Adding new post to Supabase:', ensuredPost);
       // Insert the post into Supabase
       const { data, error } = await supabase
         .from('blog_posts')
@@ -178,6 +184,7 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
         .select();
       
       if (error) {
+        console.error('Error adding post:', error);
         throw error;
       }
       
@@ -195,18 +202,19 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
           tags: data[0].tags || []
         };
         
-        setPosts([newPost, ...posts]);
+        console.log('New post created in Supabase:', newPost);
+        setPosts(prevPosts => [newPost, ...prevPosts]);
         
         toast({
           title: "Post created",
           description: "Your post has been successfully created",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding post:', error);
       toast({
         title: "Error creating post",
-        description: "There was a problem creating your post",
+        description: "There was a problem creating your post: " + (error?.message || "Unknown error"),
         variant: "destructive",
       });
     } finally {
@@ -230,36 +238,39 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
     setIsLoading(true);
     
     try {
+      console.log('Updating post in Supabase:', id, ensuredUpdates);
       const { error } = await supabase
         .from('blog_posts')
         .update(ensuredUpdates)
         .eq('id', id);
       
       if (error) {
+        console.error('Error updating post:', error);
         throw error;
       }
       
       // Update the post in the state
-      const updatedPosts = posts.map(post => 
-        post.id === id ? { 
-          ...post, 
-          ...updates,
-          // Make sure we keep imageUrl in our state (from image_url in updates)
-          imageUrl: updates.imageUrl !== undefined ? updates.imageUrl : post.imageUrl
-        } : post
+      setPosts(prevPosts => 
+        prevPosts.map(post => 
+          post.id === id ? { 
+            ...post, 
+            ...updates,
+            // Make sure we keep imageUrl in our state (from image_url in updates)
+            imageUrl: updates.imageUrl !== undefined ? updates.imageUrl : post.imageUrl
+          } : post
+        )
       );
       
-      setPosts(updatedPosts);
-      
+      console.log('Post updated in Supabase:', id);
       toast({
         title: "Post updated",
         description: "Your post has been successfully updated",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating post:', error);
       toast({
         title: "Error updating post",
-        description: "There was a problem updating your post",
+        description: "There was a problem updating your post: " + (error?.message || "Unknown error"),
         variant: "destructive",
       });
     } finally {
@@ -271,28 +282,30 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
     setIsLoading(true);
     
     try {
+      console.log('Deleting post from Supabase:', id);
       const { error } = await supabase
         .from('blog_posts')
         .delete()
         .eq('id', id);
       
       if (error) {
+        console.error('Error deleting post:', error);
         throw error;
       }
       
       // Remove the post from the state
-      const filteredPosts = posts.filter(post => post.id !== id);
-      setPosts(filteredPosts);
+      setPosts(prevPosts => prevPosts.filter(post => post.id !== id));
       
+      console.log('Post deleted from Supabase:', id);
       toast({
         title: "Post deleted",
         description: "Your post has been successfully deleted",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting post:', error);
       toast({
         title: "Error deleting post",
-        description: "There was a problem deleting your post",
+        description: "There was a problem deleting your post: " + (error?.message || "Unknown error"),
         variant: "destructive",
       });
     } finally {

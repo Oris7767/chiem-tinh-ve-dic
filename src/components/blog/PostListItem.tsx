@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { BlogPost } from '@/context/BlogContext';
 import { useBlog } from '@/context/BlogContext';
 import { Loader2 } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 interface PostListItemProps {
   post: BlogPost;
@@ -13,7 +14,22 @@ interface PostListItemProps {
 
 const PostListItem = ({ post }: PostListItemProps) => {
   const navigate = useNavigate();
-  const { isLoading } = useBlog();
+  const { isLoading, deletePost } = useBlog();
+  
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm('Are you sure you want to delete this post?')) {
+      try {
+        await deletePost(post.id);
+        toast({
+          title: "Success",
+          description: "Post deleted successfully",
+        });
+      } catch (error) {
+        console.error("Error deleting post:", error);
+      }
+    }
+  };
   
   return (
     <Card className="overflow-hidden">
@@ -40,6 +56,14 @@ const PostListItem = ({ post }: PostListItemProps) => {
             disabled={isLoading}
           >
             {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Edit'}
+          </Button>
+          <Button 
+            variant="destructive" 
+            size="sm"
+            onClick={handleDelete}
+            disabled={isLoading}
+          >
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Delete'}
           </Button>
         </div>
       </CardContent>
