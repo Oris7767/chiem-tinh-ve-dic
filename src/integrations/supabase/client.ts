@@ -3,10 +3,11 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
+// Define constants for Supabase connection
 const SUPABASE_URL = "https://fccsmfhjcyztrymcsbki.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjY3NtZmhqY3l6dHJ5bWNzYmtpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM5MTg0MDQsImV4cCI6MjA1OTQ5NDQwNH0.75abaQDmXbuwSuZ2F4jHpWxDCNVTGKDzKHxjhH80v9Y";
 
-// Create a Supabase client with proper configuration
+// Create a Supabase client with proper configuration and improved options
 export const supabase = createClient<Database>(
   SUPABASE_URL, 
   SUPABASE_PUBLISHABLE_KEY,
@@ -15,6 +16,27 @@ export const supabase = createClient<Database>(
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: false
+    },
+    global: {
+      headers: {
+        'x-client-info': 'lovable-app'
+      }
+    },
+    db: {
+      schema: 'public'
     }
   }
 );
+
+// Add a utility function to test connection
+export const testSupabaseConnection = async () => {
+  try {
+    const { data, error } = await supabase.from('subscribers').select('count').limit(1);
+    if (error) throw error;
+    console.log('Supabase connection successful:', data);
+    return { success: true, data };
+  } catch (err) {
+    console.error('Supabase connection test failed:', err);
+    return { success: false, error: err };
+  }
+};

@@ -1,7 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Upload, XCircle, Image as ImageIcon } from 'lucide-react';
+import { Upload, XCircle, Image as ImageIcon, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,11 +15,62 @@ interface ImageUploadProps {
 const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, className }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string>(value || '');
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  
+  useEffect(() => {
+    // Update preview if value changes externally
+    if (value !== previewUrl) {
+      setPreviewUrl(value);
+    }
+  }, [value]);
+  
+  const checkBucketExists = async (): Promise<boolean> => {
+    try {
+      console.log("Checking if blog-images bucket exists");
+      const { data: buckets, error } = await supabase.storage.listBuckets();
+      
+      if (error) {
+        console.error("Error checking buckets:", error);
+        return false;
+      }
+      
+      const exists = buckets?.some(bucket => bucket.name === 'blog-images');
+      console.log("blog-images bucket exists:", exists);
+      return exists;
+    } catch (err) {
+      console.error("Failed to check bucket:", err);
+      return false;
+    }
+  };
+  
+  const createBucket = async (): Promise<boolean> => {
+    try {
+      console.log("Attempting to create blog-images bucket via edge function");
+      const { data, error } = await supabase.functions.invoke('create-bucket', {
+        method: 'POST',
+        body: { bucketName: 'blog-images' },
+      });
+      
+      if (error) {
+        console.error("Error creating bucket via function:", error);
+        return false;
+      }
+      
+      console.log("Create bucket function response:", data);
+      return true;
+    } catch (err) {
+      console.error("Failed to create bucket:", err);
+      return false;
+    }
+  };
   
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    
+    // Reset error state
+    setError(null);
     
     // Check file type
     if (!file.type.startsWith('image/')) {
@@ -53,60 +104,67 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, className })
       const randomId = Math.random().toString(36).substring(2, 15);
       const filePath = `${randomId}-${fileName}`;
       
-      // Test if storage is accessible
+      console.log("Attempting to upload image:", filePath);
+      
+      // Check if bucket exists, if not try to create it
+      const bucketExists = await checkBucketExists();
+      if (!bucketExists) {
+        console.log("Bucket doesn't exist, creating it...");
+        const created = await createBucket();
+        if (!created) {
+          throw new Error("Failed to create storage bucket");
+        }
+      }
+      
+      // Upload to Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('blog-images')
+        .upload(filePath, file);
+        
+      if (error) {
+        console.error("Storage upload error:", error);
+        throw error;
+      }
+      
+      console.log("Upload successful:", data);
+      
+      // Get the public URL
+      const { data: publicUrlData } = supabase.storage
+        .from('blog-images')
+        .getPublicUrl(data.path);
+        
+      console.log("Public URL:", publicUrlData);
+      
+      // Set the image URL
+      onChange(publicUrlData.publicUrl);
+      toast({
+        title: 'Upload successful',
+        description: 'Image has been uploaded',
+      });
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      
+      // Fallback to Lovable's built-in upload if Supabase fails
       try {
-        const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+        console.log("Using Lovable's built-in upload as fallback");
+        const fileName = file.name.replace(/\s+/g, '-').toLowerCase();
+        const randomId = Math.random().toString(36).substring(2, 15);
+        const uploadPath = `/lovable-uploads/${randomId}-${fileName}`;
         
-        if (bucketsError) {
-          console.error("Error accessing Supabase storage:", bucketsError);
-          throw new Error("Cannot access storage");
-        }
-
-        const hasBucket = buckets?.some(bucket => bucket.name === 'blog-images');
-        if (!hasBucket) {
-          console.log("Blog-images bucket not found, attempting to create it...");
-          await supabase.functions.invoke('create-bucket');
-        }
-        
-        // Upload to Supabase Storage
-        const { data, error } = await supabase.storage
-          .from('blog-images')
-          .upload(filePath, file);
-          
-        if (error) throw error;
-        
-        // Get the public URL
-        const { data: publicUrlData } = supabase.storage
-          .from('blog-images')
-          .getPublicUrl(data.path);
-          
-        console.log("Upload successful:", publicUrlData);
-        
-        // Set the image URL
-        onChange(publicUrlData.publicUrl);
-        toast({
-          title: 'Upload successful',
-          description: 'Image has been uploaded',
-        });
-      } catch (uploadError) {
-        console.error('Supabase upload failed:', uploadError);
-        
-        // Fallback to Lovable's built-in upload
-        const uploadPath = `/lovable-uploads/${filePath}`;
         onChange(uploadPath);
         
         toast({
           title: 'Using local storage',
           description: 'Image will be stored locally',
         });
+      } catch (fallbackError) {
+        setError("Upload failed: Please try again later");
+        toast({
+          title: 'Upload failed',
+          description: 'Failed to upload image. Please try again.',
+          variant: 'destructive'
+        });
       }
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      toast({
-        title: 'Upload failed',
-        description: 'Failed to upload image. Please try again.',
-        variant: 'destructive'
-      });
     } finally {
       setIsUploading(false);
     }
@@ -115,6 +173,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, className })
   const handleClearImage = () => {
     onChange('');
     setPreviewUrl('');
+    setError(null);
   };
   
   return (
@@ -133,6 +192,13 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, className })
           </Button>
         )}
       </div>
+      
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-md flex items-center text-red-600">
+          <AlertTriangle className="h-4 w-4 mr-2" />
+          <span className="text-sm">{error}</span>
+        </div>
+      )}
       
       {previewUrl ? (
         <div className="relative border rounded-lg overflow-hidden bg-gray-50">

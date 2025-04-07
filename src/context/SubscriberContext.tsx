@@ -35,6 +35,8 @@ export const SubscriberProvider: React.FC<{children: React.ReactNode}> = ({ chil
     const fetchSubscribers = async () => {
       try {
         setLoading(true);
+        console.log("Fetching subscribers from Supabase");
+        
         const { data, error } = await supabase
           .from('subscribers')
           .select('*');
@@ -47,6 +49,7 @@ export const SubscriberProvider: React.FC<{children: React.ReactNode}> = ({ chil
         }
         
         if (data) {
+          console.log("Retrieved subscribers:", data.length);
           // Map Supabase data to our Subscriber type
           const formattedSubscribers = data.map((sub) => ({
             id: sub.id,
@@ -72,6 +75,19 @@ export const SubscriberProvider: React.FC<{children: React.ReactNode}> = ({ chil
   const addSubscriber = async (name: string, email: string): Promise<boolean> => {
     try {
       setLoading(true);
+      
+      console.log("Attempting to add subscriber:", { name, email });
+      
+      // Validate input
+      if (!name || !email) {
+        console.error("Missing required fields");
+        toast({
+          title: 'Validation Error',
+          description: 'Name and email are required',
+          variant: 'destructive'
+        });
+        return false;
+      }
       
       // Check if email already exists
       if (subscribers.some(sub => sub.email === email)) {
@@ -103,6 +119,8 @@ export const SubscriberProvider: React.FC<{children: React.ReactNode}> = ({ chil
       }
       
       if (data && data.length > 0) {
+        console.log("Subscriber added successfully:", data[0]);
+        
         // Add to local state with Supabase returned data
         const newSubscriber: Subscriber = {
           id: data[0].id,
