@@ -106,7 +106,9 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
       id: Date.now().toString(),
       date: new Date().toISOString().split('T')[0]
     };
-    setPosts(prevPosts => [newPost, ...prevPosts]);
+    
+    // Fix type issue: explicitly specify the type
+    setPosts((prevPosts: BlogPost[]) => [newPost, ...prevPosts]);
   };
 
   const editPost = (id: string, updates: Partial<Omit<BlogPost, 'id'>>) => {
@@ -116,7 +118,8 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
       tags: updates.tags ? (Array.isArray(updates.tags) ? updates.tags : []) : undefined
     };
     
-    setPosts(prevPosts => 
+    // Fix type issue: explicitly specify the type
+    setPosts((prevPosts: BlogPost[]) => 
       prevPosts.map(post => 
         post.id === id ? { ...post, ...ensuredUpdates } : post
       )
@@ -124,7 +127,8 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
   };
 
   const deletePost = (id: string) => {
-    setPosts(prevPosts => prevPosts.filter(post => post.id !== id));
+    // Fix type issue: explicitly specify the type
+    setPosts((prevPosts: BlogPost[]) => prevPosts.filter(post => post.id !== id));
   };
 
   const getPostBySlug = (slug: string) => {
