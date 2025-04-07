@@ -107,8 +107,8 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
       date: new Date().toISOString().split('T')[0]
     };
     
-    // Fix type issue: explicitly specify the type
-    setPosts((prevPosts: BlogPost[]) => [newPost, ...prevPosts]);
+    // Fix type issue: Create a new array instead of using functional update
+    setPosts([newPost, ...posts]);
   };
 
   const editPost = (id: string, updates: Partial<Omit<BlogPost, 'id'>>) => {
@@ -118,17 +118,18 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
       tags: updates.tags ? (Array.isArray(updates.tags) ? updates.tags : []) : undefined
     };
     
-    // Fix type issue: explicitly specify the type
-    setPosts((prevPosts: BlogPost[]) => 
-      prevPosts.map(post => 
-        post.id === id ? { ...post, ...ensuredUpdates } : post
-      )
+    // Fix type issue: Create a new array instead of using functional update
+    const updatedPosts = posts.map(post => 
+      post.id === id ? { ...post, ...ensuredUpdates } : post
     );
+    
+    setPosts(updatedPosts);
   };
 
   const deletePost = (id: string) => {
-    // Fix type issue: explicitly specify the type
-    setPosts((prevPosts: BlogPost[]) => prevPosts.filter(post => post.id !== id));
+    // Fix type issue: Create a new array instead of using functional update
+    const filteredPosts = posts.filter(post => post.id !== id);
+    setPosts(filteredPosts);
   };
 
   const getPostBySlug = (slug: string) => {
