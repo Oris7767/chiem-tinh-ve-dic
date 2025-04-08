@@ -11,6 +11,7 @@ import { Helmet, HelmetProvider } from 'react-helmet-async';
 import Index from "./pages/Index";
 import NumerologyPage from "./pages/NumerologyPage";
 import BirthChartPage from "./pages/BirthChartPage";
+import VedicAstrologyChart from "./pages/VedicAstrologyChart";
 import BlogPage from "./pages/BlogPage";
 import BlogPostPage from "./pages/BlogPostPage";
 import BlogLoginPage from "./pages/BlogLoginPage";
@@ -28,6 +29,9 @@ const App = () => (
           <SubscriberProvider>
             <TooltipProvider>
               <Helmet>
+                <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+                <meta name="theme-color" content="#B45309" />
+                <meta name="robots" content="index, follow" />
                 <script
                   async
                   src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
@@ -40,6 +44,7 @@ const App = () => (
                 <Route path="/" element={<Index />} />
                 <Route path="/numerology" element={<NumerologyPage />} />
                 <Route path="/birth-chart" element={<BirthChartPage />} />
+                <Route path="/vedic-chart" element={<VedicAstrologyChart />} />
                 <Route path="/blog" element={<BlogPage />} />
                 <Route path="/blog/:slug" element={<BlogPostPage />} />
                 <Route path="/blog/admin" element={<BlogLoginPage />} />

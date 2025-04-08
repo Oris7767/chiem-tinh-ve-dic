@@ -2,4 +2,21 @@
 User-agent: *
 Allow: /
 
+# Sitemaps
 Sitemap: https://vedicvn.com/sitemap.xml
+
+# Common crawl directives
+User-agent: AdsBot-Google
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Rate limiting
+Crawl-delay: 1
