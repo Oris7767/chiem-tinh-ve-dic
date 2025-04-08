@@ -36,14 +36,24 @@ const PostListItem = ({ post }: PostListItemProps) => {
     }
   };
   
+  // Format the date for better SEO and accessibility
+  const formattedDate = new Date(post.date).toLocaleDateString('vi-VN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+  
   return (
     <Card className="overflow-hidden">
       <CardContent className="p-0">
         <div className="p-4">
-          <h3 className="font-bold truncate">{post.title}</h3>
+          <h3 className="font-bold truncate" title={post.title}>{post.title}</h3>
           <p className="text-sm text-gray-500 mt-1">
-            {new Date(post.date).toLocaleDateString()} • {post.author}
+            <time dateTime={new Date(post.date).toISOString()}>{formattedDate}</time> • {post.author}
           </p>
+          {post.excerpt && (
+            <p className="mt-2 text-sm text-gray-600 line-clamp-2">{post.excerpt}</p>
+          )}
         </div>
         <div className="bg-gray-50 px-4 py-3 flex justify-end gap-2">
           <Button 

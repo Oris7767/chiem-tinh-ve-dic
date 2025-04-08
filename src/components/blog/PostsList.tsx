@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { Helmet } from 'react-helmet-async';
 
 const PostsList = () => {
   const { posts, isLoading, fetchPosts } = useBlog();
@@ -65,6 +66,29 @@ const PostsList = () => {
   
   return (
     <div>
+      {/* Add structured data for blog post list */}
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Blog",
+            "name": "Vedic Wisdom Blog",
+            "description": "Explore the ancient wisdom of Vedic numerology and astrology",
+            "url": "https://vedicvn.com/blog",
+            "blogPost": posts.map(post => ({
+              "@type": "BlogPosting",
+              "headline": post.title,
+              "datePublished": new Date(post.date).toISOString(),
+              "author": {
+                "@type": "Person",
+                "name": post.author
+              },
+              "url": `https://vedicvn.com/blog/${post.slug}`
+            }))
+          })}
+        </script>
+      </Helmet>
+      
       <div className="flex justify-end mb-4">
         <Button 
           variant="outline" 
