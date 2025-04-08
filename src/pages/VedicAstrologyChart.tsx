@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { DateTime } from 'luxon';
 import { Select } from "@/components/ui/select";
@@ -6,10 +7,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { Sun, Moon, Saturn, Jupiter, MapPin, Calendar, Clock } from 'lucide-react';
+import { Sun, Moon, Star, Landmark, MapPin, Calendar, Clock } from 'lucide-react';
 import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
 import { SEO } from '@/utils/seo';
+import { 
+  SIGNS, 
+  NAKSHATRAS, 
+  PLANETS,
+  calculatePlanetPositions,
+  calculateHouses,
+  calculateChart
+} from '@/utils/vedicAstrology';
 
 // Types
 type Planet = {
@@ -34,101 +43,6 @@ type ChartData = {
   ascendant: number;
   moonNakshatra: string;
   lunarDay: number;
-};
-
-// Constants
-const SIGNS = [
-  "Mesha (Aries)", "Vrishabha (Taurus)", "Mithuna (Gemini)", 
-  "Karka (Cancer)", "Simha (Leo)", "Kanya (Virgo)",
-  "Tula (Libra)", "Vrishchika (Scorpio)", "Dhanu (Sagittarius)", 
-  "Makara (Capricorn)", "Kumbha (Aquarius)", "Meena (Pisces)"
-];
-
-const NAKSHATRAS = [
-  "Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira", "Ardra", 
-  "Punarvasu", "Pushya", "Ashlesha", "Magha", "Purva Phalguni", 
-  "Uttara Phalguni", "Hasta", "Chitra", "Swati", "Vishakha", 
-  "Anuradha", "Jyeshtha", "Mula", "Purva Ashadha", "Uttara Ashadha", 
-  "Shravana", "Dhanishta", "Shatabhisha", "Purva Bhadrapada", 
-  "Uttara Bhadrapada", "Revati"
-];
-
-const PLANETS = [
-  { id: "su", name: "Sun", symbol: "☉", color: "#FFB900" },
-  { id: "mo", name: "Moon", symbol: "☽", color: "#DDDDDD" },
-  { id: "me", name: "Mercury", symbol: "☿", color: "#33CC33" },
-  { id: "ve", name: "Venus", symbol: "♀", color: "#FF66FF" },
-  { id: "ma", name: "Mars", symbol: "♂", color: "#FF3300" },
-  { id: "ju", name: "Jupiter", symbol: "♃", color: "#FFCC00" },
-  { id: "sa", name: "Saturn", symbol: "♄", color: "#0066CC" },
-  { id: "ra", name: "Rahu", symbol: "☊", color: "#666666" },
-  { id: "ke", name: "Ketu", symbol: "☋", color: "#996633" }
-];
-
-// Mock calculation functions (in a real app, these would use a proper ephemeris library)
-const calculatePlanetPositions = (
-  date: DateTime, 
-  latitude: number, 
-  longitude: number
-): Planet[] => {
-  const sunLongitude = (date.toJulianDay() % 365.25) * (360 / 365.25);
-  const moonLongitude = (date.toMillis() % (28 * 24 * 3600 * 1000)) * (360 / (28 * 24 * 3600 * 1000));
-  const mercuryLongitude = (date.toMillis() % (88 * 24 * 3600 * 1000)) * (360 / (88 * 24 * 3600 * 1000));
-  const venusLongitude = (date.toMillis() % (225 * 24 * 3600 * 1000)) * (360 / (225 * 24 * 3600 * 1000));
-  const marsLongitude = (date.toMillis() % (687 * 24 * 3600 * 1000)) * (360 / (687 * 24 * 3600 * 1000));
-  const jupiterLongitude = (date.toMillis() % (4332 * 24 * 3600 * 1000)) * (360 / (4332 * 24 * 3600 * 1000));
-  const saturnLongitude = (date.toMillis() % (10759 * 24 * 3600 * 1000)) * (360 / (10759 * 24 * 3600 * 1000));
-  const rahuLongitude = (date.toMillis() % (6793 * 24 * 3600 * 1000)) * (360 / (6793 * 24 * 3600 * 1000));
-  const ketuLongitude = (date.toMillis() % (6793 * 24 * 3600 * 1000)) * (360 / (6793 * 24 * 3600 * 1000));
-
-  return [
-    { id: "su", name: "Sun", symbol: "☉", longitude: sunLongitude, house: 1, sign: Math.floor(sunLongitude / 30), retrograde: false },
-    { id: "mo", name: "Moon", symbol: "☽", longitude: moonLongitude, house: 2, sign: Math.floor(moonLongitude / 30), retrograde: false },
-    { id: "me", name: "Mercury", symbol: "☿", longitude: mercuryLongitude, house: 3, sign: Math.floor(mercuryLongitude / 30), retrograde: false },
-    { id: "ve", name: "Venus", symbol: "♀", longitude: venusLongitude, house: 4, sign: Math.floor(venusLongitude / 30), retrograde: false },
-    { id: "ma", name: "Mars", symbol: "♂", longitude: marsLongitude, house: 5, sign: Math.floor(marsLongitude / 30), retrograde: false },
-    { id: "ju", name: "Jupiter", symbol: "♃", longitude: jupiterLongitude, house: 6, sign: Math.floor(jupiterLongitude / 30), retrograde: false },
-    { id: "sa", name: "Saturn", symbol: "♄", longitude: saturnLongitude, house: 7, sign: Math.floor(saturnLongitude / 30), retrograde: false },
-    { id: "ra", name: "Rahu", symbol: "☊", longitude: rahuLongitude, house: 8, sign: Math.floor(rahuLongitude / 30), retrograde: false },
-    { id: "ke", name: "Ketu", symbol: "☋", longitude: ketuLongitude, house: 9, sign: Math.floor(ketuLongitude / 30), retrograde: false },
-  ].map(planet => ({ ...planet, house: Math.floor(Math.random() * 12) + 1, sign: Math.floor(Math.random() * 12) }));
-};
-
-const calculateHouses = (
-  date: DateTime, 
-  latitude: number, 
-  longitude: number
-): House[] => {
-  const ascendant = (date.toMillis() % (24 * 3600 * 1000)) * (360 / (24 * 3600 * 1000));
-  return Array.from({ length: 12 }, (_, i) => ({
-    number: i + 1,
-    longitude: (ascendant + i * 30) % 360,
-    sign: Math.floor(((ascendant + i * 30) % 360) / 30)
-  }));
-};
-
-const calculateChart = (
-  birthDate: DateTime, 
-  latitude: number, 
-  longitude: number
-): ChartData => {
-  const planets = calculatePlanetPositions(birthDate, latitude, longitude);
-  const houses = calculateHouses(birthDate, latitude, longitude);
-  const ascendant = houses[0].longitude;
-  const moon = planets.find(p => p.id === 'mo');
-  const moonSign = moon ? moon.sign : 0;
-  const moonLongitude = moon ? moon.longitude : 0;
-  const nakshatraIndex = Math.floor((moonLongitude - (moonSign * 30)) * 27 / 360);
-  const moonNakshatra = NAKSHATRAS[nakshatraIndex];
-  const lunarDay = Math.floor((birthDate.day / 30) * 30) + 1;
-
-  return {
-    planets,
-    houses,
-    ascendant,
-    moonNakshatra: moonNakshatra || 'Unknown',
-    lunarDay,
-  };
 };
 
 // Main component
