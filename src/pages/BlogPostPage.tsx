@@ -6,11 +6,11 @@ import { useBlog } from '../context/BlogContext';
 import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
 import { Button } from '@/components/ui/button';
-import { CalendarIcon, ArrowLeft, Tag, User, Edit, Trash2, Loader2, MessageSquare, Share2, RefreshCw } from 'lucide-react';
+import { Edit, Trash2, Loader2, MessageSquare, Share2, RefreshCw, ArrowLeft } from 'lucide-react';
 import NewsletterSignup from '../components/NewsletterSignup';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import PostHeader from '@/components/blog/PostHeader';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -92,15 +92,6 @@ const BlogPostPage = () => {
     navigate('/blog');
   };
 
-  // Get author initials for avatar
-  const getAuthorInitials = (name: string) => {
-    return name.split(' ')
-      .map(part => part[0])
-      .join('')
-      .toUpperCase()
-      .substring(0, 2);
-  };
-  
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-amber-50 to-amber-100">
       <NavBar />
@@ -126,26 +117,13 @@ const BlogPostPage = () => {
               )}
               
               <div className="p-8">
-                <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2 leading-tight">
-                  {post.title}
-                </h1>
-                
-                <p className="text-xl text-gray-600 mb-6 italic">
-                  "{post.excerpt}"
-                </p>
-                
-                <div className="flex items-center mb-8">
-                  <Avatar className="h-12 w-12">
-                    <AvatarFallback>{getAuthorInitials(post.author)}</AvatarFallback>
-                  </Avatar>
-                  <div className="ml-3">
-                    <p className="font-semibold text-gray-900">{post.author}</p>
-                    <p className="text-sm text-gray-600 flex items-center">
-                      <CalendarIcon size={14} className="mr-1" />
-                      {post.date}
-                    </p>
-                  </div>
-                </div>
+                <PostHeader 
+                  title={post.title} 
+                  subtitle={post.excerpt} 
+                  author={post.author} 
+                  date={post.date} 
+                  tags={post.tags} 
+                />
                 
                 {isLoggedIn && (
                   <div className="flex gap-2 mb-6">
@@ -179,22 +157,8 @@ const BlogPostPage = () => {
                   </div>
                 )}
                 
-                <div className="tags flex flex-wrap gap-2 mb-6">
-                  {post.tags.map(tag => (
-                    <span 
-                      key={tag} 
-                      className="inline-flex items-center bg-amber-100 px-3 py-1 rounded-full text-sm text-amber-800"
-                    >
-                      <Tag size={12} className="mr-2" />
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-                
-                <Separator className="my-6" />
-                
                 <div 
-                  className="prose prose-lg prose-amber max-w-none"
+                  className="prose prose-lg prose-amber max-w-none space-y-6"
                   dangerouslySetInnerHTML={{ __html: post.content }}
                 />
                 

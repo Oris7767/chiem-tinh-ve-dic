@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Upload, XCircle, Image as ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from '@/hooks/use-toast';
 
 interface ImageUploadProps {
   value: string;
@@ -29,13 +30,21 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, className })
     
     // Check file type
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
+      toast({
+        title: "Invalid file type",
+        description: "Please select an image file",
+        variant: "destructive"
+      });
       return;
     }
     
     // Check file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image size must be less than 5MB');
+      toast({
+        title: "File too large",
+        description: "Image size must be less than 5MB",
+        variant: "destructive"
+      });
       return;
     }
     
@@ -60,18 +69,30 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, className })
       setTimeout(() => {
         onChange(uploadPath);
         setIsUploading(false);
+        toast({
+          title: "Image uploaded",
+          description: "Your image has been successfully uploaded.",
+        });
       }, 1000);
       
     } catch (error) {
       console.error('Error uploading image:', error);
       setIsUploading(false);
-      alert('Failed to upload image. Please try again.');
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload image. Please try again.",
+        variant: "destructive"
+      });
     }
   };
   
   const handleClearImage = () => {
     onChange('');
     setPreviewUrl('');
+    toast({
+      title: "Image removed",
+      description: "The image has been removed.",
+    });
   };
   
   return (
@@ -104,10 +125,10 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, className })
           />
         </div>
       ) : (
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center space-y-2 bg-gray-50">
+        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center space-y-2 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer" onClick={() => document.getElementById('image-upload')?.click()}>
           <ImageIcon className="h-10 w-10 text-gray-400" />
           <div className="text-center">
-            <p className="text-sm text-gray-500">No image selected</p>
+            <p className="text-sm text-gray-500">Click to upload an image</p>
             <p className="text-xs text-gray-400">PNG, JPG, GIF up to 5MB</p>
           </div>
         </div>
@@ -120,6 +141,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, className })
             variant="outline" 
             className="w-full" 
             disabled={isUploading}
+            onClick={() => document.getElementById('image-upload')?.click()}
           >
             <Upload className="h-4 w-4 mr-2" />
             {isUploading ? 'Uploading...' : 'Upload Image'}

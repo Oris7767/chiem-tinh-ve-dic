@@ -61,15 +61,37 @@ const PostForm = ({ editPostId, postToEdit }: PostFormProps) => {
       form.setValue('slug', slug);
     }
   };
+
+  // Helper function to format content with proper paragraph breaks
+  const formatContentForPreview = (content: string) => {
+    // First, normalize line breaks
+    let formatted = content.replace(/\r\n/g, '\n');
+    
+    // Replace single line breaks with <br/> tags
+    formatted = formatted.replace(/\n/g, '<br/>');
+    
+    // Replace double line breaks (paragraphs) with proper paragraph tags
+    formatted = formatted.replace(/<br\/><br\/>/g, '</p><p>');
+    
+    // Wrap the entire content in paragraph tags if not already
+    if (!formatted.startsWith('<p>')) {
+      formatted = '<p>' + formatted + '</p>';
+    }
+    
+    return formatted;
+  };
   
   const onSubmit = async (data: PostFormValues) => {
     try {
+      // Format content to preserve paragraph breaks
+      const formattedContent = formatContentForPreview(data.content);
+      
       if (editPostId && postToEdit) {
         // For editing a post - all fields with proper types are now included
         await editPost(editPostId, {
           title: data.title,
           excerpt: data.excerpt,
-          content: data.content,
+          content: formattedContent,
           slug: data.slug,
           author: data.author,
           imageUrl: data.imageUrl,
@@ -84,7 +106,7 @@ const PostForm = ({ editPostId, postToEdit }: PostFormProps) => {
         await addPost({
           title: data.title,
           excerpt: data.excerpt,
-          content: data.content,
+          content: formattedContent,
           slug: data.slug,
           author: data.author,
           imageUrl: data.imageUrl,
@@ -241,13 +263,18 @@ const PostForm = ({ editPostId, postToEdit }: PostFormProps) => {
                         />
                       </FormControl>
                       <FormDescription>
-                        HTML tags are supported for formatting
+                        Press Enter twice for paragraph breaks
                       </FormDescription>
                     </TabsContent>
                     <TabsContent value="preview" className="border p-4 rounded-md min-h-[400px] overflow-auto">
                       <div 
                         className="prose prose-amber max-w-none"
-                        dangerouslySetInnerHTML={{ __html: contentPreview }}
+                        dangerouslySetInnerHTML={{ 
+                          __html: contentPreview
+                            .split('\n\n')
+                            .map(paragraph => `<p>${paragraph.replace(/\n/g, '<br/>')}</p>`)
+                            .join('')
+                        }}
                       />
                     </TabsContent>
                   </Tabs>

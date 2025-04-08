@@ -30,7 +30,7 @@ const PostHeader: React.FC<PostHeaderProps> = ({
 
   return (
     <header className="mb-8">
-      <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2 leading-tight">
+      <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight">
         {title}
       </h1>
         
@@ -65,7 +65,7 @@ const PostHeader: React.FC<PostHeaderProps> = ({
         ))}
       </div>
         
-      <Separator />
+      <Separator className="mb-8" />
     </header>
   );
 };
