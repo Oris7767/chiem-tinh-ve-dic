@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -22,43 +23,45 @@ import ChatBot from "./components/ChatBot";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <HelmetProvider>
-      <LanguageProvider>
-        <BlogProvider>
-          <SubscriberProvider>
-            <TooltipProvider>
-              <Helmet>
-                <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-                <meta name="theme-color" content="#B45309" />
-                <meta name="robots" content="index, follow" />
-                <script
-                  async
-                  src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
-                  crossOrigin="anonymous"
-                />
-              </Helmet>
-              <Toaster />
-              <Sonner />
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/numerology" element={<NumerologyPage />} />
-                <Route path="/birth-chart" element={<BirthChartPage />} />
-                <Route path="/vedic-chart" element={<VedicAstrologyChart />} />
-                <Route path="/blog" element={<BlogPage />} />
-                <Route path="/blog/:slug" element={<BlogPostPage />} />
-                <Route path="/blog/admin" element={<BlogLoginPage />} />
-                <Route path="/subscribers" element={<SubscribersAdminPage />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              <ChatBot />
-            </TooltipProvider>
-          </SubscriberProvider>
-        </BlogProvider>
-      </LanguageProvider>
-    </HelmetProvider>
-  </QueryClientProvider>
+  <React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <HelmetProvider>
+        <LanguageProvider>
+          <BlogProvider>
+            <SubscriberProvider>
+              <TooltipProvider>
+                <Helmet>
+                  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+                  <meta name="theme-color" content="#B45309" />
+                  <meta name="robots" content="index, follow" />
+                  <script
+                    async
+                    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+                    crossOrigin="anonymous"
+                  />
+                </Helmet>
+                <Toaster />
+                <Sonner />
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/numerology" element={<NumerologyPage />} />
+                  <Route path="/birth-chart" element={<BirthChartPage />} />
+                  <Route path="/vedic-chart" element={<VedicAstrologyChart />} />
+                  <Route path="/blog" element={<BlogPage />} />
+                  <Route path="/blog/:slug" element={<BlogPostPage />} />
+                  <Route path="/blog/admin" element={<BlogLoginPage />} />
+                  <Route path="/subscribers" element={<SubscribersAdminPage />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+                <ChatBot />
+              </TooltipProvider>
+            </SubscriberProvider>
+          </BlogProvider>
+        </LanguageProvider>
+      </HelmetProvider>
+    </QueryClientProvider>
+  </React.StrictMode>
 );
 
 export default App;

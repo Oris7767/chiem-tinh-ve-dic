@@ -28,7 +28,6 @@ const BirthChartForm: React.FC<BirthChartFormProps> = ({ onCalculate }) => {
   const [longitude, setLongitude] = useState<number | null>(null);
   const [timezone, setTimezone] = useState('');
 
-  // Get current timezone
   useEffect(() => {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     setTimezone(tz);
@@ -46,7 +45,6 @@ const BirthChartForm: React.FC<BirthChartFormProps> = ({ onCalculate }) => {
           setLatitude(lat);
           setLongitude(lng);
           
-          // Try to get location name from coordinates
           try {
             const response = await fetch(
               `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
@@ -90,7 +88,6 @@ const BirthChartForm: React.FC<BirthChartFormProps> = ({ onCalculate }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Open Coming Soon dialog instead of calculating
     setIsComingSoonOpen(true);
   };
 
