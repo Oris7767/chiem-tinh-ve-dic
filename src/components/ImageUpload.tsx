@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Upload, XCircle, Image as ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -12,7 +12,16 @@ interface ImageUploadProps {
 
 const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, className }) => {
   const [isUploading, setIsUploading] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string>(value || '');
+  const [previewUrl, setPreviewUrl] = useState<string>('');
+  
+  // Set initial preview URL when value changes
+  useEffect(() => {
+    if (value) {
+      setPreviewUrl(value);
+    } else {
+      setPreviewUrl('');
+    }
+  }, [value]);
   
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -41,11 +50,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, className })
       const formData = new FormData();
       formData.append('file', file);
       
-      // The public URL will be in the format: /lovable-uploads/[filename]
-      // We're simulating the upload here since we're using Lovable's built-in upload
-      // In a real app with Supabase, you'd upload to Supabase storage
-      
-      // Set the value with the uploaded file path
+      // Generate a unique filename
       const fileName = file.name.replace(/\s+/g, '-').toLowerCase();
       const randomId = Math.random().toString(36).substring(2, 15);
       const uploadPath = `/lovable-uploads/${randomId}-${fileName}`;

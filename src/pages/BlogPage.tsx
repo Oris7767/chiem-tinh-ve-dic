@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CalendarIcon, Tag, User, LogIn, Loader2 } from 'lucide-react';
 import NewsletterSignup from '../components/NewsletterSignup';
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const BlogPage = () => {
   const { t } = useLanguage();
@@ -32,6 +33,15 @@ const BlogPage = () => {
     
     return matchesSearch && matchesTag;
   });
+
+  // Get author initials for avatar
+  const getAuthorInitials = (name: string) => {
+    return name.split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-amber-50 to-amber-100">
@@ -132,7 +142,7 @@ const BlogPage = () => {
                   </div>
                 ) : (
                   filteredPosts.map(post => (
-                    <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                    <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-shadow border border-gray-200">
                       {post.imageUrl && (
                         <div className="h-48 overflow-hidden">
                           <img 
@@ -142,29 +152,34 @@ const BlogPage = () => {
                           />
                         </div>
                       )}
-                      <CardHeader>
-                        <CardTitle>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-xl font-bold text-gray-900">
                           <Link to={`/blog/${post.slug}`} className="hover:text-amber-700 transition-colors">
                             {post.title}
                           </Link>
                         </CardTitle>
-                        <CardDescription>
-                          <div className="flex items-center text-sm space-x-4 mt-2">
-                            <span className="flex items-center">
-                              <User size={14} className="mr-1" />
-                              {post.author}
-                            </span>
-                            <span className="flex items-center">
-                              <CalendarIcon size={14} className="mr-1" />
-                              {post.date}
-                            </span>
-                          </div>
+                        <CardDescription className="text-gray-500 italic">
+                          "{post.excerpt && post.excerpt.length > 70 
+                            ? `${post.excerpt.substring(0, 70)}...` 
+                            : post.excerpt}"
                         </CardDescription>
                       </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-gray-600 mb-4">{post.excerpt}</p>
+                      <CardContent className="pt-0">
+                        <div className="flex items-center mt-2 mb-4">
+                          <Avatar className="h-8 w-8 mr-2">
+                            <AvatarFallback>{getAuthorInitials(post.author)}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="text-sm font-medium">{post.author}</p>
+                            <p className="text-xs text-gray-500 flex items-center">
+                              <CalendarIcon size={12} className="mr-1" />
+                              {post.date}
+                            </p>
+                          </div>
+                        </div>
+                        
                         <div className="flex flex-wrap gap-2">
-                          {post.tags.map(tag => (
+                          {post.tags.slice(0, 3).map(tag => (
                             <span 
                               key={tag} 
                               className="inline-flex items-center bg-amber-100 px-2 py-1 rounded-full text-xs text-amber-800"
@@ -173,6 +188,11 @@ const BlogPage = () => {
                               {tag}
                             </span>
                           ))}
+                          {post.tags.length > 3 && (
+                            <span className="inline-flex items-center bg-gray-100 px-2 py-1 rounded-full text-xs text-gray-800">
+                              +{post.tags.length - 3}
+                            </span>
+                          )}
                         </div>
                       </CardContent>
                       <CardFooter>
