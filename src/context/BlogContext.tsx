@@ -181,7 +181,7 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
             excerpt: ensuredPost.excerpt,
             slug: ensuredPost.slug,
             author: ensuredPost.author,
-            image_url: ensuredPost.imageUrl,
+            image_url: ensuredPost.imageUrl, // Store the full URL from Supabase storage
             tags: ensuredPost.tags
           }
         ])

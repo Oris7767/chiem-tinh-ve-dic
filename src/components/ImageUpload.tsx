@@ -81,14 +81,12 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, className })
       setPreviewUrl(objectUrl);
       
       // Generate a unique filename
-      const fileName = file.name.replace(/\s+/g, '-').toLowerCase();
-      const randomId = Math.random().toString(36).substring(2, 15);
-      const filePath = `${randomId}-${fileName}`;
+      const fileName = `${Date.now()}-${file.name.replace(/\s+/g, '-').toLowerCase()}`;
       
       // Upload to Supabase storage
       const { data, error } = await supabase.storage
         .from('blog-images')
-        .upload(filePath, file, {
+        .upload(fileName, file, {
           cacheControl: '3600',
           upsert: false
         });
@@ -100,22 +98,30 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, className })
       // Get the public URL
       const { data: urlData } = supabase.storage
         .from('blog-images')
-        .getPublicUrl(filePath);
+        .getPublicUrl(fileName);
       
-      // Update the form with the new image URL
-      onChange(urlData.publicUrl);
-      
-      toast({
-        title: "Image uploaded",
-        description: "Your image has been successfully uploaded.",
-      });
-    } catch (error) {
+      if (urlData?.publicUrl) {
+        // Update the form with the new image URL
+        onChange(urlData.publicUrl);
+        
+        toast({
+          title: "Image uploaded",
+          description: "Your image has been successfully uploaded.",
+        });
+      } else {
+        throw new Error('Failed to get public URL');
+      }
+    } catch (error: any) {
       console.error('Error uploading image:', error);
       toast({
         title: "Upload failed",
-        description: "Failed to upload image. Please try again.",
+        description: `Failed to upload image: ${error.message || 'Unknown error'}`,
         variant: "destructive"
       });
+      // Clear preview on error
+      if (!value) {
+        setPreviewUrl('');
+      }
     } finally {
       setIsUploading(false);
     }
@@ -155,7 +161,12 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, className })
             className="w-full h-48 object-cover"
             onError={() => {
               // If the image fails to load, show a placeholder
-              setPreviewUrl('/placeholder.svg');
+              console.error('Image failed to load:', previewUrl);
+              toast({
+                title: "Image load error",
+                description: "Could not load the image preview.",
+                variant: "destructive"
+              });
             }}
           />
         </div>
@@ -175,7 +186,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, className })
             type="button" 
             variant="outline" 
             className="w-full" 
-            disabled={isUploading}
+            disabled={isLoading}
             onClick={() => document.getElementById('image-upload')?.click()}
           >
             {isUploading ? (
