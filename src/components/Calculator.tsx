@@ -41,7 +41,6 @@ const Calculator = () => {
   const { toast } = useToast();
   const { t, language } = useLanguage();
   
-  // Reset result when inputs change
   useEffect(() => {
     if (showResult) {
       setShowResult(false);
@@ -49,7 +48,6 @@ const Calculator = () => {
     }
   }, [name, day, month, year]);
   
-  // Validate inputs
   const isFormValid = () => name.trim() !== '' && 
     day !== '' && parseInt(day) > 0 && parseInt(day) <= 31 &&
     month !== '' && parseInt(month) > 0 && parseInt(month) <= 12 &&
@@ -99,7 +97,6 @@ const Calculator = () => {
     }
   };
   
-  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -115,10 +112,8 @@ const Calculator = () => {
     setIsCalculating(true);
     
     try {
-      // Small delay for UX
       await new Promise(resolve => setTimeout(resolve, 600));
       
-      // Calculate numerology
       const result = calculateNumerology({
         fullName: name,
         birthDay: parseInt(day),
