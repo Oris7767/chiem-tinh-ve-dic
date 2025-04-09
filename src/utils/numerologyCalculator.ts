@@ -1,4 +1,3 @@
-
 // Core calculation functions
 export const calculateNameNumber = (name: string): { steps: string; totalBeforeReduction: number; total: number; finalNumber: number } => {
   // Remove spaces and convert to uppercase
@@ -317,87 +316,5 @@ export const calculateDestinyNumber = (birthPath: number, nameNumber: number): {
     steps,
     total,
     finalNumber: result.finalNumber
-  };
-};
-
-// Main function to calculate all numerology values
-export const calculateNumerology = ({ 
-  fullName, 
-  birthDay, 
-  birthMonth, 
-  birthYear,
-  language = 'en'
-}: { 
-  fullName: string; 
-  birthDay: number; 
-  birthMonth: number; 
-  birthYear: number;
-  language: string;
-}) => {
-  // Calculate birth number
-  const birthNumberResult = calculateBirthNumber(birthDay, birthMonth, birthYear);
-  
-  // Calculate name number
-  const nameNumberResult = calculateNameNumber(fullName);
-  
-  // Calculate life number
-  const lifeNumberResult = calculateLifeNumber(birthDay, birthMonth, birthYear);
-  
-  // Add meanings based on the numbers
-  const getMeaning = (number: number): string => {
-    // Here you would typically use translations or a database of meanings
-    // For now, we'll use simple placeholders
-    const meanings = {
-      1: language === 'en' ? 
-        "You are a natural leader with strong independence and creativity." : 
-        "Bạn là một nhà lãnh đạo tự nhiên với sự độc lập và sáng tạo mạnh mẽ.",
-      2: language === 'en' ? 
-        "You are diplomatic and sensitive, with strong intuition and cooperation skills." : 
-        "Bạn có tính ngoại giao và nhạy cảm, với trực giác mạnh mẽ và kỹ năng hợp tác.",
-      3: language === 'en' ? 
-        "You have excellent communication skills and artistic expression." : 
-        "Bạn có kỹ năng giao tiếp và biểu đạt nghệ thuật tuyệt vời.",
-      4: language === 'en' ? 
-        "You are practical, disciplined and have strong organizational skills." : 
-        "Bạn thực tế, kỷ luật và có kỹ năng tổ chức tốt.",
-      5: language === 'en' ? 
-        "You are adventurous, versatile, and value freedom." : 
-        "Bạn phiêu lưu, linh hoạt và coi trọng sự tự do.",
-      6: language === 'en' ? 
-        "You are responsible, caring, and have a strong sense of harmony." : 
-        "Bạn có trách nhiệm, biết quan tâm và có ý thức hài hòa mạnh mẽ.",
-      7: language === 'en' ? 
-        "You are analytical, introspective, and spiritually inclined." : 
-        "Bạn có tính phân tích, nội tâm và có khuynh hướng tâm linh.",
-      8: language === 'en' ? 
-        "You have leadership abilities, ambition, and a strong focus on success." : 
-        "Bạn có khả năng lãnh đạo, tham vọng và tập trung mạnh mẽ vào thành công.",
-      9: language === 'en' ? 
-        "You are compassionate, idealistic, and have a humanitarian outlook." : 
-        "Bạn giàu lòng trắc ẩn, lý tưởng và có cái nhìn nhân đạo.",
-    };
-    
-    return meanings[number as keyof typeof meanings] || 
-      (language === 'en' ? 
-        "This number carries complex and unique energies." : 
-        "Con số này mang những năng lượng phức tạp và độc đáo.");
-  };
-  
-  return {
-    birthNumber: {
-      calculation: birthNumberResult.steps,
-      finalNumber: birthNumberResult.finalNumber,
-      meaning: getMeaning(birthNumberResult.finalNumber)
-    },
-    nameNumber: {
-      calculation: nameNumberResult.steps,
-      finalNumber: nameNumberResult.finalNumber,
-      meaning: getMeaning(nameNumberResult.finalNumber)
-    },
-    lifeNumber: {
-      calculation: lifeNumberResult.steps,
-      finalNumber: lifeNumberResult.finalNumber,
-      meaning: getMeaning(lifeNumberResult.finalNumber)
-    }
   };
 };
