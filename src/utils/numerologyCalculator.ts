@@ -1,3 +1,4 @@
+
 // Core calculation functions
 export const calculateNameNumber = (name: string): { steps: string; totalBeforeReduction: number; total: number; finalNumber: number } => {
   // Remove spaces and convert to uppercase
@@ -384,15 +385,18 @@ export const calculateNumerology = ({
   
   return {
     birthNumber: {
-      ...birthNumberResult,
+      calculation: birthNumberResult.steps,
+      finalNumber: birthNumberResult.finalNumber,
       meaning: getMeaning(birthNumberResult.finalNumber)
     },
     nameNumber: {
-      ...nameNumberResult,
+      calculation: nameNumberResult.steps,
+      finalNumber: nameNumberResult.finalNumber,
       meaning: getMeaning(nameNumberResult.finalNumber)
     },
     lifeNumber: {
-      ...lifeNumberResult,
+      calculation: lifeNumberResult.steps,
+      finalNumber: lifeNumberResult.finalNumber,
       meaning: getMeaning(lifeNumberResult.finalNumber)
     }
   };
