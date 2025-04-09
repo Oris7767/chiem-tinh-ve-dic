@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
@@ -8,20 +7,7 @@ import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-
-interface NumerologyCalculation {
-  id: string;
-  name: string;
-  birth_day: number;
-  birth_month: number;
-  birth_year: number;
-  birth_number: number;
-  name_number: number;
-  life_number: number;
-  created_at: string;
-  user_email: string | null;
-  user_ip: string | null;
-}
+import { NumerologyCalculation } from '../types/numerologyTypes';
 
 const NumerologyAdminPage = () => {
   const [calculations, setCalculations] = useState<NumerologyCalculation[]>([]);
@@ -90,7 +76,7 @@ const NumerologyAdminPage = () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('numerology_calculations')
+        .from('numerology_calculations' as any)
         .select('*')
         .order('created_at', { ascending: false });
         
@@ -98,7 +84,7 @@ const NumerologyAdminPage = () => {
         throw error;
       }
       
-      setCalculations(data || []);
+      setCalculations(data as NumerologyCalculation[]);
     } catch (err) {
       console.error('Error fetching calculations:', err);
       toast({

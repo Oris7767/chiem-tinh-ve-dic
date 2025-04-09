@@ -65,7 +65,7 @@ const Calculator = () => {
       setIsSaving(true);
       
       const { error } = await supabase
-        .from('numerology_calculations')
+        .from('numerology_calculations' as any)
         .insert({
           name: name,
           birth_day: parseInt(day),
@@ -75,7 +75,7 @@ const Calculator = () => {
           name_number: calculationResult.nameNumber.finalNumber,
           life_number: calculationResult.lifeNumber.finalNumber,
           user_email: email || null
-        });
+        } as any);
       
       if (error) {
         console.error('Error saving calculation:', error);

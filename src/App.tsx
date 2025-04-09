@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Index from './pages/Index';
@@ -9,7 +10,7 @@ import BlogPostPage from './pages/BlogPostPage';
 import BlogLoginPage from './pages/BlogLoginPage';
 import SubscribersAdminPage from './pages/SubscribersAdminPage';
 import NotFound from './pages/NotFound';
-import LanguageProvider from './context/LanguageContext';
+import { LanguageProvider } from './context/LanguageContext';
 import { HelmetProvider } from 'react-helmet-async';
 import NumerologyAdminPage from './pages/NumerologyAdminPage';
 import { Toaster } from '@/components/ui/toaster';
