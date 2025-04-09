@@ -186,7 +186,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, className })
             type="button" 
             variant="outline" 
             className="w-full" 
-            disabled={isLoading}
+            disabled={isUploading}
             onClick={() => document.getElementById('image-upload')?.click()}
           >
             {isUploading ? (
