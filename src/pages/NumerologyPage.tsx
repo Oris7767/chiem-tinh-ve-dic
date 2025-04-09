@@ -4,12 +4,22 @@ import NavBar from '../components/NavBar';
 import Calculator from '../components/Calculator';
 import Footer from '../components/Footer';
 import { useLanguage } from '../context/LanguageContext';
+import { Helmet } from 'react-helmet-async';
 
 const NumerologyPage = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   
   return (
     <div className="min-h-screen flex flex-col">
+      <Helmet>
+        <title>{language === 'en' ? 'Numerology Calculator - Vedic Numerology' : 'Máy Tính Số Học - Số Học Vệ Đà'}</title>
+        <meta 
+          name="description" 
+          content={language === 'en' 
+            ? 'Calculate your birth number, name number and life number with our Vedic Numerology Calculator.' 
+            : 'Tính toán số ngày sinh, số tên và số đường đời của bạn với Máy tính Số học Vệ Đà của chúng tôi.'}
+        />
+      </Helmet>
       <NavBar />
       <main className="flex-grow pt-16">
         <div className="container mx-auto px-4 py-8">

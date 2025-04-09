@@ -48,6 +48,48 @@ export type Database = {
         }
         Relationships: []
       }
+      numerology_calculations: {
+        Row: {
+          birth_day: number
+          birth_month: number
+          birth_number: number
+          birth_year: number
+          created_at: string
+          id: string
+          life_number: number
+          name: string
+          name_number: number
+          user_email: string | null
+          user_ip: string | null
+        }
+        Insert: {
+          birth_day: number
+          birth_month: number
+          birth_number: number
+          birth_year: number
+          created_at?: string
+          id?: string
+          life_number: number
+          name: string
+          name_number: number
+          user_email?: string | null
+          user_ip?: string | null
+        }
+        Update: {
+          birth_day?: number
+          birth_month?: number
+          birth_number?: number
+          birth_year?: number
+          created_at?: string
+          id?: string
+          life_number?: number
+          name?: string
+          name_number?: number
+          user_email?: string | null
+          user_ip?: string | null
+        }
+        Relationships: []
+      }
       subscribers: {
         Row: {
           date: string

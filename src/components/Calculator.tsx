@@ -1,4 +1,3 @@
-
 import { useState, useRef } from 'react';
 import { 
   calculateNameNumber, calculateBirthNumber, calculateLifeNumber,
@@ -16,6 +15,8 @@ import { getDescription } from '../utils/numberDetailedMeanings';
 import { getCareerDescription } from '../utils/careerMeanings';
 import { getRelationshipDescription } from '../utils/relationshipMeanings';
 import { getStrengths, getChallenges } from '../utils/strengthsAndChallenges';
+import { supabase } from '../integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface CalculationResult {
   nameNumber: {
@@ -46,17 +47,66 @@ const Calculator = () => {
   const [result, setResult] = useState<CalculationResult | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
-  const [currentTab, setCurrentTab] = useState<'birth' | 'name' | 'life'>(
-    'birth'
-  );
+  const [isSaving, setIsSaving] = useState(false);
+  const [email, setEmail] = useState('');
+  const [currentTab, setCurrentTab] = useState<'birth' | 'name' | 'life'>('birth');
   
   const { t, language } = useLanguage();
   const resultRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
   const isFormValid = name.trim() !== '' && 
     day !== '' && parseInt(day) > 0 && parseInt(day) <= 31 &&
     month !== '' && parseInt(month) > 0 && parseInt(month) <= 12 &&
     year !== '' && year.length === 4;
+
+  const saveToDatabase = async (calculationResult: CalculationResult) => {
+    try {
+      setIsSaving(true);
+      
+      const { error } = await supabase
+        .from('numerology_calculations')
+        .insert({
+          name: name,
+          birth_day: parseInt(day),
+          birth_month: parseInt(month),
+          birth_year: parseInt(year),
+          birth_number: calculationResult.birthNumber.finalNumber,
+          name_number: calculationResult.nameNumber.finalNumber,
+          life_number: calculationResult.lifeNumber.finalNumber,
+          user_email: email || null
+        });
+      
+      if (error) {
+        console.error('Error saving calculation:', error);
+        toast({
+          title: t('error'),
+          description: language === 'en' 
+            ? 'Failed to save your calculation. Please try again.' 
+            : 'Không thể lưu kết quả tính toán. Vui lòng thử lại.',
+          variant: 'destructive'
+        });
+      } else {
+        toast({
+          title: t('success'),
+          description: language === 'en' 
+            ? 'Your calculation has been saved successfully!' 
+            : 'Kết quả tính toán của bạn đã được lưu thành công!',
+        });
+      }
+    } catch (err) {
+      console.error('Error:', err);
+      toast({
+        title: t('error'),
+        description: language === 'en' 
+          ? 'An unexpected error occurred. Please try again.' 
+          : 'Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleCalculate = () => {
     if (!isFormValid) return;
@@ -84,14 +134,17 @@ const Calculator = () => {
       );
       console.log("Life calculation result:", lifeNum);
       
-      setResult({
+      const calculationResult = {
         nameNumber: nameNum,
         birthNumber: birthNum,
         lifeNumber: lifeNum
-      });
+      };
       
+      setResult(calculationResult);
       setIsCalculating(false);
       setShowResult(true);
+      
+      saveToDatabase(calculationResult);
       
       if (resultRef.current) {
         setTimeout(() => {
@@ -101,6 +154,13 @@ const Calculator = () => {
     } catch (error) {
       console.error("Error during calculation:", error);
       setIsCalculating(false);
+      toast({
+        title: t('error'),
+        description: language === 'en' 
+          ? 'An error occurred during calculation. Please try again.' 
+          : 'Đã xảy ra lỗi trong quá trình tính toán. Vui lòng thử lại.',
+        variant: 'destructive'
+      });
     }
   };
 
@@ -132,7 +192,6 @@ const Calculator = () => {
     </div>
   );
 
-  // Get the aspect scores for the current tab
   const getAspectScoresForCurrentTab = () => {
     if (!result) return null;
     
@@ -154,7 +213,6 @@ const Calculator = () => {
     return scores;
   };
 
-  // Get scores for the current tab
   const aspectScores = getAspectScoresForCurrentTab();
 
   return (
@@ -246,22 +304,41 @@ const Calculator = () => {
                 </div>
               </div>
               
+              <div className="space-y-4">
+                <label htmlFor="email" className="block text-gray-700 font-medium">
+                  {language === 'en' ? 'Email (optional)' : 'Email (không bắt buộc)'}
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={language === 'en' ? 'Your email' : 'Email của bạn'}
+                  className="input-field"
+                />
+                <p className="text-xs text-gray-500">
+                  {language === 'en' 
+                    ? 'Provide your email to receive future updates and insights (optional)' 
+                    : 'Cung cấp email để nhận cập nhật và thông tin sâu sắc trong tương lai (không bắt buộc)'}
+                </p>
+              </div>
+              
               <div className="pt-4">
                 <button
                   onClick={handleCalculate}
-                  disabled={!isFormValid || isCalculating}
+                  disabled={!isFormValid || isCalculating || isSaving}
                   className={cn(
                     "w-full btn-primary",
-                    (!isFormValid || isCalculating) && "opacity-70 cursor-not-allowed"
+                    (!isFormValid || isCalculating || isSaving) && "opacity-70 cursor-not-allowed"
                   )}
                 >
-                  {isCalculating ? (
+                  {isCalculating || isSaving ? (
                     <div className="flex items-center justify-center">
                       <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      {t('calculator.calculating')}
+                      {isCalculating ? t('calculator.calculating') : (language === 'en' ? 'Saving...' : 'Đang lưu...')}
                     </div>
                   ) : (
                     t('calculator.button')
