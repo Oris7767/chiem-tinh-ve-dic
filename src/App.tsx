@@ -11,6 +11,7 @@ import { SubscriberProvider } from "./context/SubscriberContext";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import Index from "./pages/Index";
 import NumerologyPage from "./pages/NumerologyPage";
+import NumerologyAdminPage from "./pages/NumerologyAdminPage";
 import BirthChartPage from "./pages/BirthChartPage";
 import VedicAstrologyChart from "./pages/VedicAstrologyChart";
 import BlogPage from "./pages/BlogPage";
@@ -45,6 +46,7 @@ const App = () => (
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/numerology" element={<NumerologyPage />} />
+                  <Route path="/numerology/admin" element={<NumerologyAdminPage />} />
                   <Route path="/birth-chart" element={<BirthChartPage />} />
                   <Route path="/vedic-chart" element={<VedicAstrologyChart />} />
                   <Route path="/blog" element={<BlogPage />} />
