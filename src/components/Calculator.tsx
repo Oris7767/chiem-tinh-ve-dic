@@ -60,51 +60,47 @@ const Calculator = () => {
     month !== '' && parseInt(month) > 0 && parseInt(month) <= 12 &&
     year !== '' && year.length === 4;
 
-  const saveToDatabase = async (calculationResult: CalculationResult) => {
-    try {
-      setIsSaving(true);
-      
-      const { error } = await supabase
-        .from('numerology_calculations' as any)
-        .insert({
-          name: name,
-          birth_day: parseInt(day),
-          birth_month: parseInt(month),
-          birth_year: parseInt(year),
-          birth_number: calculationResult.birthNumber.finalNumber,
-          name_number: calculationResult.nameNumber.finalNumber,
-          life_number: calculationResult.lifeNumber.finalNumber,
-          user_email: email || null
-        } as any);
-      
-      if (error) {
-        console.error('Error saving calculation:', error);
+  const saveCalculation = async () => {
+    if (name && calculationResult) {
+      try {
+        setIsSaving(true);
+        
+        const { error } = await supabase
+          .from('numerology_calculations' as any)
+          .insert({
+            name: name,
+            birth_day: parseInt(day),
+            birth_month: parseInt(month),
+            birth_year: parseInt(year),
+            birth_number: calculationResult.birthNumber.finalNumber,
+            name_number: calculationResult.nameNumber.finalNumber,
+            life_number: calculationResult.lifeNumber.finalNumber,
+            user_email: email || null
+          } as any);
+        
+        if (error) {
+          console.error('Error saving calculation:', error);
+          toast({
+            title: t('calculator.error'),
+            description: t('calculator.saveError'),
+            variant: 'destructive',
+          });
+        } else {
+          toast({
+            title: t('calculator.success'),
+            description: t('calculator.saveSuccess'),
+          });
+        }
+      } catch (err) {
+        console.error('Error saving calculation:', err);
         toast({
-          title: t('error'),
-          description: language === 'en' 
-            ? 'Failed to save your calculation. Please try again.' 
-            : 'Không thể lưu kết quả tính toán. Vui lòng thử lại.',
-          variant: 'destructive'
+          title: t('calculator.error'),
+          description: t('calculator.saveError'),
+          variant: 'destructive',
         });
-      } else {
-        toast({
-          title: t('success'),
-          description: language === 'en' 
-            ? 'Your calculation has been saved successfully!' 
-            : 'Kết quả tính toán của bạn đã được lưu thành công!',
-        });
+      } finally {
+        setIsSaving(false);
       }
-    } catch (err) {
-      console.error('Error:', err);
-      toast({
-        title: t('error'),
-        description: language === 'en' 
-          ? 'An unexpected error occurred. Please try again.' 
-          : 'Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -144,7 +140,7 @@ const Calculator = () => {
       setIsCalculating(false);
       setShowResult(true);
       
-      saveToDatabase(calculationResult);
+      saveCalculation();
       
       if (resultRef.current) {
         setTimeout(() => {
@@ -155,10 +151,8 @@ const Calculator = () => {
       console.error("Error during calculation:", error);
       setIsCalculating(false);
       toast({
-        title: t('error'),
-        description: language === 'en' 
-          ? 'An error occurred during calculation. Please try again.' 
-          : 'Đã xảy ra lỗi trong quá trình tính toán. Vui lòng thử lại.',
+        title: t('calculator.error'),
+        description: t('calculator.calculateError'),
         variant: 'destructive'
       });
     }

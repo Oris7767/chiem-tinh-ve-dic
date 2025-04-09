@@ -84,7 +84,11 @@ const NumerologyAdminPage = () => {
         throw error;
       }
       
-      setCalculations(data as NumerologyCalculation[]);
+      if (data) {
+        setCalculations(data as unknown as NumerologyCalculation[]);
+      } else {
+        setCalculations([]);
+      }
     } catch (err) {
       console.error('Error fetching calculations:', err);
       toast({
