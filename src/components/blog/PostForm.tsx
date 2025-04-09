@@ -64,19 +64,16 @@ const PostForm = ({ editPostId, postToEdit }: PostFormProps) => {
 
   // Helper function to format content with proper paragraph breaks
   const formatContentForPreview = (content: string) => {
+    if (!content) return '';
+    
     // First, normalize line breaks
     let formatted = content.replace(/\r\n/g, '\n');
     
-    // Replace single line breaks with <br/> tags
+    // Replace double line breaks with paragraph tags
+    formatted = '<p>' + formatted.replace(/\n\n/g, '</p><p>') + '</p>';
+    
+    // Replace single line breaks with <br/>
     formatted = formatted.replace(/\n/g, '<br/>');
-    
-    // Replace double line breaks (paragraphs) with proper paragraph tags
-    formatted = formatted.replace(/<br\/><br\/>/g, '</p><p>');
-    
-    // Wrap the entire content in paragraph tags if not already
-    if (!formatted.startsWith('<p>')) {
-      formatted = '<p>' + formatted + '</p>';
-    }
     
     return formatted;
   };
@@ -270,10 +267,7 @@ const PostForm = ({ editPostId, postToEdit }: PostFormProps) => {
                       <div 
                         className="prose prose-amber max-w-none"
                         dangerouslySetInnerHTML={{ 
-                          __html: contentPreview
-                            .split('\n\n')
-                            .map(paragraph => `<p>${paragraph.replace(/\n/g, '<br/>')}</p>`)
-                            .join('')
+                          __html: formatContentForPreview(contentPreview)
                         }}
                       />
                     </TabsContent>

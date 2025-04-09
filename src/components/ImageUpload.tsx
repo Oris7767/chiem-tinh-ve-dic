@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Upload, XCircle, Image as ImageIcon } from 'lucide-react';
+import { Upload, XCircle, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ImageUploadProps {
   value: string;
@@ -15,10 +16,34 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, className })
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string>('');
   
-  // Set initial preview URL when value changes
   useEffect(() => {
     if (value) {
-      setPreviewUrl(value);
+      // If the value is already a full URL (from Supabase)
+      if (value.startsWith('http')) {
+        setPreviewUrl(value);
+      } else {
+        // If it's just a path, we need to get the public URL from Supabase
+        const fetchImageUrl = async () => {
+          try {
+            // Try to get the public URL from Supabase
+            const { data } = supabase.storage
+              .from('blog-images')
+              .getPublicUrl(value.replace(/^\//, ''));
+            
+            if (data?.publicUrl) {
+              setPreviewUrl(data.publicUrl);
+            } else {
+              // Fallback
+              setPreviewUrl(value);
+            }
+          } catch (error) {
+            console.error('Error getting public URL:', error);
+            setPreviewUrl(value);
+          }
+        };
+        
+        fetchImageUrl();
+      }
     } else {
       setPreviewUrl('');
     }
@@ -55,34 +80,44 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, className })
       const objectUrl = URL.createObjectURL(file);
       setPreviewUrl(objectUrl);
       
-      // Create FormData for the upload
-      const formData = new FormData();
-      formData.append('file', file);
-      
       // Generate a unique filename
       const fileName = file.name.replace(/\s+/g, '-').toLowerCase();
       const randomId = Math.random().toString(36).substring(2, 15);
-      const uploadPath = `/lovable-uploads/${randomId}-${fileName}`;
+      const filePath = `${randomId}-${fileName}`;
       
-      // In a real app, you would make an actual upload request here
-      // For now, we simulate a successful upload
-      setTimeout(() => {
-        onChange(uploadPath);
-        setIsUploading(false);
-        toast({
-          title: "Image uploaded",
-          description: "Your image has been successfully uploaded.",
+      // Upload to Supabase storage
+      const { data, error } = await supabase.storage
+        .from('blog-images')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
         });
-      }, 1000);
       
+      if (error) {
+        throw error;
+      }
+      
+      // Get the public URL
+      const { data: urlData } = supabase.storage
+        .from('blog-images')
+        .getPublicUrl(filePath);
+      
+      // Update the form with the new image URL
+      onChange(urlData.publicUrl);
+      
+      toast({
+        title: "Image uploaded",
+        description: "Your image has been successfully uploaded.",
+      });
     } catch (error) {
       console.error('Error uploading image:', error);
-      setIsUploading(false);
       toast({
         title: "Upload failed",
         description: "Failed to upload image. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setIsUploading(false);
     }
   };
   
@@ -143,8 +178,17 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, className })
             disabled={isUploading}
             onClick={() => document.getElementById('image-upload')?.click()}
           >
-            <Upload className="h-4 w-4 mr-2" />
-            {isUploading ? 'Uploading...' : 'Upload Image'}
+            {isUploading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Uploading...
+              </>
+            ) : (
+              <>
+                <Upload className="h-4 w-4 mr-2" />
+                Upload Image
+              </>
+            )}
           </Button>
         </label>
         <input 

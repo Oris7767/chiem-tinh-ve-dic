@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from "@/hooks/use-toast";
@@ -169,6 +170,7 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
     
     try {
       console.log('Adding new post to Supabase:', ensuredPost);
+      
       // Insert the post into Supabase
       const { data, error } = await supabase
         .from('blog_posts')
