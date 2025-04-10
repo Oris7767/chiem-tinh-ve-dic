@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import { CalendarIcon, MapPin, Clock, Navigation } from 'lucide-react';
 import { format } from 'date-fns';
 import { BirthChartData } from '../pages/BirthChartPage';
@@ -23,28 +24,31 @@ const BirthChartForm: React.FC<BirthChartFormProps> = ({ onCalculate }) => {
   const [isComingSoonOpen, setIsComingSoonOpen] = useState(false);
   const [date, setDate] = useState<Date>(new Date());
   const [time, setTime] = useState('12:00');
-  const [location, setLocation] = useState('');
-  const [latitude, setLatitude] = useState<number | null>(null);
-  const [longitude, setLongitude] = useState<number | null>(null);
+  const [locationName, setLocationName] = useState('');
+  const [latitude, setLatitude] = useState<number | null>(0);
+  const [longitude, setLongitude] = useState<number | null>(0);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [isLocationMenuOpen, setIsLocationMenuOpen] = useState(false)
   const [timezone, setTimezone] = useState('');
 
+  const [name, setName] = useState('');
   useEffect(() => {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     setTimezone(tz);
   }, []);
-
-  const handleDetectLocation = () => {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const handleDetectLocation = async () => {
     setLoading(true);
-    
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
-          
+
           setLatitude(lat);
           setLongitude(lng);
-          
+
           try {
             const response = await fetch(
               `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
@@ -52,7 +56,7 @@ const BirthChartForm: React.FC<BirthChartFormProps> = ({ onCalculate }) => {
             const data = await response.json();
             
             if (data && data.display_name) {
-              const locationName = data.display_name.split(',').slice(0, 3).join(', ');
+              const locationName = data.display_name
               setLocation(locationName);
             }
           } catch (error) {
@@ -60,7 +64,7 @@ const BirthChartForm: React.FC<BirthChartFormProps> = ({ onCalculate }) => {
           }
           
           setLoading(false);
-          toast({
+          toast && toast({
             title: t('birthChart.locationDetected') || 'Location detected',
             description: `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`,
           });
@@ -68,7 +72,7 @@ const BirthChartForm: React.FC<BirthChartFormProps> = ({ onCalculate }) => {
         (error) => {
           console.error('Error getting location:', error);
           setLoading(false);
-          toast({
+          toast && toast({
             title: t('birthChart.locationError') || 'Location Error',
             description: t('birthChart.locationErrorDesc') || 'Could not detect your location',
             variant: 'destructive',
@@ -76,7 +80,7 @@ const BirthChartForm: React.FC<BirthChartFormProps> = ({ onCalculate }) => {
         }
       );
     } else {
-      setLoading(false);
+      setLoading(false)
       toast({
         title: t('birthChart.geolocationNotSupported') || 'Not Supported',
         description: t('birthChart.geolocationNotSupportedDesc') || 'Geolocation is not supported by your browser',
@@ -85,15 +89,73 @@ const BirthChartForm: React.FC<BirthChartFormProps> = ({ onCalculate }) => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const fetchLocationSuggestions = async (query: string) => {
+    if (query.length < 3) {
+      setSuggestions([])
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`
+      );
+      const data = await response.json();
+      setSuggestions(data);
+    } catch (error) {
+      console.error('Error fetching location suggestions:', error);
+      setSuggestions([]);
+    }
+  };
+
+  const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newLocation = e.target.value;
+    setLocationName(newLocation);
+    fetchLocationSuggestions(newLocation);
+    setIsLocationMenuOpen(true)
+  };
+
+  const handleLocationSelect = (suggestion: any) => {
+    setLocationName(suggestion.display_name);
+    setLatitude(parseFloat(suggestion.lat));
+    setLongitude(parseFloat(suggestion.lon));
+    setSuggestions([]);
+    setIsLocationMenuOpen(false)
+    inputRef.current?.blur()
+  };
+
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    setIsComingSoonOpen(true);
+
+    if (!name || !date || !time || !locationName) {
+      toast && toast({
+        title: "Required fields are missing",
+        description: "Please fill in all the required fields.",
+        variant: "destructive",
+      })
+      return;
+    }
+    onCalculate && onCalculate({
+      date: date, time: time, location: locationName, latitude: latitude!, longitude: longitude!, timezone: timezone
+    })
   };
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="grid gap-6 md:grid-cols-2">
+      <form onSubmit={handleSubmit} className="grid gap-6 md:grid-cols-1">
+        {/* Name Input */}
+        <div className="md:col-span-2 space-y-2">
+            <Label htmlFor="name">{t('birthChart.name') || 'Name'}</Label>
+            <Input
+                type="text"
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={t('birthChart.namePlaceholder') || "Enter your name"}
+            />
+        </div>
+
+        <div className='grid gap-6 md:grid-cols-2'>
         <div className="space-y-2">
           <Label htmlFor="date">
             <CalendarIcon className="inline-block mr-2 h-4 w-4" />
@@ -138,63 +200,38 @@ const BirthChartForm: React.FC<BirthChartFormProps> = ({ onCalculate }) => {
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="location">
-            <MapPin className="inline-block mr-2 h-4 w-4" />
-            {t('birthChart.birthLocation') || 'Birth Location'}
+          <Label htmlFor="locationName">
+            <MapPin className="mr-2 h-4 w-4 inline-block" />
+            {t("birthChart.birthLocation") || "Birth Location"}
           </Label>
-          <div className="flex gap-2">
-            <Input
-              type="text"
-              id="location"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder={t('birthChart.locationPlaceholder') || "City, Country"}
-              className="flex-1"
-            />
+          <Command open={isLocationMenuOpen} onOpenChange={setIsLocationMenuOpen}>
+            <CommandInput ref={inputRef} onFocus={() => { setIsLocationMenuOpen(true) }} placeholder="Search for a location" value={locationName} onChange={handleLocationChange} className="border border-input" />
+            <CommandEmpty>No location found.</CommandEmpty>
+            <CommandGroup>
+              {suggestions.map((suggestion) => (
+                <CommandItem key={suggestion.place_id} onSelect={() => handleLocationSelect(suggestion)} className="cursor-pointer">
+                  {suggestion.display_name}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </Command>
+          <div className='mt-2 flex items-center'>
             <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={handleDetectLocation}
-              disabled={loading}
-            >
-              <Navigation className="h-4 w-4" />
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={handleDetectLocation}
+                disabled={loading}
+              >
+                <Navigation className="h-4 w-4" />
             </Button>
+            <span className="ml-2 text-sm text-gray-500">{t("birthChart.currentLocation") || "Use Current Location"}</span>
           </div>
+
         </div>
-        
-        <div className="grid grid-cols-2 gap-2">
-          <div className="space-y-2">
-            <Label htmlFor="latitude">{t('birthChart.latitude') || 'Latitude'}</Label>
-            <Input
-              type="number"
-              id="latitude"
-              value={latitude !== null ? latitude : ''}
-              onChange={(e) => setLatitude(parseFloat(e.target.value))}
-              step="0.0001"
-              min="-90"
-              max="90"
-              placeholder="0.0000"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="longitude">{t('birthChart.longitude') || 'Longitude'}</Label>
-            <Input
-              type="number"
-              id="longitude"
-              value={longitude !== null ? longitude : ''}
-              onChange={(e) => setLongitude(parseFloat(e.target.value))}
-              step="0.0001"
-              min="-180"
-              max="180"
-              placeholder="0.0000"
-              required
-            />
-          </div>
-        </div>
-        
-        <div className="md:col-span-2">
+      </div>
+
+        <div className="md:col-span-2 mt-2">
           <Button 
             type="submit" 
             className="w-full bg-amber-600 hover:bg-amber-700 text-white"
@@ -203,19 +240,7 @@ const BirthChartForm: React.FC<BirthChartFormProps> = ({ onCalculate }) => {
           </Button>
         </div>
       </form>
-
-      <Dialog open={isComingSoonOpen} onOpenChange={setIsComingSoonOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Coming Soon</DialogTitle>
-            <DialogDescription>
-              The Vedic Birth Chart feature is currently under development. 
-              We're working hard to bring you this exciting new tool. 
-              Stay tuned for updates!
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+      
     </>
   );
 };
