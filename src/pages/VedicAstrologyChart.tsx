@@ -272,3 +272,4 @@ export const getPlanetAbbr = (planet: string): string => {
 // calculatePlanetPositions
 // calculateHouses
 // calculateChart
+export default VedicAstrologyChart;
