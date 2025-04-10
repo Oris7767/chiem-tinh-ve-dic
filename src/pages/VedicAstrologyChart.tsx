@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
+import { Tooltip as ReactTooltip } from 'react-tooltip';
 import { DateTime } from 'luxon';
-import { Select } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +16,8 @@ import {
   SIGNS, 
   NAKSHATRAS, 
   PLANETS,
-  calculatePlanetPositions,
+  getPlanetAbbr,
+  calculatePlanetPositions, 
   calculateHouses,
   calculateChart
 } from '@/utils/vedicAstrology';
@@ -53,6 +55,8 @@ const VedicAstrologyChart = () => {
   const [longitude, setLongitude] = useState<number>(105.85);
   const [timezone, setTimezone] = useState<string>("Asia/Ho_Chi_Minh");
   const [chartData, setChartData] = useState<ChartData | null>(null);
+  const [chartType, setChartType] = useState<"South Indian" | "North Indian">("South Indian");
+
 
   const generateChart = () => {
     const dateTime = DateTime.fromFormat(
@@ -110,7 +114,93 @@ const VedicAstrologyChart = () => {
       <NavBar />
       <div className="container mx-auto p-4">
         <h1 className="text-3xl font-bold mb-6 text-center">Bản đồ Sao Chiêm tinh Vệ Đà</h1>
-        
+        <div className="mb-4">
+          <label className="block mb-2">Chọn loại biểu đồ:</label>
+          <Select onValueChange={setChartType} defaultValue="South Indian">
+            <SelectTrigger className="w-[180px] bg-gray-100">
+              <SelectValue placeholder="Select Chart Type" />
+            </SelectTrigger>
+            <SelectContent className="bg-gray-100">
+              <SelectItem value="South Indian">South Indian</SelectItem>
+              <SelectItem value="North Indian">North Indian</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        {chartType === "South Indian" && (
+          <div className="grid grid-cols-3 grid-rows-4 gap-2 max-w-[400px] mx-auto">
+            {Array.from({ length: 12 }).map((_, i) => {
+            const signIndex = (chartData && chartData.houses[0].sign + i) % 12
+            return (
+               <div key={i} className={`border border-gray-500 p-2 relative ${i % 2 === 0 ? 'bg-gray-100' : 'bg-white'}`}>
+                 <div className="absolute top-1 right-1 text-xs">{i + 1}</div>
+                 <div className="text-center">{chartData && SIGNS[signIndex]}</div>
+                 {chartData && chartData.planets.filter(p => p.house === i + 1).map((planet, index, planetsInHouse) => {
+                     const planetLongitudeInSign = planet.longitude % 30;
+                     const horizontalPosition = (planetLongitudeInSign / 30) * 100;
+                     const maxPlanetsInHouse = 5;
+                     const sliceIndex = index;
+                     const verticalPosition = (sliceIndex / Math.min(maxPlanetsInHouse, planetsInHouse.length)) * 100;
+                     return (
+                       <div
+                         key={planet.id}
+                         className="absolute flex flex-col items-center"
+                         style={{ top: `${verticalPosition}%`, left: `${horizontalPosition}%`, transform: 'translate(-50%, -50%)' }}
+                       >
+                         <span data-tip={planet.name} id={planet.id} className="text-xl" style={{ color: planet.color }}>{planet.symbol}</span>
+                        <ReactTooltip place="bottom" type="dark" effect="float"/>
+                         <span className="text-sm">{getPlanetAbbr(planet.name)}</span>
+                       </div>
+                     );
+                   })}
+                 </div>
+            )
+            })}
+          </div>
+        )}
+        {chartType === "North Indian" && (
+          <div className="grid grid-cols-3 grid-rows-4 gap-2 max-w-[400px] mx-auto">
+            {[1, 2, 3, 12, null, 4, 11, null, 5, 10, 9, 8, 7, 6].map((houseNumber, index) => {
+              if (houseNumber === null) {
+                return <div key={index} className="border border-gray-400 p-2 relative" />;
+              }          
+
+             
+              const northIndianHouseMap = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+              const houseIndex = (index + 8) % 12;
+              const houseNumberToDisplay = northIndianHouseMap[houseIndex];
+
+              const house = chartData && chartData.houses.find(h => h.number === houseNumberToDisplay);
+              const signIndex = house ? house.sign : 0;
+              const planetsInHouse = chartData && chartData.planets.filter(p => p.house === houseNumberToDisplay);
+              
+               const backgroundClass = [1, 3, 5, 7, 9, 11].includes(houseNumberToDisplay) ? 'bg-gray-100' : 'bg-white';
+
+              return (
+                <div key={index} className={`border border-gray-500 p-2 relative ${backgroundClass}`}>
+                  <div className="absolute top-1 right-1 text-xs">{houseNumberToDisplay}</div>
+                  {chartData && <div className="text-center">{SIGNS[signIndex]}</div>}
+                  {planetsInHouse && planetsInHouse.map((planet, index, planetsInHouse) => {
+                      const planetLongitudeInSign = planet.longitude % 30;
+                      const horizontalPosition = (planetLongitudeInSign / 30) * 100;
+                      const maxPlanetsInHouse = 5;
+                      const sliceIndex = index;
+                      const verticalPosition = (sliceIndex / Math.min(maxPlanetsInHouse, planetsInHouse.length)) * 100;
+                      
+                      return (
+                        <div key={planet.id} className="absolute flex flex-col items-center" style={{ top: `${verticalPosition}%`, left: `${horizontalPosition}%`, transform: 'translate(-50%, -50%)' }}>
+                          <span className="text-xl" style={{ color: planet.color }}>{planet.symbol}</span>
+                          <span className="text-sm">{getPlanetAbbr(planet.name)}</span>
+                        </div>
+                      );
+                    })}
+                </div>
+              );
+              }
+            )}
+          </div>
+        )}
+
+
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Thông tin đầu vào</CardTitle>
@@ -335,6 +425,7 @@ const VedicAstrologyChart = () => {
           </div>
         )}
       </div>
+      
       <Footer />
     </div>
   );

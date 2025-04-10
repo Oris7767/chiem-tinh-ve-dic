@@ -92,8 +92,15 @@ const NavBar = () => {
                   </Link>
                 </li>
                 <li>
-                  <Link to="/numerology" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
-                    {t('nav.numerology') || 'Numerology'}
+                  <li>
+                 <Link to="/vedic-chart" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
+                   {t('nav.vedicChart') || 'Vedic Chart'}
+                 </Link>
+               </li>
+                </li>
+                <li>
+                  <Link to="/birth-chart" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
+                    {t('nav.birthChart') || 'Birth Chart'}
                   </Link>
                 </li>
                 <li>
