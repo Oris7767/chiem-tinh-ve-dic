@@ -2,12 +2,15 @@
 import { useState, useEffect } from 'react';
 import { cn } from '../lib/utils';
 import { useLanguage } from '../context/LanguageContext';
+import { Button } from '@/components/ui/button';
 import { Languages } from 'lucide-react';
 import { useLocation, Link } from 'react-router-dom';
+import { useIsMobile } from '../hooks/use-mobile';
+import MobileMenu from './MobileMenu';
 
 const NavBar = () => {
   const [scrolled, setScrolled] = useState(false);
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();  const isMobile = useIsMobile();
   const location = useLocation();
 
   useEffect(() => {
@@ -94,11 +97,6 @@ const NavBar = () => {
                   </Link>
                 </li>
                 <li>
-                  <Link to="/birth-chart" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
-                    {t('nav.birthChart') || 'Birth Chart'}
-                  </Link>
-                </li>
-                <li>
                   <Link to="/blog" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
                     {t('nav.blog') || 'Blog'}
                   </Link>
@@ -106,13 +104,30 @@ const NavBar = () => {
               </>
             )}
           </ul>
-          
-          <Link 
-            to={isHomePage ? "/#calculator" : "/numerology"} 
-            className="btn-primary animate-fade-in-delay"
-          >
-            {t('nav.start')}
-          </Link>
+           {isMobile ? (
+             <div className='flex items-center gap-4'>
+               <Link
+                 to={isHomePage ? "/#calculator" : "/numerology"}
+                 className="btn-primary animate-fade-in-delay"
+               >
+                 {t('nav.start')}
+               </Link>
+               <MobileMenu />
+             </div>
+
+           ) : (
+
+            <Link
+
+              to={isHomePage ? "/#calculator" : "/numerology"} 
+              className="btn-primary animate-fade-in-delay"
+            >
+              {t('nav.start')}
+            </Link>
+           )}
+
+
+
         </div>
       </div>
     </nav>

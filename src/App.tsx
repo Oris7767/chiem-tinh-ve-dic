@@ -35,6 +35,9 @@ const App = () => (
                   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
                   <meta name="theme-color" content="#B45309" />
                   <meta name="robots" content="index, follow" />
+                  <meta property="og:image" content="/og-image.png" />
+                  <meta property="og:image:width" content="1200" />
+                  <meta property="og:image:height" content="630" />
                   <script
                     async
                     src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
