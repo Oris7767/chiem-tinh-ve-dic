@@ -1,10 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 
-// Define the data structures (as before)
-interface Angle {
-  degrees: number; 
-}
 
 enum HouseName {
   House1 = "House1",

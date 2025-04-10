@@ -10,9 +10,8 @@ import MobileMenu from './MobileMenu';
 
 const NavBar = () => {
   const [scrolled, setScrolled] = useState(false);
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();  const isMobile = useIsMobile();
   const location = useLocation();
-  const isMobile = useIsMobile();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -93,14 +92,11 @@ const NavBar = () => {
                   </Link>
                 </li>
                 <li>
-                  <Link to="/numerology" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
-                    Vedic Chart
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/numerology" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
-                    {t('nav.numerology') || 'Numerology'}
-                  </Link>
+                  <li>
+                 <Link to="/vedic-chart" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
+                   {t('nav.vedicChart') || 'Vedic Chart'}
+                 </Link>
+               </li>
                 </li>
                 <li>
                   <Link to="/birth-chart" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
@@ -115,19 +111,19 @@ const NavBar = () => {
               </>
             )}
           </ul>
-          
-          {isMobile ? (
-            <div className='flex items-center gap-4'>
-              <Link
-                to={isHomePage ? "/#calculator" : "/numerology"}
-                className="btn-primary animate-fade-in-delay block md:hidden"
-              >
-                {t('nav.start')}
-              </Link>
-              <MobileMenu />
-            </div>
+           {isMobile ? (
+             <div className='flex items-center gap-4'>
+               <Link
+                 to={isHomePage ? "/#calculator" : "/numerology"}
+                 className="btn-primary animate-fade-in-delay"
+               >
+                 {t('nav.start')}
+               </Link>
+               <MobileMenu />
+             </div>
 
-          ) : (
+           ) : (
+
             <Link
 
               to={isHomePage ? "/#calculator" : "/numerology"} 
@@ -135,7 +131,10 @@ const NavBar = () => {
             >
               {t('nav.start')}
             </Link>
-          )}
+           )}
+
+
+
         </div>
       </div>
     </nav>
@@ -143,3 +142,4 @@ const NavBar = () => {
 };
 
 export default NavBar;
+
