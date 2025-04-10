@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { cn } from '../lib/utils';
 import { useLanguage } from '../context/LanguageContext';
+import { Button } from '@/components/ui/button';
 import { Languages } from 'lucide-react';
 import { useLocation, Link } from 'react-router-dom';
 import { useIsMobile } from '../hooks/use-mobile';
@@ -111,9 +112,19 @@ const NavBar = () => {
           </ul>
           
           {isMobile ? (
-            <MobileMenu />
+            <div className='flex items-center gap-4'>
+              <Link
+                to={isHomePage ? "/#calculator" : "/numerology"}
+                className="btn-primary animate-fade-in-delay block md:hidden"
+              >
+                {t('nav.start')}
+              </Link>
+              <MobileMenu />
+            </div>
+
           ) : (
-            <Link 
+            <Link
+
               to={isHomePage ? "/#calculator" : "/numerology"} 
               className="btn-primary animate-fade-in-delay"
             >
