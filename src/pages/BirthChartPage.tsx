@@ -78,7 +78,7 @@ const BirthChartPage = () => {
               <BirthChartForm onCalculate={handleCalculate} />
             </div>
 
-            {vedicChart && chartData && (
+            {vedicChart && (
               <div className="bg-white rounded-lg shadow-xl p-6 mt-8" >
                 <BirthChartDisplay vedicChart={vedicChart} />
               </div>
