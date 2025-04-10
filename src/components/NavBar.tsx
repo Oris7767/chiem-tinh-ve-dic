@@ -4,11 +4,14 @@ import { cn } from '../lib/utils';
 import { useLanguage } from '../context/LanguageContext';
 import { Languages } from 'lucide-react';
 import { useLocation, Link } from 'react-router-dom';
+import { useIsMobile } from '../hooks/use-mobile';
+import MobileMenu from './MobileMenu';
 
 const NavBar = () => {
   const [scrolled, setScrolled] = useState(false);
   const { language, setLanguage, t } = useLanguage();
   const location = useLocation();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -107,12 +110,16 @@ const NavBar = () => {
             )}
           </ul>
           
-          <Link 
-            to={isHomePage ? "/#calculator" : "/numerology"} 
-            className="btn-primary animate-fade-in-delay"
-          >
-            {t('nav.start')}
-          </Link>
+          {isMobile ? (
+            <MobileMenu />
+          ) : (
+            <Link 
+              to={isHomePage ? "/#calculator" : "/numerology"} 
+              className="btn-primary animate-fade-in-delay"
+            >
+              {t('nav.start')}
+            </Link>
+          )}
         </div>
       </div>
     </nav>
@@ -120,4 +127,3 @@ const NavBar = () => {
 };
 
 export default NavBar;
-

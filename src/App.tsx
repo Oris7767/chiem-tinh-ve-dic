@@ -20,8 +20,16 @@ import BlogLoginPage from "./pages/BlogLoginPage";
 import SubscribersAdminPage from "./pages/SubscribersAdminPage";
 import NotFound from "./pages/NotFound";
 import ChatBot from "./components/ChatBot";
+import BlogPopup from "./components/BlogPopup";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => (
   <React.StrictMode>
@@ -57,6 +65,7 @@ const App = () => (
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 <ChatBot />
+                <BlogPopup />
               </TooltipProvider>
             </SubscriberProvider>
           </BlogProvider>
