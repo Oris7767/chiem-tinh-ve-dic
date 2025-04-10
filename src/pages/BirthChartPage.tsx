@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useLanguage } from "../context/LanguageContext";
 import { DateTime } from 'luxon';
 import NavBar from "../components/NavBar";
@@ -15,13 +15,23 @@ export interface BirthChartData {
   location: string;
 }
 
+
 const BirthChartPage = () => {
   const { t } = useLanguage();
   const [vedicChart, setVedicChart] = useState<any | null>(null); // Update type to 'any' to match API response structure
-
-  const handleCalculate = (data: any) => {
+  const [chartData, setChartData] = useState<BirthChartData | null>(null);
+  
+  const handleCalculate = useCallback((data: any) => {
     try {
-      setVedicChart(data);
+
+        setVedicChart(data);
+        
+      setChartData({
+        date: data.date,
+        time: data.time,
+        timezone: data.timezone,
+        location: data.location,
+      });
         
       const dateTime = DateTime.fromJSDate(data.date)
         .set({ hour: data.hours, minute: data.minutes })
@@ -46,7 +56,7 @@ const BirthChartPage = () => {
         variant: "destructive",
       });
     }
-  };
+  }, [t]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-amber-50 to-amber-100">
@@ -68,8 +78,8 @@ const BirthChartPage = () => {
               <BirthChartForm onCalculate={handleCalculate} />
             </div>
 
-            {vedicChart && (
-              <div className="bg-white rounded-lg shadow-xl p-6 mt-8">
+            {vedicChart && chartData && (
+              <div className="bg-white rounded-lg shadow-xl p-6 mt-8" >
                 <BirthChartDisplay vedicChart={vedicChart} />
               </div>
             )}
