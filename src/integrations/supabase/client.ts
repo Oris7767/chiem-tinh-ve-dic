@@ -22,6 +22,3 @@ export const safeQuery = async (queryFn: () => Promise<any>, context: string) =>
     return handleSupabaseError(error, context);
   }
 };
-
-// Export the supabase client
-export { supabase };
