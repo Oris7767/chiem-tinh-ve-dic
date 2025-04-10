@@ -9,6 +9,11 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
+  build: {
+    rollupOptions: {
+      external: ['js-cookie'],
+    },
+  },
   plugins: [
     react(),
     mode === 'development' &&
