@@ -38,7 +38,7 @@ const BirthChartPage = () => {
     } catch (error) {
       console.error("Error calculating chart:", error);
       toast({
-        t("birthChart.calculationError") || "Error calculating chart",
+        title: t("birthChart.calculationError") || "Error calculating chart",
         description:
           error instanceof Error
             ? error.message
