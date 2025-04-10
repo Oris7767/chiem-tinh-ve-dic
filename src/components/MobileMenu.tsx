@@ -60,14 +60,6 @@ const MobileMenu = () => {
               </li>
               <li>
                 <Link 
-                  to="/vedic-chart" 
-                  className="block py-2 px-4 text-lg font-medium hover:bg-amber-800/50 rounded-md transition-colors"
-                >
-                  {t('nav.vedicChart') || 'Vedic Chart'}
-                </Link>
-              </li>
-              <li>
-                <Link 
                   to="/blog" 
                   className="block py-2 px-4 text-lg font-medium hover:bg-amber-800/50 rounded-md transition-colors bg-amber-700/30"
                 >

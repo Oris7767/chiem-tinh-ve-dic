@@ -98,11 +98,6 @@ const NavBar = () => {
                   </Link>
                 </li>
                 <li>
-                  <Link to="/birth-chart" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
-                    {t('nav.birthChart') || 'Birth Chart'}
-                  </Link>
-                </li>
-                <li>
                   <Link to="/blog" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
                     {t('nav.blog') || 'Blog'}
                   </Link>
