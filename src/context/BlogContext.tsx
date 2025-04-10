@@ -1,7 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
-import Cookies from 'js-cookie';
 import { useToast } from "@/hooks/use-toast";
 
 export type BlogPost = {
@@ -75,7 +74,7 @@ const BlogContext = createContext<BlogContextType | undefined>(undefined);
 
 export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [blogToken, setBlogToken] = useState<string | null>(Cookies.get('blog-admin-token') || null);
+  const [blogToken, setBlogToken] = useState<string | null>(localStorage.getItem('blog-admin-token'));
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
@@ -142,15 +141,15 @@ export const BlogProvider: React.FC<{children: React.ReactNode}> = ({ children }
     // Master account login
     if (email === 'votiveacademy@gmail.com' && password === 'Votive@6789') {
       const token = 'master-token-' + Date.now();
-      Cookies.set('blog-admin-token', token);
+      localStorage.setItem('blog-admin-token', token);
       setBlogToken(token);
       return true;
     }
     return false;
   };
 
-    const logout = () => {
-    Cookies.remove('blog-admin-token');
+  const logout = () => {
+    localStorage.removeItem('blog-admin-token');
     setBlogToken(null);
   };
 
