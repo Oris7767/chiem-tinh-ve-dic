@@ -1,8 +1,25 @@
-
 // VEDIC CHART UNIFIED STRUCTURE
 // File: vedicChart.ts
 
 // Common Interfaces for both North and South Indian Charts
+export interface PlanetData {
+    name: string;
+    fullDegree: number;
+    normDegree: number;
+    speed: number;
+    isRetro: string; // 'true' or 'false'
+    sign: string;
+    signLord: string;
+    nakshatra: string;
+    nakshatraLord: string; // This might be the Vimsottari Lord
+    nakshatraNumber?: number; // Added based on description
+    nakshatraPada?: number;   // Added based on description
+    // nakshatraVimsottariLord?: string; // Potentially same as nakshatraLord, clarify if needed
+    house: number;
+    isCombust?: string; // Added optional field
+    symbol: string;
+}
+
 interface PlanetPosition {
     planet: string;
     degree: number;
@@ -46,7 +63,7 @@ interface SouthIndianHouse extends House {
 }
 
 // Unified Chart Data Structure
-interface VedicChartData {
+export interface VedicChartData {
     chartStyle: 'North' | 'South';
     ascendant: {
         sign: string;
@@ -57,6 +74,7 @@ interface VedicChartData {
         pada: number;
     };
     houses: (NorthIndianHouse | SouthIndianHouse)[];
+    planets: PlanetData[];
     aspects: {
         planet: string;
         aspectsTo: {
@@ -202,6 +220,29 @@ interface ChartDrawing {
 }
 
 // Chart Calculation Functions
+export const calculateAscendant = (datetime: Date, latitude: number, longitude: number) => {
+    // TODO: Implement ascendant calculation logic here
+    return 0; // Placeholder value
+};
+
+export const calculatePlanetPosition = (planet: string, datetime: Date) => {
+    // TODO: Implement planet position calculation logic here
+    return { // Placeholder
+        planet: planet,
+        degree: 0,
+        minutes: 0,
+        seconds: 0,
+        nakshatra: "",
+        pada: 0
+    };
+};
+
+export const calculateHouses = (ascendantDegree: number, chartStyle: 'North' | 'South') => {
+    // TODO: Implement house calculation logic here
+    return []; // Placeholder value
+};
+
+// Chart Calculation Functions
 interface ChartCalculations {
     calculateAscendant: (datetime: Date, latitude: number, longitude: number) => number;
     calculatePlanetPosition: (planet: string, datetime: Date) => PlanetPosition;
@@ -237,6 +278,7 @@ const exampleChart: VedicChartData = {
         },
         // ... (remaining houses)
     ],
+    planets: [],
     aspects: [
         {
             planet: "Mars",
@@ -251,13 +293,13 @@ const exampleChart: VedicChartData = {
     ]
 };
 
+
 // Export types and configurations
 export type {
     PlanetPosition,
     House,
     NorthIndianHouse,
     SouthIndianHouse,
-    VedicChartData,
     ChartDrawing,
     ChartCalculations
 };

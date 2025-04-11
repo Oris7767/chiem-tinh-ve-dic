@@ -12,8 +12,6 @@ import { Helmet, HelmetProvider } from 'react-helmet-async';
 import Index from "./pages/Index";
 import NumerologyPage from "./pages/NumerologyPage";
 import NumerologyAdminPage from "./pages/NumerologyAdminPage";
-import BirthChartPage from "./pages/BirthChartPage";
-// Removed: import VedicAstrologyChart from "./pages/VedicAstrologyChart";
 import VedicAstrologyCalculatorPage from "./pages/VedicAstrologyCalculatorPage"; // Added
 import BlogPage from "./pages/BlogPage";
 import BlogPostPage from "./pages/BlogPostPage";
@@ -51,8 +49,6 @@ const App = () => (
                   <Route path="/" element={<Index />} />
                   <Route path="/numerology" element={<NumerologyPage />} />
                   <Route path="/numerology/admin" element={<NumerologyAdminPage />} />
-                  <Route path="/birth-chart" element={<BirthChartPage />} />
-                  {/* Updated route to use the new calculator page */}
                   <Route path="/vedic-chart" element={<VedicAstrologyCalculatorPage />} />
                   <Route path="/blog" element={<BlogPage />} />
                   <Route path="/blog/:slug" element={<BlogPostPage />} />

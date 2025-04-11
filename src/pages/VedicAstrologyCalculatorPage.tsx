@@ -3,8 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { cities, City } from '@/utils/cityData';
 import VedicChartDisplay from '@/components/VedicChartDisplay';
 import DasaDisplay from '@/components/DasaDisplay';
+import { calculateAscendant, calculatePlanetPosition, calculateHouses, VedicChartData, PlanetData } from '@/vedic-logic/vedicChart';
 
 // --- WARNING: API Key Management ---
 // NEVER commit your API key directly into code in a real project.
@@ -12,23 +14,6 @@ import DasaDisplay from '@/components/DasaDisplay';
 const API_KEY = 'qqgGvpWGpl3D30KKDm7Ej8mJiPDMg6il8a3K4pjj'; // Replace with process.env.REACT_APP_ASTRO_API_KEY in a real app
 const API_URL = 'https://json.freeastrologyapi.com/planets'; // Assuming /planets or /planets/extended
 
-// --- Updated Planet Data Interface ---
-interface PlanetData {
-    name: string;
-    fullDegree: number;
-    normDegree: number;
-    speed: number;
-    isRetro: string; // 'true' or 'false'
-    sign: string;
-    signLord: string;
-    nakshatra: string;
-    nakshatraLord: string; // This might be the Vimsottari Lord
-    nakshatraNumber?: number; // Added based on description
-    nakshatraPada?: number;   // Added based on description
-    // nakshatraVimsottariLord?: string; // Potentially same as nakshatraLord, clarify if needed
-    house: number;
-    isCombust?: string; // Added optional field
-}
 
 // Updated state structure
 interface ChartResults {
@@ -42,44 +27,39 @@ interface ChartResults {
 const VedicAstrologyCalculatorPage: React.FC = () => {
     const [name, setName] = useState<string>('');
     const [dob, setDob] = useState<string>('');
-    const [latitude, setLatitude] = useState<string>('');
-    const [longitude, setLongitude] = useState<string>('');
+    const [selectedCity, setSelectedCity] = useState<City | null>(null);
     const [timezone, setTimezone] = useState<string>('5.5');
     const [chartStyle, setChartStyle] = useState<'North' | 'South'>('North');
     const [chartResults, setChartResults] = useState<ChartResults | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    const [vedicChartData, setVedicChartData] = useState<VedicChartData | null>(null);
 
-    const fetchBirthChart = async () => {
+    const fetchBirthChart = async (): Promise<void> => {
         setIsLoading(true);
         setError(null);
         setChartResults(null);
+        setVedicChartData(null);
 
         // --- Input Validation ---
-        if (!dob || !latitude || !longitude || !timezone) {
-            setError('Please fill in Date/Time, Latitude, Longitude, and Timezone.');
+        if (!dob || !selectedCity || !timezone) {
+            setError('Please fill in Date/Time, City, and Timezone.');
             setIsLoading(false);
             return;
         }
 
         let parsedDate: Date;
-        let latNum: number;
-        let lonNum: number;
         let tzNum: number;
 
         try {
             parsedDate = new Date(dob);
             if (isNaN(parsedDate.getTime())) throw new Error('Invalid Date/Time format.');
 
-            latNum = parseFloat(latitude);
-            lonNum = parseFloat(longitude);
             tzNum = parseFloat(timezone);
 
-            if (isNaN(latNum) || isNaN(lonNum) || isNaN(tzNum)) {
-                throw new Error('Latitude, Longitude, and Timezone must be valid numbers.');
+            if (isNaN(tzNum)) {
+                throw new Error('Timezone must be a valid number.');
             }
-            if (latNum < -90 || latNum > 90) throw new Error ('Latitude must be between -90 and 90.');
-            if (lonNum < -180 || lonNum > 180) throw new Error ('Longitude must be between -180 and 180.');
 
         } catch (validationError: any) {
             setError(`Input Error: ${validationError.message}`);
@@ -95,8 +75,8 @@ const VedicAstrologyCalculatorPage: React.FC = () => {
             hours: parsedDate.getHours(),
             minutes: parsedDate.getMinutes(),
             seconds: parsedDate.getSeconds(),
-            latitude: latNum,
-            longitude: lonNum,
+            latitude: selectedCity.latitude, 
+            longitude: selectedCity.longitude,
             timezone: tzNum,
             settings: {
                 observation_point: "topocentric",
@@ -105,6 +85,7 @@ const VedicAstrologyCalculatorPage: React.FC = () => {
         };
 
         console.log('Calling API with body:', requestBody);
+
 
         // --- Actual API Call ---
         try {
@@ -134,11 +115,51 @@ const VedicAstrologyCalculatorPage: React.FC = () => {
                 throw new Error('Received unexpected data format from API.');
             }
 
-            // Assuming data.output is the array of PlanetData
-            const planets: PlanetData[] = data.output;
+             // Extract and transform planet data from the second element of data.output
+            const planetsData = data.output[1];
+            const planets: PlanetData[] = Object.entries(planetsData).map(([name, data]: [string, any]) => ({
+                name,
+                fullDegree: data.fullDegree,
+                normDegree: data.normDegree,
+                speed: data.speed,
+                isRetro: data.isRetro,
+                sign: data.sign,
+                signLord: data.signLord,
+                nakshatra: data.nakshatra,
+                nakshatraLord: data.nakshatraLord,
+                house: data.house,
+                isCombust: data.isCombust,
+                symbol: '' // TODO: Add actual symbols
+            }));
             console.log('Received Planets:', planets);
 
+            // Calculate Ascendant
+            const ascendantDegree = calculateAscendant(parsedDate, selectedCity.latitude, selectedCity.longitude);
+
+            // Calculate Houses
+            const houses = calculateHouses(ascendantDegree, chartStyle);
+
+            // TODO: calculate sign, degree, minutes, seconds, nakshatra, and pada for ascendant
+            const ascendant = {
+                sign: "",
+                degree: 0,
+                minutes: 0,
+                seconds: 0,
+                nakshatra: "",
+                pada: 0
+            };
+
+            // Construct VedicChartData
+            setVedicChartData({
+                chartStyle: chartStyle,
+                ascendant: ascendant,
+                houses: houses,
+                planets: planets,
+                aspects: []
+            });
+
             // Check if Ascendant data is included (often named 'Ascendant' or 'Lagnam')
+            console.log("Planets data before ascendant check:", planets);
             const ascendantData = planets.find(p => p.name.toLowerCase() === 'ascendant' || p.name.toLowerCase() === 'lagnam');
             if (!ascendantData) {
                  console.warn('Ascendant data not found in API response. House placements might be inaccurate.');
@@ -151,6 +172,7 @@ const VedicAstrologyCalculatorPage: React.FC = () => {
                    moonNakshatraLord: planets.find(p => p.name === 'Moon')?.nakshatraLord
                 } 
             });
+
 
         } catch (err: any) {
             console.error('Error fetching birth chart:', err);
@@ -199,33 +221,28 @@ const VedicAstrologyCalculatorPage: React.FC = () => {
                         />
                     </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                     <div>
-                         {/* TODO: Use i18n string for label 'Location' (Latitude) */}
-                        <Label htmlFor="latitude">Latitude* (-90 to 90)</Label>
-                        <Input
-                            id="latitude"
-                            type="number"
-                            step="any"
-                            value={latitude}
-                            onChange={(e) => setLatitude(e.target.value)}
-                            placeholder="e.g., 17.383"
-                            required
-                        />
-                    </div>
-                    <div>
-                        {/* TODO: Use i18n string for label 'Location' (Longitude) */}
-                        <Label htmlFor="longitude">Longitude* (-180 to 180)</Label>
-                        <Input
-                            id="longitude"
-                            type="number"
-                            step="any"
-                            value={longitude}
-                            onChange={(e) => setLongitude(e.target.value)}
-                            placeholder="e.g., 78.466"
-                            required
-                        />
-                    </div>
+                <div>
+                    <Label htmlFor="city">City</Label>
+                    <Select onValueChange={(value) => {
+                        const city = cities.find(c => c.name === value);
+                        setSelectedCity(city || null);
+                    }}>
+                        <SelectTrigger id="city">
+                            <SelectValue placeholder="Select a city" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {cities.map((city) => (
+                                <SelectItem key={city.name} value={city.name}>
+                                    {city.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    {selectedCity && (
+                        <p className="text-sm text-gray-500 mt-1">
+                            Selected: {selectedCity.name} ({selectedCity.latitude}, {selectedCity.longitude})
+                        </p>
+                    )}
                 </div>
                  <div>
                     <Label htmlFor="chartStyle">Chart Style</Label>
@@ -247,12 +264,10 @@ const VedicAstrologyCalculatorPage: React.FC = () => {
 
             {/* Results Section */}
             {isLoading && <p className="text-center mt-4">Loading planetary data...</p>}
-            {chartResults && !isLoading && (
+            {vedicChartData && !isLoading && (
                 <div className="mt-8 space-y-6">
-                    <h2 className="text-2xl font-semibold text-center">Calculation Results</h2>
                     <VedicChartDisplay
-                        planets={chartResults.planets}
-                        chartStyle={chartResults.chartStyle}
+                        vedicChartData={vedicChartData}
                      />
                     <DasaDisplay dasaData={chartResults.dasa} />
                     <p className="text-center text-sm text-gray-600">Note: Full Dasha sequence/dates require further calculation.</p>
