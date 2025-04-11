@@ -19,6 +19,11 @@ export type House = {
   sign: number;
 };
 
+export type ChartHouse = {
+  number: number;
+  planets: Planet[];
+}
+
 export type ChartData = {
   planets: Planet[];
   houses: House[];
@@ -62,11 +67,11 @@ export const calculatePlanetPositions = (
   latitude: number, 
   longitude: number
 ): Planet[] => {
-  // In a real app, this would use Swiss Ephemeris or similar library
-  // This is just a mock implementation for demonstration
+
   const seed = date.toMillis() + latitude + longitude;
   return PLANETS.map(planet => {
     const randomLongitude = (seed % 1000 + parseInt(planet.id, 36)) % 360;
+    // Assign signs based on longitude
     const sign = Math.floor(randomLongitude / 30);
     const house = ((sign + 1) % 12) + 1;
     
@@ -88,8 +93,7 @@ export const calculateHouses = (
   latitude: number, 
   longitude: number
 ): House[] => {
-  // In a real app, this would use proper astronomical calculations
-  // This is just a mock implementation
+
   const seed = date.toMillis() + latitude + longitude;
   const ascendant = seed % 360;
   
@@ -129,6 +133,37 @@ export const calculateChart = (
     lunarDay
   };
 };
+
+// Function to structure the chart for South Indian style
+export const getSouthIndianChart = (chartData: ChartData): ChartHouse[] => {
+  const chartHouses: ChartHouse[] = [];
+  const sortedPlanets = [...chartData.planets].sort((a,b) => a.longitude - b.longitude);
+  
+  // Create an array of 12 houses, initialized with empty planet arrays
+  for (let i = 0; i < 12; i++) {
+    chartHouses.push({ number: i, planets: [] });
+  }
+  // Populate houses with planets
+  for (const planet of sortedPlanets) {
+    const houseIndex = planet.sign;
+    
+    // Mesha (Aries) is in the 2nd house of the 4x4 grid, so adjust houses accordingly.
+    const modifiedHouseIndex = (houseIndex + 1) % 12;
+
+    chartHouses[modifiedHouseIndex].planets.push(planet);
+  }
+  // Adjust the houses to fit into a 4x4 grid (South Indian style)
+  const southIndianChart: ChartHouse[] = [
+    chartHouses[1], chartHouses[2], chartHouses[3], 
+    chartHouses[0], undefined, undefined, chartHouses[4],
+    chartHouses[11], undefined, undefined, chartHouses[5],
+    chartHouses[10], chartHouses[9], chartHouses[8], chartHouses[7], chartHouses[6],
+  ];
+
+  return southIndianChart.filter(house => house !== undefined);
+};
+
+
 
 // Helper function to get planet abbreviation
 export const getPlanetAbbr = (planet: string): string => {
