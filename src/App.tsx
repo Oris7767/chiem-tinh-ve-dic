@@ -13,7 +13,8 @@ import Index from "./pages/Index";
 import NumerologyPage from "./pages/NumerologyPage";
 import NumerologyAdminPage from "./pages/NumerologyAdminPage";
 import BirthChartPage from "./pages/BirthChartPage";
-import VedicAstrologyChart from "./pages/VedicAstrologyChart";
+// Removed: import VedicAstrologyChart from "./pages/VedicAstrologyChart";
+import VedicAstrologyCalculatorPage from "./pages/VedicAstrologyCalculatorPage"; // Added
 import BlogPage from "./pages/BlogPage";
 import BlogPostPage from "./pages/BlogPostPage";
 import BlogLoginPage from "./pages/BlogLoginPage";
@@ -51,7 +52,8 @@ const App = () => (
                   <Route path="/numerology" element={<NumerologyPage />} />
                   <Route path="/numerology/admin" element={<NumerologyAdminPage />} />
                   <Route path="/birth-chart" element={<BirthChartPage />} />
-                  <Route path="/vedic-chart" element={<VedicAstrologyChart />} />
+                  {/* Updated route to use the new calculator page */}
+                  <Route path="/vedic-chart" element={<VedicAstrologyCalculatorPage />} />
                   <Route path="/blog" element={<BlogPage />} />
                   <Route path="/blog/:slug" element={<BlogPostPage />} />
                   <Route path="/blog/admin" element={<BlogLoginPage />} />
