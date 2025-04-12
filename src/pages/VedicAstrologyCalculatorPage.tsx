@@ -284,16 +284,13 @@ const VedicAstrologyCalculatorPage: React.FC = () => {
             </form>
 
             {/* Results Section */}
-            {isLoading && <p className="text-center mt-4">Loading planetary data...</p>}
             {vedicChartData && !isLoading && (
-                <div className="mt-8 space-y-6">
-                    <VedicChartDisplay 
-                        data={chartData} />
-                     />
-                    <DasaDisplay dasaData={chartResults.dasa} />
-                    <p className="text-center text-sm text-gray-600">Note: Full Dasha sequence/dates require further calculation.</p>
-                </div>
-            )}
+               <div className="mt-8 space-y-6">
+                   <VedicChartDisplay data={chartData} />
+                   <DasaDisplay dasaData={chartResults?.dasa} />
+                   <p className="text-center text-sm text-gray-600">Note: Full Dasha sequence/dates require further calculation.</p>
+               </div>
+           )}
         </div>
     );
 };
