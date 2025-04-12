@@ -33,7 +33,7 @@ const VedicAstrologyCalculatorPage: React.FC = () => {
     const [chartResults, setChartResults] = useState<ChartResults | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
-    const [vedicChartData, setVedicChartData] = useState<VedicChartData | null>(null);
+    const [chartData, setChartData] = useState<any>(null);
 
     const fetchBirthChart = async (): Promise<void> => {
         setIsLoading(true);
@@ -172,6 +172,27 @@ const VedicAstrologyCalculatorPage: React.FC = () => {
                    moonNakshatraLord: planets.find(p => p.name === 'Moon')?.nakshatraLord
                 } 
             });
+            // Transform planet data into house-wise format
+            const houseMap: { [key: number]: string[] } = {};
+            planets.forEach((planet) => {
+            const houseNum = parseInt(planet.house);
+            if (!houseMap[houseNum]) {
+                houseMap[houseNum] = [];
+                }
+            houseMap[houseNum].push(planet.name);
+            });
+
+            // Combine house numbers and planet lists
+            const chartForDisplay = {
+               houses: Array.from({ length: 12 }, (_, i) => ({
+               house: i + 1,
+               planets: houseMap[i + 1] || [],
+           })),
+        };
+
+       // Store in chartData state (add this state if not declared)
+       setChartData(chartForDisplay);
+
 
 
         } catch (err: any) {
@@ -266,8 +287,8 @@ const VedicAstrologyCalculatorPage: React.FC = () => {
             {isLoading && <p className="text-center mt-4">Loading planetary data...</p>}
             {vedicChartData && !isLoading && (
                 <div className="mt-8 space-y-6">
-                    <VedicChartDisplay
-                        vedicChartData={vedicChartData}
+                    <VedicChartDisplay 
+                        data={chartData} />
                      />
                     <DasaDisplay dasaData={chartResults.dasa} />
                     <p className="text-center text-sm text-gray-600">Note: Full Dasha sequence/dates require further calculation.</p>
