@@ -11,11 +11,11 @@ const VedicChartDisplay = ({ data }: { data: any }) => {
 
   const angleOffset = Math.PI / 6;
 
-  const getCoordinates = (index: number) => {
+  const getCoordinates = (index: number, offset = 0) => {
     const angle = (2 * Math.PI * index) / 12 - angleOffset;
     return {
-      x: cx + r * Math.cos(angle),
-      y: cy + r * Math.sin(angle),
+      x: cx + (r - offset) * Math.cos(angle),
+      y: cy + (r - offset) * Math.sin(angle),
     };
   };
 
@@ -23,10 +23,27 @@ const VedicChartDisplay = ({ data }: { data: any }) => {
     <svg width={width} height={height}>
       <circle cx={cx} cy={cy} r={r} fill="#f9fafb" stroke="#333" strokeWidth={2} />
       {houses.map((house, i) => {
-        const { x, y } = getCoordinates(i);
+        const { x, y } = getCoordinates(i, 20);
         return (
           <text key={i} x={x} y={y} textAnchor="middle" fontSize="12" fill="#111">
             {house}
+          </text>
+        );
+      })}
+
+      {/* Render planets in each house */}
+      {data?.houses?.map((houseData: any, index: number) => {
+        const { x, y } = getCoordinates(index, 40);
+        return (
+          <text
+            key={index}
+            x={x}
+            y={y}
+            textAnchor="middle"
+            fontSize="10"
+            fill="#008080"
+          >
+            {houseData.planets?.join(", ")}
           </text>
         );
       })}
