@@ -12,7 +12,7 @@ import { Helmet, HelmetProvider } from 'react-helmet-async';
 import Index from "./pages/Index";
 import NumerologyPage from "./pages/NumerologyPage";
 import NumerologyAdminPage from "./pages/NumerologyAdminPage";
-import VedicAstrologyCalculatorPage from "./pages/BirthChartPage"; // Added
+import BirthChartForm from "./components/BirthChartForm"; // Added
 import BlogPage from "./pages/BlogPage";
 import BlogPostPage from "./pages/BlogPostPage";
 import BlogLoginPage from "./pages/BlogLoginPage";
@@ -49,7 +49,7 @@ const App = () => (
                   <Route path="/" element={<Index />} />
                   <Route path="/numerology" element={<NumerologyPage />} />
                   <Route path="/numerology/admin" element={<NumerologyAdminPage />} />
-                  <Route path="/vedic-chart" element={<VedicAstrologyCalculatorPage />} />
+                  <Route path="/vedic-chart" element={<BirthChartForm />} />
                   <Route path="/blog" element={<BlogPage />} />
                   <Route path="/blog/:slug" element={<BlogPostPage />} />
                   <Route path="/blog/admin" element={<BlogLoginPage />} />
