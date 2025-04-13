@@ -12,7 +12,7 @@ import { Helmet, HelmetProvider } from 'react-helmet-async';
 import Index from "./pages/Index";
 import NumerologyPage from "./pages/NumerologyPage";
 import NumerologyAdminPage from "./pages/NumerologyAdminPage";
-import VedicAstrologyCalculatorPage from "./pages/VedicAstrologyCalculatorPage"; // Added
+import VedicAstrologyCalculatorPage from "./pages/BirthChartPage"; // Added
 import BlogPage from "./pages/BlogPage";
 import BlogPostPage from "./pages/BlogPostPage";
 import BlogLoginPage from "./pages/BlogLoginPage";

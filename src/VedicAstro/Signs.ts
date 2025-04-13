@@ -2,6 +2,7 @@
 // utils/VedicAstro/Signs.ts
 
 // Định nghĩa types cho cung hoàng đạo
+import { PlanetName } from './Planets';
 export type SignInfo = {
   id: number;
   name: string;
@@ -28,7 +29,7 @@ export const SIGN_COLORS = {
   ARIES: '#FF4136',       // Đỏ tươi
   TAURUS: '#2ECC40',      // Xanh lá
   GEMINI: '#FFDC00',      // Vàng
-  CANCER: '#SILVER',      // Bạc
+  CANCER: '##C0C0C0',      // Bạc
   LEO: '#FF851B',         // Cam
   VIRGO: '#7FDBFF',       // Xanh da trời
   LIBRA: '#B10DC9',       // Tím
@@ -52,7 +53,7 @@ export const SIGNS: Record<number, SignInfo> = {
     quality: 'Cardinal',
     polarity: 'Positive',
     direction: 'East',
-    ruler: 'Mars',
+    ruler: 'MARS',
     degree: {
       start: 0,
       end: 30
@@ -79,7 +80,7 @@ export const SIGNS: Record<number, SignInfo> = {
     quality: 'Fixed',
     polarity: 'Negative',
     direction: 'South',
-    ruler: 'Venus',
+    ruler: 'VENUS',
     degree: {
       start: 30,
       end: 60

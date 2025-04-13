@@ -1,6 +1,6 @@
 // 27 NAKSHATRAS DATA
 // Format: TypeScript/JSON compatible
-
+import { PlanetName } from './Planets';
 const nakshatras = [
     {
         number: 1,

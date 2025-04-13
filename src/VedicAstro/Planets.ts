@@ -21,7 +21,7 @@ export type PlanetInfo = {
 // Định nghĩa các màu sắc chính
 export const PLANET_COLORS = {
   SUN: '#FFA500',      // Orange
-  MOON: '#SILVER',     // Silver
+  MOON: '##C0C0C0',     // Silver
   MARS: '#FF0000',     // Red
   MERCURY: '#00FF00',  // Green
   JUPITER: '#FFFF00',  // Yellow
