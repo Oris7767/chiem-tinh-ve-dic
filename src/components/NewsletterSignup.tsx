@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { toast } from '@/components/ui/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 import { Mail } from 'lucide-react';
 
 type FormData = {
@@ -19,6 +19,7 @@ const NewsletterSignup = () => {
   const { addSubscriber } = useSubscribers();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>();
+  const { toast } = useToast(); // Use the hook
   
   const onSubmit = (data: FormData) => {
     setIsSubmitting(true);
