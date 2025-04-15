@@ -1,0 +1,46 @@
+
+--2025-04-13 16:50:33--  ftp://www.astro.com/pub/swisseph/ephe/semo_18.se1
+  (try:12) => ‘semo_18.se1’
+Connecting to www.astro.com (www.astro.com)|192.53.104.242|:21... failed: Connection timed out.
+Retrying.
+
+--2025-04-13 16:52:56--  ftp://www.astro.com/pub/swisseph/ephe/semo_18.se1
+  (try:13) => ‘semo_18.se1’
+Connecting to www.astro.com (www.astro.com)|192.53.104.242|:21... failed: Connection timed out.
+Retrying.
+
+--2025-04-13 16:55:19--  ftp://www.astro.com/pub/swisseph/ephe/semo_18.se1
+  (try:14) => ‘semo_18.se1’
+Connecting to www.astro.com (www.astro.com)|192.53.104.242|:21... failed: Connection timed out.
+Retrying.
+
+--2025-04-13 16:57:43--  ftp://www.astro.com/pub/swisseph/ephe/semo_18.se1
+  (try:15) => ‘semo_18.se1’
+Connecting to www.astro.com (www.astro.com)|192.53.104.242|:21... failed: Connection timed out.
+Retrying.
+
+--2025-04-13 17:00:06--  ftp://www.astro.com/pub/swisseph/ephe/semo_18.se1
+  (try:16) => ‘semo_18.se1’
+Connecting to www.astro.com (www.astro.com)|192.53.104.242|:21... failed: Connection timed out.
+Retrying.
+
+--2025-04-13 17:02:29--  ftp://www.astro.com/pub/swisseph/ephe/semo_18.se1
+  (try:17) => ‘semo_18.se1’
+Connecting to www.astro.com (www.astro.com)|192.53.104.242|:21... failed: Connection timed out.
+Retrying.
+
+--2025-04-13 17:04:53--  ftp://www.astro.com/pub/swisseph/ephe/semo_18.se1
+  (try:18) => ‘semo_18.se1’
+Connecting to www.astro.com (www.astro.com)|192.53.104.242|:21... failed: Connection timed out.
+Retrying.
+
+--2025-04-13 17:07:16--  ftp://www.astro.com/pub/swisseph/ephe/semo_18.se1
+  (try:19) => ‘semo_18.se1’
+Connecting to www.astro.com (www.astro.com)|192.53.104.242|:21... failed: Connection timed out.
+Retrying.
+
+--2025-04-13 17:09:39--  ftp://www.astro.com/pub/swisseph/ephe/semo_18.se1
+  (try:20) => ‘semo_18.se1’
+Connecting to www.astro.com (www.astro.com)|192.53.104.242|:21... failed: Connection timed out.
+Giving up.
+
