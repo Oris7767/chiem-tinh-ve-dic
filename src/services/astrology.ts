@@ -5,7 +5,11 @@ import { PLANETS } from '../utils/VedicAstro/Planets';
 import { nakshatras, Nakshatra, Pada } from '../utils/VedicAstro/Nakshatras';
 
 // Set ephemeris path
-swisseph.swe_set_ephe_path('./public/ephe');
+try {
+  swisseph.swe_set_ephe_path('/ephe');
+} catch (error) {
+  console.error('Failed to set ephemeris path:', error);
+}
 
 // Helper function to find Nakshatra and Pada
 function getNakshatraAndPada(longitude: number): { nakshatra: Nakshatra; pada: Pada } | null {

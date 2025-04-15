@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { calculateBirthChart } from '../services/astrology';
 import SouthIndianChart from './SouthIndianChart';
@@ -26,97 +27,86 @@ const BirthChartForm: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Validate inputs
       if (!date || !time || !selectedCity) {
-        throw new Error('Vui lòng điền đầy đủ thông tin.');
+        throw new Error('Please fill in all fields.');
       }
 
-      const parsedDate = new Date(`${date}T${time}`);
-      if (isNaN(parsedDate.getTime())) {
-        throw new Error('Ngày hoặc giờ không hợp lệ.');
-      }
-
-      // Find city coordinates
       const city = cities.find((c) => c.name === selectedCity);
       if (!city) {
-        throw new Error('Thành phố không hợp lệ.');
+        throw new Error('Invalid city selected.');
       }
 
-      // Calculate chart
-      const result = await calculateBirthChart(parsedDate, city.latitude, city.longitude);
+      const result = await calculateBirthChart(
+        new Date(`${date}T${time}`),
+        city.latitude,
+        city.longitude
+      );
       setChart(result);
     } catch (err: any) {
-      setError(err.message || 'Đã xảy ra lỗi khi tính lá số.');
+      setError(err.message || 'Failed to calculate birth chart');
+      console.error('Birth chart calculation error:', err);
     } finally {
       setIsLoading(false);
     }
   };
 
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
+    );
+  }
+
   return (
     <div className="container mx-auto p-4 max-w-2xl">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl font-bold">Tạo Lá Số Tử Vi</CardTitle>
+          <CardTitle className="text-2xl font-bold">Generate Birth Chart</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="date" className="flex items-center gap-2">
-                <CalendarIcon className="h-4 w-4" /> Ngày sinh (YYYY-MM-DD)
-              </Label>
+              <Label htmlFor="date">Birth Date</Label>
               <Input
                 id="date"
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 required
-                aria-required="true"
-                className="mt-1"
               />
             </div>
             <div>
-              <Label htmlFor="time" className="flex items-center gap-2">
-                <ClockIcon className="h-4 w-4" /> Giờ sinh (HH:MM)
-              </Label>
+              <Label htmlFor="time">Birth Time</Label>
               <Input
                 id="time"
                 type="time"
                 value={time}
                 onChange={(e) => setTime(e.target.value)}
                 required
-                aria-required="true"
-                className="mt-1"
               />
             </div>
             <div>
-              <Label htmlFor="city" className="flex items-center gap-2">
-                <MapPinIcon className="h-4 w-4" /> Thành phố
-              </Label>
+              <Label htmlFor="city">City</Label>
               <Select onValueChange={setSelectedCity} required>
-                <SelectTrigger id="city" className="mt-1">
-                  <SelectValue placeholder="Chọn thành phố" />
+                <SelectTrigger id="city">
+                  <SelectValue placeholder="Select city" />
                 </SelectTrigger>
                 <SelectContent>
                   {cities.map((city) => (
                     <SelectItem key={city.name} value={city.name}>
-                      {city.vietnameseName}
+                      {city.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            <Button type="submit" disabled={isLoading} className="w-full">
-              {isLoading ? 'Đang tính toán...' : 'Tạo lá số'}
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? 'Calculating...' : 'Generate Chart'}
             </Button>
           </form>
-
-          {error && (
-            <Alert variant="destructive" className="mt-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Lỗi</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
 
           {isLoading && <Skeleton className="mt-4 h-96 w-full" />}
 
