@@ -1,8 +1,11 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const swisseph = require('swisseph');
 require('dotenv').config();
+
+// Import routes
+const userRoutes = require('./routes/userRoutes');
+const authRoutes = require('./routes/authRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -11,28 +14,29 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
-  methods: ['GET', 'POST']
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Đặt đường dẫn cho dữ liệu ephemeris
-swisseph.swe_set_ephe_path(path.join(__dirname, 'ephe'));
+// Routes
+app.use('/api/users', userRoutes);
+app.use('/api/auth', authRoutes);
 
-// API endpoints
-app.post('/api/calculate', (req, res) => {
-  try {
-    // Logic tính toán chiêm tinh ở đây
-    // ...
-    
-    res.json({ success: true, data: {} });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
+// Đường dẫn cho dữ liệu ephemeris
+app.use('/ephe', express.static(path.join(__dirname, 'ephe')));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date() });
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({
+    error: 'Internal Server Error',
+    message: process.env.NODE_ENV === 'production' ? 'Something went wrong' : err.message
+  });
 });
 
 app.listen(PORT, () => {
