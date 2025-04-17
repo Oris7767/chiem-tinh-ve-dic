@@ -1,0 +1,19 @@
+{
+  "name": "backend-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "eslint": "^9.24.0",
+    "make": "^0.8.1",
+    "node-addon-api": "^8.3.1",
+    "python3": "^0.0.1",
+    "swisseph": "^0.5.17"
+  }
+}
