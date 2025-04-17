@@ -1,29 +1,44 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 // Import routes
-const userRoutes = require('./routes/userRoutes');
 const authRoutes = require('./routes/authRoutes');
+const chartRoutes = require('./routes/chartRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(express.json());
+// Security middleware
+app.use(helmet());
 app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Routes
-app.use('/api/users', userRoutes);
-app.use('/api/auth', authRoutes);
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false
+});
+app.use(limiter);
 
-// Đường dẫn cho dữ liệu ephemeris
+// Body parser
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Static files - ephemeris data
 app.use('/ephe', express.static(path.join(__dirname, 'ephe')));
+
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/charts', chartRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -39,6 +54,7 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
