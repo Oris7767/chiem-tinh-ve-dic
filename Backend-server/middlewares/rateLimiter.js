@@ -14,4 +14,4 @@ const authLimiter = rateLimit({
   max: 5, // Limit each IP to 5 login requests per hour
   standardHeaders: true,
   legacyHeaders: false,
-  message: 'Too many login attempts from this IP, please try again after an hour'
+  message: 'Too many login attempts from this IP, please try again after an hour'})

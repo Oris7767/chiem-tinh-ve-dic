@@ -14,6 +14,6 @@ router.put('/:id', authenticate, chartController.updateChart);
 router.delete('/:id', authenticate, chartController.deleteChart);
 
 // Interpretation routes
-router.get('/interpretation/:category/:subCategory?', chartController.getInterpretation);
+router.get('/interpretation/:category/:subCategory/something', chartController.getInterpretation);
 
 module.exports = router;

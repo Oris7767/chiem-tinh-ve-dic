@@ -4,8 +4,6 @@ import { useLanguage } from '../context/LanguageContext';
 import { DateTime } from 'luxon';
 import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
-import BirthChartForm from '../components/BirthChartForm';
-import BirthChartDisplay from '../components/BirthChartDisplay';
 import { Badge } from '@/components/ui/badge';
 import { calculateChart, ChartData as VedicChartData } from '../utils/vedicAstrology';
 import { toast } from '@/hooks/use-toast';
@@ -19,10 +17,7 @@ export interface BirthChartData {
   location: string;
 }
 
-const BirthChartPage = () => {
-  const { t } = useLanguage();
-  const [chartData, setChartData] = useState<BirthChartData | null>(null);
-  const [vedicChart, setVedicChart] = useState<VedicChartData | null>(null);
+
   
   const handleCalculate = (data: BirthChartData) => {
     try {
@@ -39,7 +34,7 @@ const BirthChartPage = () => {
       }
       
       // Calculate the Vedic chart
-      const chart = calculateChart(dateTime, data.latitude, data.longitude);
+      // const chart = calculateChart(dateTime, data.latitude, data.longitude);
       
       // Set chart data
       setChartData(data);
