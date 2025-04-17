@@ -1,19 +1,25 @@
 {
-  "name": "backend-server",
-  "version": "1.0.0",
-  "main": "index.js",
+  "name": "chiem-tinh-vedic-backend",
+  "version": "0.1.0",
+  "description": "Swiss Ephemeris API for Vedic Astrology",
+  "main": "server.js",
+  "type": "commonjs",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "build": "echo 'No build step required for backend'"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
-    "eslint": "^9.24.0",
-    "make": "^0.8.1",
-    "node-addon-api": "^8.3.1",
-    "python3": "^0.0.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^5.1.0",
+    "sweph": "^2.10.3-4",
     "swisseph": "^0.5.17"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
