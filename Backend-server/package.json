@@ -16,11 +16,20 @@
     "express": "^5.1.0",
     "express-rate-limit": "^7.5.0",
     "helmet": "^8.1.0",
+    "joi": "^17.13.3",
+    "postgres": "^3.4.5",
+    "redis": "^4.7.0",
+    "swagger": "^0.7.5",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "sweph": "^2.10.3-4",
-    "swisseph": "^0.5.17"
+    "swisseph": "^0.5.17",
+    "winston": "^3.17.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.0"
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.0",
+    "supertest": "^7.1.0"
   },
   "engines": {
     "node": ">=18.0.0"

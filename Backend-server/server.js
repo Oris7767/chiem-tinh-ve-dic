@@ -5,12 +5,38 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
+const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
+
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Vedic Astrology API',
+      version: '1.0.0',
+      description: 'API for Vedic astrology calculations and chart management',
+    },
+    servers: [
+      {
+        url: process.env.API_URL || 'http://localhost:3000',
+      },
+    ],
+  },
+  apis: ['./routes/*.js'],
+};
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+const swaggerDocs = swaggerJsdoc(swaggerOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
+
 // Import routes
 const authRoutes = require('./routes/authRoutes');
 const chartRoutes = require('./routes/chartRoutes');
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+
 
 // Security middleware
 app.use(helmet());
