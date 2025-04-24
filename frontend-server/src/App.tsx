@@ -20,6 +20,9 @@ import BlogLoginPage from "./pages/BlogLoginPage";
 import SubscribersAdminPage from "./pages/SubscribersAdminPage";
 import NotFound from "./pages/NotFound";
 import ChatBot from "./components/ChatBot";
+import ChartsList from './components/ChartsList';
+import ChartDetail from './components/ChartDetail';
+import NewChartForm from './components/NewChartForm';
 
 const queryClient = new QueryClient();
 
@@ -50,6 +53,13 @@ const App = () => (
                   <Route path="/" element={<Index />} />
                   <Route path="/numerology" element={<NumerologyPage />} />
                   <Route path="/numerology/admin" element={<NumerologyAdminPage />} />
+                  <Route path="/charts" element={<ChartsList />} />
+                  <Route path="/charts/new" element={<NewChartForm />} />
+                  <Route path="/chart/:id" element={<ChartDetail />} />
+                  {/* Uncomment the following lines if you have these components */}
+                  {/* <Route path="/birth-chart" element={<BirthChartPage />} /> */}
+                  {/* <Route path="/vedic-astrology-chart" element={<VedicAstrologyChart />} /> */}
+                  {/* ADD ALL CUSTOM ROUTES BELOW THE CATCH-ALL "*" ROUTE */}
                   <Route path="/blog" element={<BlogPage />} />
                   <Route path="/blog/:slug" element={<BlogPostPage />} />
                   <Route path="/blog/admin" element={<BlogLoginPage />} />
