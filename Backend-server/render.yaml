@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: swiss-ephemeris-api
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: CORS_ORIGIN
+        value: https://your-frontend-domain.netlify.app
