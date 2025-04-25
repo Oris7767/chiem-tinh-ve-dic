@@ -1,12 +1,39 @@
-// src/components/NewChartForm.jsx
-import { useState, useEffect } from 'react';
+// frontend-server/src/components/NewChartForm.tsx
+import { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { chartService } from '../services/chartService';
-import './form.css';
+import './NewChartForm.css';
+
+interface Place {
+  id: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+  timezone: string | null;
+}
+
+interface UserLocation {
+  city: string;
+  region: string;
+  country: string;
+  latitude: number;
+  longitude: number;
+  timezone: string;
+}
+
+interface FormData {
+  name: string;
+  birth_date: string;
+  birth_time: string;
+  birth_place: string;
+  latitude: string | number;
+  longitude: string | number;
+  timezone: string;
+}
 
 function NewChartForm() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: '',
     birth_date: '',
     birth_time: '',
@@ -15,12 +42,12 @@ function NewChartForm() {
     longitude: '',
     timezone: ''
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [userLocation, setUserLocation] = useState(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchResults, setSearchResults] = useState<Place[]>([]);
+  const [isSearching, setIsSearching] = useState<boolean>(false);
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
 
   // Lấy vị trí hiện tại của người dùng khi trang được tải
   useEffect(() => {
@@ -48,7 +75,7 @@ function NewChartForm() {
   }, []);
 
   // Tìm kiếm thành phố với Geoapify
-  const searchPlaces = async (query) => {
+  const searchPlaces = async (query: string) => {
     if (!query.trim()) {
       setSearchResults([]);
       return;
@@ -70,7 +97,7 @@ function NewChartForm() {
       const data = await response.json();
       
       if (data.results) {
-        setSearchResults(data.results.map(place => {
+        setSearchResults(data.results.map((place: any) => {
           // Tạo tên địa điểm đầy đủ
           const name = [
             place.name,
@@ -98,7 +125,7 @@ function NewChartForm() {
   };
 
   // Lấy timezone dựa trên tọa độ (nếu không có từ Geoapify)
-  const fetchTimezone = async (lat, lng) => {
+  const fetchTimezone = async (lat: number, lng: number) => {
     try {
       const apiKey = import.meta.env.VITE_GEOAPIFY_API_KEY;
       const response = await fetch(
@@ -137,7 +164,7 @@ function NewChartForm() {
   };
 
   // Xử lý khi người dùng thay đổi truy vấn tìm kiếm
-  const handleSearchChange = (e) => {
+  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchQuery(query);
     
@@ -150,7 +177,7 @@ function NewChartForm() {
   };
 
   // Xử lý khi người dùng chọn một thành phố
-  const handleSelectPlace = async (place) => {
+  const handleSelectPlace = async (place: Place) => {
     setFormData(prev => ({
       ...prev,
       birth_place: place.name,
@@ -184,12 +211,12 @@ function NewChartForm() {
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     if (!formData.birth_place || !formData.latitude || !formData.longitude || !formData.timezone) {
@@ -206,15 +233,15 @@ function NewChartForm() {
         birth_date: formData.birth_date,
         birth_time: formData.birth_time,
         birth_place: formData.birth_place,
-        latitude: parseFloat(formData.latitude),
-        longitude: parseFloat(formData.longitude),
+        latitude: parseFloat(String(formData.latitude)),
+        longitude: parseFloat(String(formData.longitude)),
         timezone: formData.timezone
       });
       
-      navigate(`/chart/${result.data.chart.id}`);
-    } catch (err) {
-      setError('Failed to create chart. Please try again.');
-      console.error(err);
+      navigate(`/chart/${result.chart.id}`);
+    } catch (err: any) {
+      setError(err.message || 'Failed to create chart. Please try again.');
+      console.error('Chart creation error:', err);
     } finally {
       setLoading(false);
     }
