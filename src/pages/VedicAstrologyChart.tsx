@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { DateTime } from 'luxon';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -6,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { Sun, Moon, Saturn, Jupiter, MapPin, Calendar, Clock } from 'lucide-react';
+import { Sun, Moon, MapPin, Calendar, Clock } from 'lucide-react';
 import ReactTooltip from 'react-tooltip';
 
 // Types

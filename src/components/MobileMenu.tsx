@@ -52,28 +52,12 @@ const MobileMenu = () => {
               </li>
               <li>
                 <Link 
-                  to="/birth-chart" 
-                  className="block py-2 px-4 text-lg font-medium hover:bg-amber-800/50 rounded-md transition-colors"
-                >
-                  {t('nav.birthChart') || 'Birth Chart'}
-                </Link>
-              </li>
-              <li>
-                <Link 
                   to="/blog" 
                   className="flex items-center py-2 px-4 text-lg font-medium bg-amber-600/30 hover:bg-amber-600/50 rounded-md transition-colors"
                 >
                   <BookOpen className="mr-2" size={20} />
                   {t('nav.blog') || 'Blog'} 
                   <span className="ml-2 px-2 py-0.5 text-xs bg-amber-500 rounded-full">New</span>
-                </Link>
-              </li>
-              <li>
-                <Link 
-                  to="/vedic-chart" 
-                  className="block py-2 px-4 text-lg font-medium hover:bg-amber-800/50 rounded-md transition-colors"
-                >
-                  {t('nav.vedicChart') || 'Vedic Chart'}
                 </Link>
               </li>
             </ul>
