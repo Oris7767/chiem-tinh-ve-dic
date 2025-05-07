@@ -1,12 +1,10 @@
 [build]
-  base = "backend"
-  command = "npm run dev"
+  command = "npm run build"
   publish = "dist"
 
 [functions]
   directory = "functions"
 
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
+[dev]
+  command = "npm run dev"
+  port = 8888
