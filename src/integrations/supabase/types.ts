@@ -9,6 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      birth_charts: {
+        Row: {
+          created_at: string | null
+          houses: Json | null
+          id: string
+          nakshatras: Json | null
+          planets: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          houses?: Json | null
+          id?: string
+          nakshatras?: Json | null
+          planets?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          houses?: Json | null
+          id?: string
+          nakshatras?: Json | null
+          planets?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       blog_posts: {
         Row: {
           author: string
@@ -45,6 +72,111 @@ export type Database = {
           slug?: string
           tags?: string[] | null
           title?: string
+        }
+        Relationships: []
+      }
+      dasha_reference: {
+        Row: {
+          antardasha_percentages: Json | null
+          dasha_effects: Json | null
+          id: number
+          mahadasha_years: number | null
+          planet: string | null
+          planetary_info: Json | null
+          symbol: string | null
+        }
+        Insert: {
+          antardasha_percentages?: Json | null
+          dasha_effects?: Json | null
+          id?: number
+          mahadasha_years?: number | null
+          planet?: string | null
+          planetary_info?: Json | null
+          symbol?: string | null
+        }
+        Update: {
+          antardasha_percentages?: Json | null
+          dasha_effects?: Json | null
+          id?: number
+          mahadasha_years?: number | null
+          planet?: string | null
+          planetary_info?: Json | null
+          symbol?: string | null
+        }
+        Relationships: []
+      }
+      dasha_results: {
+        Row: {
+          antardasha_planet: string | null
+          created_at: string | null
+          end_date: string | null
+          id: string
+          mahadasha_planet: string | null
+          start_date: string | null
+          user_id: string | null
+        }
+        Insert: {
+          antardasha_planet?: string | null
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          mahadasha_planet?: string | null
+          start_date?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          antardasha_planet?: string | null
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          mahadasha_planet?: string | null
+          start_date?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      nakshatras: {
+        Row: {
+          deity: string | null
+          element: string | null
+          end_degree: number | null
+          gender: string | null
+          number: number
+          padas: Json | null
+          quality: string | null
+          ruler: string | null
+          sanskrit_name: string | null
+          start_degree: number | null
+          symbol: string | null
+          vietnamese_name: string | null
+        }
+        Insert: {
+          deity?: string | null
+          element?: string | null
+          end_degree?: number | null
+          gender?: string | null
+          number: number
+          padas?: Json | null
+          quality?: string | null
+          ruler?: string | null
+          sanskrit_name?: string | null
+          start_degree?: number | null
+          symbol?: string | null
+          vietnamese_name?: string | null
+        }
+        Update: {
+          deity?: string | null
+          element?: string | null
+          end_degree?: number | null
+          gender?: string | null
+          number?: number
+          padas?: Json | null
+          quality?: string | null
+          ruler?: string | null
+          sanskrit_name?: string | null
+          start_degree?: number | null
+          symbol?: string | null
+          vietnamese_name?: string | null
         }
         Relationships: []
       }
@@ -87,6 +219,111 @@ export type Database = {
           name_number?: number
           user_email?: string | null
           user_ip?: string | null
+        }
+        Relationships: []
+      }
+      planets: {
+        Row: {
+          characteristics: Json | null
+          color: string | null
+          debilitation: number | null
+          element: string | null
+          exaltation: number | null
+          gender: string | null
+          id: string
+          keywords: Json | null
+          name: string | null
+          nature: Json | null
+          sanskrit_name: string | null
+          sign_ruler: number[] | null
+          symbol: string | null
+        }
+        Insert: {
+          characteristics?: Json | null
+          color?: string | null
+          debilitation?: number | null
+          element?: string | null
+          exaltation?: number | null
+          gender?: string | null
+          id: string
+          keywords?: Json | null
+          name?: string | null
+          nature?: Json | null
+          sanskrit_name?: string | null
+          sign_ruler?: number[] | null
+          symbol?: string | null
+        }
+        Update: {
+          characteristics?: Json | null
+          color?: string | null
+          debilitation?: number | null
+          element?: string | null
+          exaltation?: number | null
+          gender?: string | null
+          id?: string
+          keywords?: Json | null
+          name?: string | null
+          nature?: Json | null
+          sanskrit_name?: string | null
+          sign_ruler?: number[] | null
+          symbol?: string | null
+        }
+        Relationships: []
+      }
+      signs: {
+        Row: {
+          body_parts: Json | null
+          characteristics: Json | null
+          color: string | null
+          degree_end: number | null
+          degree_start: number | null
+          direction: string | null
+          element: string | null
+          id: number
+          keywords: Json | null
+          name: string | null
+          polarity: string | null
+          quality: string | null
+          ruler: string | null
+          sanskrit_name: string | null
+          symbol: string | null
+          unicode: string | null
+        }
+        Insert: {
+          body_parts?: Json | null
+          characteristics?: Json | null
+          color?: string | null
+          degree_end?: number | null
+          degree_start?: number | null
+          direction?: string | null
+          element?: string | null
+          id: number
+          keywords?: Json | null
+          name?: string | null
+          polarity?: string | null
+          quality?: string | null
+          ruler?: string | null
+          sanskrit_name?: string | null
+          symbol?: string | null
+          unicode?: string | null
+        }
+        Update: {
+          body_parts?: Json | null
+          characteristics?: Json | null
+          color?: string | null
+          degree_end?: number | null
+          degree_start?: number | null
+          direction?: string | null
+          element?: string | null
+          id?: number
+          keywords?: Json | null
+          name?: string | null
+          polarity?: string | null
+          quality?: string | null
+          ruler?: string | null
+          sanskrit_name?: string | null
+          symbol?: string | null
+          unicode?: string | null
         }
         Relationships: []
       }
