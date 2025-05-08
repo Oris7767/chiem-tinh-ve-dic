@@ -84,3 +84,14 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+// Hỗ trợ Netlify Functions hoặc các nền tảng serverless khác
+if (process.env.NETLIFY) {
+  const serverless = require('serverless-http');
+  module.exports = serverless(app);
+} else {
+  // Start server chỉ khi không trong môi trường serverless
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
