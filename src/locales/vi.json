@@ -4,7 +4,10 @@
     "calculate": "Tính toán",
     "about": "Giới thiệu",
     "meanings": "Ý nghĩa",
-    "start": "Bắt đầu"
+    "start": "Bắt đầu",
+    "home": "Trang chủ",
+    "blog": "Blog",
+    "numerology": "Số học"
   },
   "hero": {
     "title": "Số học Vệ Đà",
@@ -51,8 +54,8 @@
     "relationships": "Các mối quan hệ"
   },
   "about": {
-    "title": "Số học Vệ Đà là gì?",
-    "subtitle": "Khám phá nguồn gốc và ý nghĩa của số học Vệ Đà.",
+    "title": "Về Votive",
+    "subtitle": "Khám phá nguồn gốc và triết lý của chúng tôi",
     "origins": {
       "title": "Nguồn gốc cổ đại",
       "p1": "Số học Vệ Đà có nguồn gốc từ văn hóa Ấn Độ cổ đại và các văn bản Vệ Đà thiêng liêng, được viết cách đây hơn 5.000 năm. Đây là một trong những hệ thống số học lâu đời nhất thế giới.",

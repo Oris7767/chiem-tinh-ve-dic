@@ -7,6 +7,7 @@ import GoogleAd from '../components/GoogleAds';
 import { numberMeanings } from '../utils/data';
 import { useLanguage } from '../context/LanguageContext';
 import { Helmet } from 'react-helmet-async';
+import AboutSlider from '../components/AboutSlider';
 
 const Index = () => {
   const { t, language } = useLanguage();
@@ -64,7 +65,10 @@ const Index = () => {
               </p>
             </div>
             
-            <div className="grid md:grid-cols-2 gap-12 items-center">
+            {/* About Slider */}
+            <AboutSlider />
+            
+            <div className="grid md:grid-cols-2 gap-12 items-center mt-16">
               <div className="glass-card rounded-xl p-6 md:p-8 space-y-6">
                 <h3 className="text-2xl font-bold text-amber-900">{t('about.origins.title')}</h3>
                 <p className="text-amber-900 leading-relaxed">
