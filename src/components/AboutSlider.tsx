@@ -9,6 +9,10 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
+import useEmblaCarousel from 'embla-carousel-react';
+import { useCallback, useEffect, useState } from 'react';
+
+const AUTOPLAY_INTERVAL = 5000; // 5 seconds per slide
 
 const AboutSlider = () => {
   const slides = [
@@ -23,12 +27,42 @@ const AboutSlider = () => {
     }
   ];
 
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  // Function to autoplay the carousel
+  const autoplay = useCallback(() => {
+    if (!emblaApi) return;
+    emblaApi.scrollNext();
+  }, [emblaApi]);
+
+  // Set up autoplay with interval
+  useEffect(() => {
+    if (!emblaApi) return;
+    
+    // Handle slide change
+    const onSelect = () => {
+      setActiveIndex(emblaApi.selectedScrollSnap());
+    };
+    
+    emblaApi.on('select', onSelect);
+    
+    // Initialize autoplay
+    const autoplayInterval = setInterval(autoplay, AUTOPLAY_INTERVAL);
+    
+    // Clean up
+    return () => {
+      clearInterval(autoplayInterval);
+      emblaApi.off('select', onSelect);
+    };
+  }, [emblaApi, autoplay]);
+
   return (
     <div className="w-full max-w-4xl mx-auto">
-      <Carousel className="w-full">
-        <CarouselContent>
+      <div className="overflow-hidden" ref={emblaRef}>
+        <div className="flex">
           {slides.map((slide, index) => (
-            <CarouselItem key={index}>
+            <div key={index} className="flex-[0_0_100%] min-w-0 pl-4">
               <div className="p-1">
                 <Card className="border-none glass-card overflow-hidden">
                   <CardContent className="flex flex-col justify-center items-center p-6 md:p-10 text-center min-h-[300px]">
@@ -37,14 +71,24 @@ const AboutSlider = () => {
                   </CardContent>
                 </Card>
               </div>
-            </CarouselItem>
+            </div>
           ))}
-        </CarouselContent>
-        <div className="absolute -bottom-12 left-0 right-0 flex justify-center gap-2">
-          <CarouselPrevious className="relative left-0 translate-y-0 bg-amber-600 text-white hover:bg-amber-700 border-none" />
-          <CarouselNext className="relative right-0 translate-y-0 bg-amber-600 text-white hover:bg-amber-700 border-none" />
         </div>
-      </Carousel>
+      </div>
+      
+      {/* Slide indicators */}
+      <div className="flex justify-center gap-2 mt-4">
+        {slides.map((_, index) => (
+          <button
+            key={index}
+            className={`w-2 h-2 rounded-full transition-colors ${
+              index === activeIndex ? 'bg-amber-600' : 'bg-amber-300'
+            }`}
+            onClick={() => emblaApi?.scrollTo(index)}
+            aria-label={`Go to slide ${index + 1}`}
+          />
+        ))}
+      </div>
     </div>
   );
 };
