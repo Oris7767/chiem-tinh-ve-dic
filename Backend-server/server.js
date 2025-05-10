@@ -49,18 +49,14 @@ app.use(cors({
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: 10000, // limit each IP to 100 requests per windowMs
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
   validate: {
     xForwardedForHeader: false, // Tắt kiểm tra vì chúng ta xử lý IP thủ công
   }
 });
 app.use(limiter);
-validate: {
-  xForwardedForHeader: false, // Tắt kiểm tra vì chúng ta xử lý IP thủ công
-}
-
 // Body parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

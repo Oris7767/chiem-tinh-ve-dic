@@ -111,3 +111,51 @@ exports.deleteChart = async (req, res) => {
     return res.status(500).json({ error: 'Server error' });
   }
 };
+// Thêm các hàm còn thiếu vào chartController.js
+
+// Đổi tên từ createChart thành calculateChart hoặc thêm alias
+exports.calculateChart = exports.createChart;
+
+// Đổi tên từ getChart thành getChartById hoặc thêm alias
+exports.getChartById = exports.getChart;
+
+// Đổi tên từ getCharts thành getUserCharts hoặc thêm alias
+exports.getUserCharts = exports.getCharts;
+
+// Thêm hàm updateChart
+exports.updateChart = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+    
+    const { data, error } = await supabase
+      .from('charts')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      return res.status(404).json({ error: 'Chart not found or could not be updated' });
+    }
+
+    return res.json({ message: 'Chart updated successfully', chart: data });
+  } catch (error) {
+    console.error('Error updating chart:', error);
+    return res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// Thêm hàm getInterpretation
+exports.getInterpretation = async (req, res) => {
+  try {
+    const { category, subCategory } = req.params;
+    
+    // Logic để lấy dữ liệu giải thích
+    
+    return res.json({ interpretation: { category, subCategory, data: "Interpretation data" } });
+  } catch (error) {
+    console.error('Error fetching interpretation:', error);
+    return res.status(500).json({ error: 'Server error' });
+  }
+};
