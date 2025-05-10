@@ -52,8 +52,14 @@ const limiter = rateLimit({
   max: 100, // limit each IP to 100 requests per windowMs
   standardHeaders: true,
   legacyHeaders: false
+  validate: {
+    xForwardedForHeader: false, // Tắt kiểm tra vì chúng ta xử lý IP thủ công
+  }
 });
 app.use(limiter);
+validate: {
+  xForwardedForHeader: false, // Tắt kiểm tra vì chúng ta xử lý IP thủ công
+}
 
 // Body parser
 app.use(express.json());
