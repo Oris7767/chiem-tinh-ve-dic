@@ -13,10 +13,12 @@ import SouthIndianChart from './SouthIndianChart';
 interface Planet {
   id: string;
   name: string;
+  symbol: string;
   longitude: number;
   house: number;
   sign: number;
   retrograde: boolean;
+  color: string;
 }
 
 interface House {
@@ -30,6 +32,7 @@ interface VedicChartData {
   planets: Planet[];
   houses: House[];
   moonNakshatra: string;
+  lunarDay: number;
 }
 
 const VedicChart = () => {
@@ -150,12 +153,20 @@ const VedicChart = () => {
                   <div className="space-y-1">
                     {chartData.planets.map((planet) => (
                       <div key={planet.id} className="flex items-center justify-between p-2 border-b">
-                        <div>{planet.name}</div>
+                        <div className="flex items-center">
+                          <span 
+                            className="text-xl mr-2" 
+                            style={{ color: planet.color }}
+                          >
+                            {planet.symbol}
+                          </span>
+                          <span>{planet.name}</span>
+                          {planet.retrograde && <span className="ml-2 text-red-500">R</span>}
+                        </div>
                         <div className="text-right">
                           <div>{SIGNS[planet.sign]}</div>
                           <div className="text-sm text-gray-500">
                             Cung {planet.house} • {planet.longitude.toFixed(2)}°
-                            {planet.retrograde && <span className="ml-1 text-red-500">R</span>}
                           </div>
                         </div>
                       </div>
@@ -187,6 +198,11 @@ const VedicChart = () => {
                     <div>
                       <h3 className="font-bold">Nakshatra của Mặt Trăng</h3>
                       <p>{chartData.moonNakshatra}</p>
+                    </div>
+                    
+                    <div>
+                      <h3 className="font-bold">Ngày Âm lịch (Tithi)</h3>
+                      <p>{chartData.lunarDay}</p>
                     </div>
                   </div>
                 </TabsContent>
