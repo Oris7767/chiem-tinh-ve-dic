@@ -1,5 +1,7 @@
 
 import React from 'react';
+import { getPlanetColor, getPlanetSymbol } from '@/utils/VedicAstro/Planets';
+import { SIGN_COLORS, getSignSymbol } from '@/utils/VedicAstro/Signs';
 
 interface Planet {
   id: string;
@@ -47,32 +49,20 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({ chartData }) => {
     "Lib", "Sco", "Sag", "Cap", "Aqu", "Pis"
   ];
 
-  // Planet abbreviations
-  const planetAbbreviations: Record<string, string> = {
-    "su": "Su",
-    "mo": "Mo",
-    "me": "Me",
-    "ve": "Ve",
-    "ma": "Ma",
-    "ju": "Ju",
-    "sa": "Sa",
-    "ra": "Ra",
-    "ke": "Ke"
-  };
-
   // Define the positions for the South Indian chart (4x4 grid with middle 4 cells removed)
+  // This follows the provided pattern in the Python code
   const vedic_order_positions = [
     [0, 1], [0, 2], [0, 3], [1, 3],
     [2, 3], [3, 3], [3, 2], [3, 1],
     [3, 0], [2, 0], [1, 0], [0, 0]
   ];
 
-  // Map house numbers to positions in the chart
-  const housePositions = vedic_order_positions.map((pos, index) => {
-    const houseNumber = (index + 1) % 12 || 12; // Houses are 1-12
+  // Map house numbers to positions in the chart (clockwise starting from house 1)
+  const housePositions = Array.from({ length: 12 }, (_, i) => {
+    const houseNumber = i + 1;
     return {
-      position: pos,
-      houseNumber: houseNumber,
+      position: vedic_order_positions[i],
+      houseNumber,
       sign: houseToSign[houseNumber] || 0,
       planets: planetsByHouse[houseNumber] || []
     };
@@ -100,7 +90,7 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({ chartData }) => {
               return null;
             }
             
-            // Find the house corresponding to this position
+            // Find the house that corresponds to this position
             const houseData = housePositions.find(h => 
               h.position[0] === row && h.position[1] === col
             );
@@ -131,16 +121,19 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({ chartData }) => {
                   {houseData.houseNumber} - {signAbbreviations[houseData.sign]}
                 </text>
                 
-                <text
-                  x={x + 10}
-                  y={y + 50}
-                  fontSize="10"
-                  fill="#422006"
-                >
-                  {houseData.planets.map(planet => 
-                    `${planetAbbreviations[planet.id]}${planet.retrograde ? 'ᴿ' : ''}`
-                  ).join(' ')}
-                </text>
+                <g>
+                  {houseData.planets.map((planet, idx) => (
+                    <text
+                      key={planet.id}
+                      x={x + 10}
+                      y={y + 40 + idx * 14}
+                      fontSize="12"
+                      fill={getPlanetColor(planet.name)}
+                    >
+                      {getPlanetSymbol(planet.name)} {planet.retrograde ? 'ᴿ' : ''}
+                    </text>
+                  ))}
+                </g>
               </g>
             );
           })
@@ -153,6 +146,7 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({ chartData }) => {
           fontSize="16"
           fill="#B45309"
           textAnchor="middle"
+          fontWeight="bold"
         >
           Lagna: {signAbbreviations[Math.floor(chartData.ascendant / 30)]}
         </text>

@@ -1,0 +1,2 @@
+
+export const GEOAPIFY_API_KEY = "522a159a787444c0bf969ad2a48c63ca";

@@ -44,14 +44,14 @@ serve(async (req) => {
     
     // Define planets to calculate
     const planets = [
-      { id: "su", planet: swisseph.SE_SUN },
-      { id: "mo", planet: swisseph.SE_MOON },
-      { id: "me", planet: swisseph.SE_MERCURY },
-      { id: "ve", planet: swisseph.SE_VENUS },
-      { id: "ma", planet: swisseph.SE_MARS },
-      { id: "ju", planet: swisseph.SE_JUPITER },
-      { id: "sa", planet: swisseph.SE_SATURN },
-      { id: "ra", planet: swisseph.SE_MEAN_NODE }, // Rahu (North Node)
+      { id: "su", name: "Sun", planet: swisseph.SE_SUN, color: "#FFA500" },
+      { id: "mo", name: "Moon", planet: swisseph.SE_MOON, color: "#SILVER" },
+      { id: "me", name: "Mercury", planet: swisseph.SE_MERCURY, color: "#00FF00" },
+      { id: "ve", name: "Venus", planet: swisseph.SE_VENUS, color: "#FFFFFF" },
+      { id: "ma", name: "Mars", planet: swisseph.SE_MARS, color: "#FF0000" },
+      { id: "ju", name: "Jupiter", planet: swisseph.SE_JUPITER, color: "#FFFF00" },
+      { id: "sa", name: "Saturn", planet: swisseph.SE_SATURN, color: "#000080" },
+      { id: "ra", name: "Rahu", planet: swisseph.SE_MEAN_NODE, color: "#4B0082" }, // Rahu (North Node)
       // Ketu (South Node) is calculated as Rahu + 180 degrees
     ];
     
@@ -70,13 +70,24 @@ serve(async (req) => {
           const sign = Math.floor(longitude / 30);
           const house = Math.floor(((longitude / 30) + 10) % 12) + 1; // Simple house system
           
+          const symbol = planet.id === "su" ? "☉" : 
+                        planet.id === "mo" ? "☽" : 
+                        planet.id === "me" ? "☿" : 
+                        planet.id === "ve" ? "♀" : 
+                        planet.id === "ma" ? "♂" : 
+                        planet.id === "ju" ? "♃" : 
+                        planet.id === "sa" ? "♄" : 
+                        planet.id === "ra" ? "☊" : "?";
+          
           planetResults.push({
             id: planet.id,
-            name: planet.id === "ra" ? "Rahu" : planet.id.charAt(0).toUpperCase() + planet.id.slice(1),
+            name: planet.name,
+            symbol: symbol,
             longitude: longitude,
             house: house,
             sign: sign,
-            retrograde: result.retrograde || (result.speed && result.speed < 0)
+            retrograde: result.retrograde || (result.speed && result.speed < 0),
+            color: planet.color
           });
         }
       } catch (err) {
@@ -94,10 +105,12 @@ serve(async (req) => {
       planetResults.push({
         id: "ke",
         name: "Ketu",
+        symbol: "☋",
         longitude: ketuLongitude,
         house: ketuHouse,
         sign: ketuSign,
-        retrograde: false
+        retrograde: false,
+        color: "#800000" // Maroon color for Ketu
       });
     }
     
@@ -137,12 +150,22 @@ serve(async (req) => {
       moonNakshatra = nakshatras[nakshatraIndex];
     }
     
+    // Calculate Lunar Day (Tithi)
+    const sun = planetResults.find(p => p.id === "su");
+    let lunarDay = 1;
+    if (moon && sun) {
+      const sunLongitude = sun.longitude;
+      const moonLongitude = moon.longitude;
+      lunarDay = Math.floor(((moonLongitude - sunLongitude + 360) % 360) / 12) + 1;
+    }
+    
     // Create response object
     const chartData = {
       ascendant: ascendant.ascendant,
       planets: planetResults,
       houses: houses,
-      moonNakshatra: moonNakshatra
+      moonNakshatra: moonNakshatra,
+      lunarDay: lunarDay
     };
     
     console.log("Chart calculation complete");
