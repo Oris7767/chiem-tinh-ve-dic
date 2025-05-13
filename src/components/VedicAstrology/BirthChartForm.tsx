@@ -25,6 +25,9 @@ const defaultFormData: BirthDetailsFormData = {
   location: 'Hanoi, Vietnam',
 };
 
+// Geoapify API Key
+const GEOAPIFY_API_KEY = "522a159a787444c0bf969ad2a48c63ca";
+
 interface BirthChartFormProps {
   onCalculate: (data: BirthDetailsFormData) => void;
 }
@@ -59,33 +62,38 @@ const BirthChartForm = ({ onCalculate }: BirthChartFormProps) => {
             }));
             
             try {
-              // Get location name from coordinates using OpenStreetMap Nominatim
+              // Get location name from coordinates using Geoapify
               const response = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10&addressdetails=1`,
+                `https://api.geoapify.com/v1/geocode/reverse?lat=${lat}&lon=${lng}&apiKey=${GEOAPIFY_API_KEY}`,
                 { headers: { 'Accept-Language': 'vi,en' } }
               );
               
               if (response.ok) {
                 const data = await response.json();
-                if (data && data.display_name) {
-                  const locationName = data.display_name.split(',').slice(0, 3).join(', ');
+                if (data && data.features && data.features.length > 0) {
+                  const properties = data.features[0].properties;
+                  const locationName = [
+                    properties.city || properties.county || properties.state,
+                    properties.country
+                  ].filter(Boolean).join(', ');
+                  
                   setFormData(prev => ({
                     ...prev,
                     location: locationName
                   }));
                 }
                 
-                // Try to get timezone from coordinates
+                // Try to get timezone from coordinates using Geoapify
                 const tzResponse = await fetch(
-                  `https://timeapi.io/api/TimeZone/coordinate?latitude=${lat}&longitude=${lng}`
+                  `https://api.geoapify.com/v1/timezone?lat=${lat}&lon=${lng}&apiKey=${GEOAPIFY_API_KEY}`
                 );
                 
                 if (tzResponse.ok) {
                   const tzData = await tzResponse.json();
-                  if (tzData && tzData.timeZone) {
+                  if (tzData && tzData.timezone) {
                     setFormData(prev => ({
                       ...prev,
-                      timezone: tzData.timeZone
+                      timezone: tzData.timezone.name
                     }));
                   }
                 }
@@ -136,45 +144,48 @@ const BirthChartForm = ({ onCalculate }: BirthChartFormProps) => {
     setIsLoading(true);
     
     try {
-      // Search for location using OpenStreetMap Nominatim
+      // Search for location using Geoapify
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchTerm)}&limit=1&addressdetails=1`,
+        `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(searchTerm)}&apiKey=${GEOAPIFY_API_KEY}`,
         { headers: { 'Accept-Language': 'vi,en' } }
       );
       
       if (response.ok) {
         const data = await response.json();
-        if (data && data.length > 0) {
-          const location = data[0];
+        if (data && data.features && data.features.length > 0) {
+          const properties = data.features[0].properties;
+          
           setFormData(prev => ({
             ...prev,
-            latitude: parseFloat(location.lat),
-            longitude: parseFloat(location.lon),
-            location: location.display_name.split(',').slice(0, 3).join(', ')
+            latitude: properties.lat,
+            longitude: properties.lon,
+            location: [
+              properties.city || properties.county || properties.state,
+              properties.country
+            ].filter(Boolean).join(', ')
           }));
           
-          // Try to get timezone from coordinates
-          try {
-            const tzResponse = await fetch(
-              `https://timeapi.io/api/TimeZone/coordinate?latitude=${location.lat}&longitude=${location.lon}`
-            );
-            
-            if (tzResponse.ok) {
-              const tzData = await tzResponse.json();
-              if (tzData && tzData.timeZone) {
-                setFormData(prev => ({
-                  ...prev,
-                  timezone: tzData.timeZone
-                }));
-              }
+          // Try to get timezone from coordinates using Geoapify
+          const tzResponse = await fetch(
+            `https://api.geoapify.com/v1/timezone?lat=${properties.lat}&lon=${properties.lon}&apiKey=${GEOAPIFY_API_KEY}`
+          );
+          
+          if (tzResponse.ok) {
+            const tzData = await tzResponse.json();
+            if (tzData && tzData.timezone) {
+              setFormData(prev => ({
+                ...prev,
+                timezone: tzData.timezone.name
+              }));
             }
-          } catch (error) {
-            console.error("Error getting timezone:", error);
           }
           
           toast({
             title: "Đã tìm thấy vị trí",
-            description: location.display_name.split(',').slice(0, 3).join(', '),
+            description: [
+              properties.city || properties.county || properties.state,
+              properties.country
+            ].filter(Boolean).join(', '),
           });
         } else {
           toast({

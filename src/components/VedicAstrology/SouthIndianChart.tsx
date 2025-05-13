@@ -60,13 +60,31 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({ chartData }) => {
     "ke": "Ke"
   };
 
-  // Positions for South Indian chart layout (12 houses in a 4x3 grid, with houses in counterclockwise order)
-  const gridPositions = [
-    [1, 2, 3],
-    [12, null, 4],
-    [11, 10, 9],
-    [8, 7, 6]
+  // Define the positions for the South Indian chart (4x4 grid with middle 4 cells removed)
+  const vedic_order_positions = [
+    [0, 1], [0, 2], [0, 3], [1, 3],
+    [2, 3], [3, 3], [3, 2], [3, 1],
+    [3, 0], [2, 0], [1, 0], [0, 0]
   ];
+
+  // Map house numbers to positions in the chart
+  const housePositions = vedic_order_positions.map((pos, index) => {
+    const houseNumber = (index + 1) % 12 || 12; // Houses are 1-12
+    return {
+      position: pos,
+      houseNumber: houseNumber,
+      sign: houseToSign[houseNumber] || 0,
+      planets: planetsByHouse[houseNumber] || []
+    };
+  });
+
+  // Check if a position is one of the center cells to be removed
+  const isCenterCell = (row: number, col: number) => {
+    return (row === 1 && col === 1) || 
+           (row === 1 && col === 2) ||
+           (row === 2 && col === 1) ||
+           (row === 2 && col === 2);
+  };
 
   return (
     <div className="relative w-full h-full">
@@ -74,70 +92,59 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({ chartData }) => {
         viewBox="0 0 400 400"
         className="w-full h-full border border-amber-200 rounded-lg"
       >
-        {/* Draw the grid */}
-        {gridPositions.map((row, rowIndex) => (
-          <React.Fragment key={`row-${rowIndex}`}>
-            {row.map((houseNumber, colIndex) => {
-              if (houseNumber === null) {
-                // Center box (empty)
-                return null;
-              }
-              
-              const x = colIndex * 100;
-              const y = rowIndex * 100;
-              const sign = houseToSign[houseNumber];
-              const planets = planetsByHouse[houseNumber] || [];
-              
-              return (
-                <g key={`house-${houseNumber}`}>
-                  {/* House box */}
-                  <rect
-                    x={colIndex * 133.33}
-                    y={rowIndex * 100}
-                    width={133.33}
-                    height={100}
-                    fill="none"
-                    stroke="#B45309"
-                    strokeWidth="1"
-                  />
-                  
-                  {/* House number and sign */}
-                  <text
-                    x={colIndex * 133.33 + 15}
-                    y={rowIndex * 100 + 20}
-                    fontSize="14"
-                    fill="#B45309"
-                  >
-                    {houseNumber} - {signAbbreviations[sign]}
-                  </text>
-                  
-                  {/* Planets in the house */}
-                  <text
-                    x={colIndex * 133.33 + 15}
-                    y={rowIndex * 100 + 50}
-                    fontSize="12"
-                    fill="#422006"
-                  >
-                    {planets.map(planet => 
-                      `${planetAbbreviations[planet.id]}${planet.retrograde ? 'ᴿ' : ''}`
-                    ).join(' ')}
-                  </text>
-                </g>
-              );
-            })}
-          </React.Fragment>
+        {/* Draw the 4x4 grid with middle cells removed */}
+        {Array.from({ length: 4 }, (_, row) => (
+          Array.from({ length: 4 }, (_, col) => {
+            // Skip center cells
+            if (isCenterCell(row, col)) {
+              return null;
+            }
+            
+            // Find the house corresponding to this position
+            const houseData = housePositions.find(h => 
+              h.position[0] === row && h.position[1] === col
+            );
+            
+            if (!houseData) return null;
+            
+            const x = col * 100;
+            const y = row * 100;
+            
+            return (
+              <g key={`house-${houseData.houseNumber}`}>
+                <rect
+                  x={x}
+                  y={y}
+                  width={100}
+                  height={100}
+                  fill="none"
+                  stroke="#B45309"
+                  strokeWidth="1"
+                />
+                
+                <text
+                  x={x + 10}
+                  y={y + 20}
+                  fontSize="12"
+                  fill="#B45309"
+                >
+                  {houseData.houseNumber} - {signAbbreviations[houseData.sign]}
+                </text>
+                
+                <text
+                  x={x + 10}
+                  y={y + 50}
+                  fontSize="10"
+                  fill="#422006"
+                >
+                  {houseData.planets.map(planet => 
+                    `${planetAbbreviations[planet.id]}${planet.retrograde ? 'ᴿ' : ''}`
+                  ).join(' ')}
+                </text>
+              </g>
+            );
+          })
         ))}
-        
-        {/* Center box */}
-        <rect
-          x={133.33}
-          y={100}
-          width={133.33}
-          height={200}
-          fill="none"
-          stroke="#B45309"
-          strokeWidth="1"
-        />
         
         {/* Ascendant marker */}
         <text
