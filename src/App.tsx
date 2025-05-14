@@ -12,7 +12,6 @@ import { Helmet, HelmetProvider } from 'react-helmet-async';
 import Index from "./pages/Index";
 import NumerologyPage from "./pages/NumerologyPage";
 import NumerologyAdminPage from "./pages/NumerologyAdminPage";
-import VedicAstrologyPage from "./pages/VedicAstrologyPage";
 import BlogPage from "./pages/BlogPage";
 import BlogPostPage from "./pages/BlogPostPage";
 import BlogLoginPage from "./pages/BlogLoginPage";
@@ -49,7 +48,7 @@ const App = () => (
                   <Route path="/" element={<Index />} />
                   <Route path="/numerology" element={<NumerologyPage />} />
                   <Route path="/numerology/admin" element={<NumerologyAdminPage />} />
-                  <Route path="/vedic-chart" element={<VedicAstrologyPage />} />
+                  {/* ADD ALL CUSTOM ROUTES BELOW THE CATCH-ALL "*" ROUTE */}
                   <Route path="/blog" element={<BlogPage />} />
                   <Route path="/blog/:slug" element={<BlogPostPage />} />
                   <Route path="/blog/admin" element={<BlogLoginPage />} />
