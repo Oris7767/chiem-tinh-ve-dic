@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
-import { Menu, X, BookOpen } from 'lucide-react';
+import { Menu, X, BookOpen, Star } from 'lucide-react';
 import { 
   Sheet, 
   SheetContent, 
@@ -52,8 +52,17 @@ const MobileMenu = () => {
               </li>
               <li>
                 <Link 
-                  to="/blog" 
+                  to="/vedic-chart" 
                   className="flex items-center py-2 px-4 text-lg font-medium bg-amber-600/30 hover:bg-amber-600/50 rounded-md transition-colors"
+                >
+                  <Star className="mr-2" size={20} />
+                  {t('nav.vedicChart') || 'Vedic Chart'} 
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/blog" 
+                  className="flex items-center py-2 px-4 text-lg font-medium hover:bg-amber-800/50 rounded-md transition-colors"
                 >
                   <BookOpen className="mr-2" size={20} />
                   {t('nav.blog') || 'Blog'} 

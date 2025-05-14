@@ -84,6 +84,12 @@ const NavBar = () => {
                     {t('nav.blog')}
                   </Link>
                 </li>
+                {/* Add the Vedic Chart menu item */}
+                <li>
+                  <Link to="/vedic-chart" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
+                    {t('nav.vedicChart') || 'Vedic Chart'}
+                  </Link>
+                </li>
               </>
             ) : (
               <>
@@ -95,6 +101,12 @@ const NavBar = () => {
                 <li>
                   <Link to="/blog" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
                     {t('nav.blog') || 'Blog'}
+                  </Link>
+                </li>
+                {/* Add the Vedic Chart menu item */}
+                <li>
+                  <Link to="/vedic-chart" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
+                    {t('nav.vedicChart') || 'Vedic Chart'}
                   </Link>
                 </li>
               </>
