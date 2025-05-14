@@ -5,7 +5,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import BirthChartForm, { BirthDataFormValues } from './BirthChartForm';
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from 'lucide-react';
-import SouthIndianChart from './SouthIndianChartDisplay';
+import SouthIndianChart from './SouthIndianChart';
 import { calculateVedicChart } from '@/utils/vedicAstrologyUtils';
 
 // Types
