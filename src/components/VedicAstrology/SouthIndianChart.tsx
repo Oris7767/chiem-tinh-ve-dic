@@ -1,5 +1,7 @@
 
 import React from 'react';
+import { PLANETS, getPlanetColor, getPlanetSymbol } from '@/utils/VedicAstro/Planets';
+import { SIGNS, getSignColor } from '@/utils/VedicAstro/Signs';
 
 interface Planet {
   id: string;
@@ -36,9 +38,9 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({ chartData }) => {
   
   // Vị trí của các ô trong ma trận 4x4 (bỏ 4 ô giữa)
   const positions = [
-    (0, 1), (0, 2), (0, 3), (1, 3),
-    (2, 3), (3, 3), (3, 2), (3, 1),
-    (3, 0), (2, 0), (1, 0), (0, 0)
+    [0, 1], [0, 2], [0, 3], [1, 3],
+    [2, 3], [3, 3], [3, 2], [3, 1],
+    [3, 0], [2, 0], [1, 0], [0, 0]
   ];
   
   // Ánh xạ từ số cung (house number) sang vị trí trong ma trận 4x4
