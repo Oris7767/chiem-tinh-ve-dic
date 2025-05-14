@@ -1,232 +1,189 @@
 
-import React, { useState, useEffect } from 'react';
-import { useLanguage } from '../../context/LanguageContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
-import { CalendarIcon, MapPin, Clock, Navigation } from 'lucide-react';
-import { format } from 'date-fns';
-import { GEOAPIFY_API_KEY } from '../../utils/constants';
+import { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from '@/integrations/supabase/client';
 
-export interface BirthDetailsFormData {
+export type BirthDetailsFormData = {
+  name: string;
+  email: string;
   birth_date: string;
   birth_time: string;
-  location: string;
   latitude: number;
   longitude: number;
   timezone: string;
-}
+  location: string;
+};
+
+const defaultFormData: BirthDetailsFormData = {
+  name: '',
+  email: '',
+  birth_date: new Date().toISOString().split('T')[0],
+  birth_time: new Date().toTimeString().slice(0, 5),
+  latitude: 21.03, // Default to Hanoi
+  longitude: 105.85,
+  timezone: 'Asia/Ho_Chi_Minh',
+  location: 'Hanoi, Vietnam',
+};
 
 interface BirthChartFormProps {
   onCalculate: (data: BirthDetailsFormData) => void;
 }
 
-const BirthChartForm: React.FC<BirthChartFormProps> = ({ onCalculate }) => {
-  const { t } = useLanguage();
+const BirthChartForm = ({ onCalculate }: BirthChartFormProps) => {
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
-  const [date, setDate] = useState<Date>(new Date());
-  const [time, setTime] = useState('12:00');
-  const [location, setLocation] = useState('');
-  const [latitude, setLatitude] = useState<number | null>(21.03);
-  const [longitude, setLongitude] = useState<number | null>(105.85);
-  const [timezone, setTimezone] = useState('');
+  const [formData, setFormData] = useState<BirthDetailsFormData>(defaultFormData);
+  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    setTimezone(tz);
-  }, []);
-
-  const handleDetectLocation = () => {
-    setLoading(true);
-    
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          
-          setLatitude(lat);
-          setLongitude(lng);
-          
-          try {
-            // Use Geoapify Reverse Geocoding API
-            const response = await fetch(
-              `https://api.geoapify.com/v1/geocode/reverse?lat=${lat}&lon=${lng}&apiKey=${GEOAPIFY_API_KEY}`
-            );
-            const data = await response.json();
-            
-            if (data && data.features && data.features.length > 0) {
-              const props = data.features[0].properties;
-              const locationName = `${props.city || props.county || ''}, ${props.country}`;
-              setLocation(locationName);
-            }
-          } catch (error) {
-            console.error('Error fetching location name:', error);
-          }
-          
-          setLoading(false);
-          toast({
-            title: t('birthChart.locationDetected') || 'Location detected',
-            description: `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`,
-          });
-        },
-        (error) => {
-          console.error('Error getting location:', error);
-          setLoading(false);
-          toast({
-            title: t('birthChart.locationError') || 'Location Error',
-            description: t('birthChart.locationErrorDesc') || 'Could not detect your location',
-            variant: 'destructive',
-          });
-        }
-      );
-    } else {
-      setLoading(false);
-      toast({
-        title: t('birthChart.geolocationNotSupported') || 'Not Supported',
-        description: t('birthChart.geolocationNotSupportedDesc') || 'Geolocation is not supported by your browser',
-        variant: 'destructive',
-      });
-    }
+  const handleChange = (field: keyof BirthDetailsFormData, value: string | number) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     
-    if (!latitude || !longitude) {
+    try {
+      // Validate the data
+      if (!formData.birth_date || !formData.birth_time) {
+        throw new Error('Birth date and time are required');
+      }
+      
+      // Call the onCalculate callback with the form data
+      onCalculate(formData);
+    } catch (error) {
+      console.error('Error submitting birth data:', error);
       toast({
-        title: "Thiếu thông tin vị trí",
-        description: "Vui lòng nhập tọa độ vĩ độ và kinh độ",
-        variant: "destructive"
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'An error occurred',
+        variant: 'destructive',
       });
-      return;
+    } finally {
+      setIsLoading(false);
     }
-
-    onCalculate({
-      birth_date: format(date, "yyyy-MM-dd"),
-      birth_time: time,
-      location,
-      latitude,
-      longitude,
-      timezone
-    });
   };
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-6 md:grid-cols-2">
-      <div className="space-y-2">
-        <Label htmlFor="date">
-          <CalendarIcon className="inline-block mr-2 h-4 w-4" />
-          {t('birthChart.birthDate') || 'Birth Date'}
-        </Label>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "w-full justify-start text-left font-normal",
-                !date && "text-muted-foreground"
-              )}
-            >
-              {date ? format(date, "PPP") : (t('birthChart.selectDate') || "Select a date")}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={(date) => date && setDate(date)}
-              initialFocus
-              className={cn("p-3 pointer-events-auto")}
-            />
-          </PopoverContent>
-        </Popover>
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="time">
-          <Clock className="inline-block mr-2 h-4 w-4" />
-          {t('birthChart.birthTime') || 'Birth Time'}
-        </Label>
-        <Input
-          type="time"
-          id="time"
-          value={time}
-          onChange={(e) => setTime(e.target.value)}
-          required
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="location">
-          <MapPin className="inline-block mr-2 h-4 w-4" />
-          {t('birthChart.birthLocation') || 'Birth Location'}
-        </Label>
-        <div className="flex gap-2">
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-2">
+          <Label htmlFor="name">Họ và tên</Label>
           <Input
-            type="text"
+            id="name"
+            value={formData.name}
+            onChange={(e) => handleChange('name', e.target.value)}
+            placeholder="Nhập họ và tên của bạn"
+            className="w-full"
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            value={formData.email}
+            onChange={(e) => handleChange('email', e.target.value)}
+            placeholder="Nhập địa chỉ email của bạn"
+            className="w-full"
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="birth_date">Ngày sinh</Label>
+          <Input
+            id="birth_date"
+            type="date"
+            value={formData.birth_date}
+            onChange={(e) => handleChange('birth_date', e.target.value)}
+            className="w-full"
+            required
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="birth_time">Giờ sinh</Label>
+          <Input
+            id="birth_time"
+            type="time"
+            value={formData.birth_time}
+            onChange={(e) => handleChange('birth_time', e.target.value)}
+            className="w-full"
+            required
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="location">Địa điểm sinh</Label>
+          <Input
             id="location"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            placeholder={t('birthChart.locationPlaceholder') || "City, Country"}
-            className="flex-1"
+            value={formData.location}
+            onChange={(e) => handleChange('location', e.target.value)}
+            placeholder="Thành phố, Quốc gia"
+            className="w-full"
           />
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={handleDetectLocation}
-            disabled={loading}
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="timezone">Múi giờ</Label>
+          <Select 
+            value={formData.timezone} 
+            onValueChange={(value) => handleChange('timezone', value)}
           >
-            <Navigation className="h-4 w-4" />
-          </Button>
+            <SelectTrigger>
+              <SelectValue placeholder="Chọn múi giờ" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Asia/Ho_Chi_Minh">Asia/Ho_Chi_Minh (GMT+7)</SelectItem>
+              <SelectItem value="Asia/Bangkok">Asia/Bangkok (GMT+7)</SelectItem>
+              <SelectItem value="Asia/Singapore">Asia/Singapore (GMT+8)</SelectItem>
+              <SelectItem value="Asia/Tokyo">Asia/Tokyo (GMT+9)</SelectItem>
+              <SelectItem value="Europe/London">Europe/London (GMT+0)</SelectItem>
+              <SelectItem value="America/New_York">America/New_York (GMT-5)</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-      </div>
-      
-      <div className="grid grid-cols-2 gap-2">
+        
         <div className="space-y-2">
-          <Label htmlFor="latitude">{t('birthChart.latitude') || 'Latitude'}</Label>
+          <Label htmlFor="latitude">Vĩ độ</Label>
           <Input
-            type="number"
             id="latitude"
-            value={latitude !== null ? latitude : ''}
-            onChange={(e) => setLatitude(parseFloat(e.target.value))}
-            step="0.0001"
-            min="-90"
-            max="90"
-            placeholder="0.0000"
-            required
+            type="number"
+            step="0.000001"
+            value={formData.latitude}
+            onChange={(e) => handleChange('latitude', parseFloat(e.target.value))}
+            className="w-full"
           />
         </div>
+        
         <div className="space-y-2">
-          <Label htmlFor="longitude">{t('birthChart.longitude') || 'Longitude'}</Label>
+          <Label htmlFor="longitude">Kinh độ</Label>
           <Input
-            type="number"
             id="longitude"
-            value={longitude !== null ? longitude : ''}
-            onChange={(e) => setLongitude(parseFloat(e.target.value))}
-            step="0.0001"
-            min="-180"
-            max="180"
-            placeholder="0.0000"
-            required
+            type="number"
+            step="0.000001"
+            value={formData.longitude}
+            onChange={(e) => handleChange('longitude', parseFloat(e.target.value))}
+            className="w-full"
           />
         </div>
       </div>
       
-      <div className="md:col-span-2">
-        <Button 
-          type="submit" 
-          className="w-full bg-amber-600 hover:bg-amber-700 text-white"
-        >
-          {t('birthChart.calculateChart') || 'Calculate Birth Chart'}
-        </Button>
-      </div>
+      <Button 
+        type="submit" 
+        className="w-full" 
+        size="lg"
+        disabled={isLoading}
+      >
+        {isLoading ? 'Đang tính toán...' : 'Tính toán bản đồ'}
+      </Button>
     </form>
   );
 };

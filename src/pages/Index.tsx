@@ -8,9 +8,6 @@ import { numberMeanings } from '../utils/data';
 import { useLanguage } from '../context/LanguageContext';
 import { Helmet } from 'react-helmet-async';
 import AboutSlider from '../components/AboutSlider';
-import { Button } from "@/components/ui/button";
-import { Link } from 'react-router-dom';
-import { ChevronRight, Map } from 'lucide-react';
 
 const Index = () => {
   const { t, language } = useLanguage();
@@ -44,33 +41,6 @@ const Index = () => {
       <main className="flex-grow">
         <Hero />
         <Calculator />
-        
-        {/* Featured Section: Vedic Astrology */}
-        <section className="py-16 bg-gradient-to-br from-amber-50 to-amber-100">
-          <div className="container mx-auto px-4">
-            <div className="max-w-4xl mx-auto text-center">
-              <span className="inline-block py-1 px-3 rounded-full bg-amber-900/10 text-amber-700 mb-4">
-                Tính năng mới
-              </span>
-              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-amber-900">
-                Bản đồ sao Chiêm tinh Vệ Đà
-              </h2>
-              <p className="text-lg text-amber-800 mb-8 max-w-2xl mx-auto">
-                Khám phá bản đồ sao của bạn theo chiêm tinh Vệ Đà truyền thống, với các thông tin chi tiết về vị trí các hành tinh và ý nghĩa của chúng.
-              </p>
-              
-              <div className="mt-8 flex justify-center">
-                <Link to="/vedic-chart">
-                  <Button size="lg" className="bg-amber-600 hover:bg-amber-700 text-white">
-                    <Map className="mr-2 h-5 w-5" />
-                    Tính toán bản đồ sao
-                    <ChevronRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
         
         {/* Ad display example after calculator section */}
         <div className="container mx-auto px-4 py-6">

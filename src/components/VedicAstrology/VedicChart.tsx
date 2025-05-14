@@ -6,19 +6,17 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import BirthChartForm, { BirthDetailsFormData } from './BirthChartForm';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Sparkles, Loader2 } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import SouthIndianChart from './SouthIndianChart';
 
 // Define chart data types
 interface Planet {
   id: string;
   name: string;
-  symbol: string;
   longitude: number;
   house: number;
   sign: number;
   retrograde: boolean;
-  color: string;
 }
 
 interface House {
@@ -32,7 +30,6 @@ interface VedicChartData {
   planets: Planet[];
   houses: House[];
   moonNakshatra: string;
-  lunarDay: number;
 }
 
 const VedicChart = () => {
@@ -45,8 +42,6 @@ const VedicChart = () => {
     setIsLoading(true);
     
     try {
-      console.log("Calculating chart with data:", formData);
-      
       // Call the Supabase Edge Function to calculate the chart
       const { data, error } = await supabase.functions.invoke('calculate-vedic-chart', {
         body: {
@@ -59,8 +54,7 @@ const VedicChart = () => {
       });
 
       if (error) {
-        console.error("Edge function error:", error);
-        throw new Error(error.message || "Lỗi khi tính toán bản đồ sao");
+        throw error;
       }
 
       console.log("Received chart data:", data);
@@ -68,7 +62,7 @@ const VedicChart = () => {
       
       toast({
         title: "Bản đồ sao đã được tính toán thành công!",
-        description: `${formData.birth_date} ${formData.birth_time} tại ${formData.location}`,
+        description: `${formData.birth_date} ${formData.birth_time}`,
       });
     } catch (error) {
       console.error("Error calculating chart:", error);
@@ -100,13 +94,6 @@ const VedicChart = () => {
           <BirthChartForm onCalculate={handleCalculate} />
         </CardContent>
       </Card>
-
-      {isLoading && (
-        <div className="flex items-center justify-center p-8">
-          <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
-          <span className="ml-2 text-amber-700">Đang tính toán bản đồ sao...</span>
-        </div>
-      )}
 
       {chartData && (
         <div className="space-y-6">
@@ -153,20 +140,12 @@ const VedicChart = () => {
                   <div className="space-y-1">
                     {chartData.planets.map((planet) => (
                       <div key={planet.id} className="flex items-center justify-between p-2 border-b">
-                        <div className="flex items-center">
-                          <span 
-                            className="text-xl mr-2" 
-                            style={{ color: planet.color }}
-                          >
-                            {planet.symbol}
-                          </span>
-                          <span>{planet.name}</span>
-                          {planet.retrograde && <span className="ml-2 text-red-500">R</span>}
-                        </div>
+                        <div>{planet.name}</div>
                         <div className="text-right">
                           <div>{SIGNS[planet.sign]}</div>
                           <div className="text-sm text-gray-500">
                             Cung {planet.house} • {planet.longitude.toFixed(2)}°
+                            {planet.retrograde && <span className="ml-1 text-red-500">R</span>}
                           </div>
                         </div>
                       </div>
@@ -198,11 +177,6 @@ const VedicChart = () => {
                     <div>
                       <h3 className="font-bold">Nakshatra của Mặt Trăng</h3>
                       <p>{chartData.moonNakshatra}</p>
-                    </div>
-                    
-                    <div>
-                      <h3 className="font-bold">Ngày Âm lịch (Tithi)</h3>
-                      <p>{chartData.lunarDay}</p>
                     </div>
                   </div>
                 </TabsContent>
