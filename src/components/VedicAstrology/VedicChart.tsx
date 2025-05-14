@@ -6,7 +6,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import BirthChartForm, { BirthDetailsFormData } from './BirthChartForm';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Loader2 } from 'lucide-react';
 import SouthIndianChart from './SouthIndianChart';
 
 // Define chart data types
@@ -42,6 +42,8 @@ const VedicChart = () => {
     setIsLoading(true);
     
     try {
+      console.log("Calculating chart with data:", formData);
+      
       // Call the Supabase Edge Function to calculate the chart
       const { data, error } = await supabase.functions.invoke('calculate-vedic-chart', {
         body: {
@@ -54,7 +56,8 @@ const VedicChart = () => {
       });
 
       if (error) {
-        throw error;
+        console.error("Edge function error:", error);
+        throw new Error(error.message || "Lỗi khi tính toán bản đồ sao");
       }
 
       console.log("Received chart data:", data);
@@ -62,7 +65,7 @@ const VedicChart = () => {
       
       toast({
         title: "Bản đồ sao đã được tính toán thành công!",
-        description: `${formData.birth_date} ${formData.birth_time}`,
+        description: `${formData.birth_date} ${formData.birth_time} tại ${formData.location}`,
       });
     } catch (error) {
       console.error("Error calculating chart:", error);
@@ -94,6 +97,13 @@ const VedicChart = () => {
           <BirthChartForm onCalculate={handleCalculate} />
         </CardContent>
       </Card>
+
+      {isLoading && (
+        <div className="flex items-center justify-center p-8">
+          <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
+          <span className="ml-2 text-amber-700">Đang tính toán bản đồ sao...</span>
+        </div>
+      )}
 
       {chartData && (
         <div className="space-y-6">

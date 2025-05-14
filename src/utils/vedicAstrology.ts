@@ -1,5 +1,7 @@
 
 import { DateTime } from 'luxon';
+import { PLANETS as PLANET_DATA, getPlanetColor, getPlanetSymbol } from './VedicAstro/Planets';
+import { SIGNS as SIGN_DATA } from './VedicAstro/Signs';
 
 // Types
 export type Planet = {
@@ -28,12 +30,7 @@ export type ChartData = {
 };
 
 // Constants
-export const SIGNS = [
-  "Mesha (Aries)", "Vrishabha (Taurus)", "Mithuna (Gemini)", 
-  "Karka (Cancer)", "Simha (Leo)", "Kanya (Virgo)",
-  "Tula (Libra)", "Vrishchika (Scorpio)", "Dhanu (Sagittarius)", 
-  "Makara (Capricorn)", "Kumbha (Aquarius)", "Meena (Pisces)"
-];
+export const SIGNS = Object.values(SIGN_DATA).map(sign => `${sign.sanskritName} (${sign.name})`);
 
 export const NAKSHATRAS = [
   "Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira", "Ardra", 
@@ -44,17 +41,12 @@ export const NAKSHATRAS = [
   "Uttara Bhadrapada", "Revati"
 ];
 
-export const PLANETS = [
-  { id: "su", name: "Sun", symbol: "☉", color: "#FFB900" },
-  { id: "mo", name: "Moon", symbol: "☽", color: "#DDDDDD" },
-  { id: "me", name: "Mercury", symbol: "☿", color: "#33CC33" },
-  { id: "ve", name: "Venus", symbol: "♀", color: "#FF66FF" },
-  { id: "ma", name: "Mars", symbol: "♂", color: "#FF3300" },
-  { id: "ju", name: "Jupiter", symbol: "♃", color: "#FFCC00" },
-  { id: "sa", name: "Saturn", symbol: "♄", color: "#0066CC" },
-  { id: "ra", name: "Rahu", symbol: "☊", color: "#666666" },
-  { id: "ke", name: "Ketu", symbol: "☋", color: "#996633" }
-];
+export const PLANETS = Object.values(PLANET_DATA).map(planet => ({
+  id: planet.id,
+  name: planet.name,
+  symbol: planet.symbol,
+  color: planet.color
+}));
 
 // Mock calculation functions (in a real app, these would use a proper ephemeris library like Swiss Ephemeris)
 export const calculatePlanetPositions = (
@@ -62,9 +54,9 @@ export const calculatePlanetPositions = (
   latitude: number, 
   longitude: number
 ): Planet[] => {
-  // In a real app, this would use Swiss Ephemeris or similar library
   // This is just a mock implementation for demonstration
   const seed = date.toMillis() + latitude + longitude;
+  
   return PLANETS.map(planet => {
     const randomLongitude = (seed % 1000 + parseInt(planet.id, 36)) % 360;
     const sign = Math.floor(randomLongitude / 30);
@@ -89,7 +81,6 @@ export const calculateHouses = (
   longitude: number
 ): House[] => {
   // In a real app, this would use proper astronomical calculations
-  // This is just a mock implementation
   const seed = date.toMillis() + latitude + longitude;
   const ascendant = seed % 360;
   
