@@ -2,6 +2,7 @@
 // Calculate Vedic Chart Edge Function
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { GEOAPIFY_API_KEY } from "../_shared/constants.ts";
 
 // Import and use SwissEph in Deno Edge Function
 import swisseph from "npm:swisseph";
@@ -21,7 +22,7 @@ serve(async (req) => {
       birth_date, birth_time, latitude, longitude, timezone 
     });
     
-    // Set path to ephemeris data
+    // Set path to ephemeris data - this should be deployed with the function
     swisseph.swe_set_ephe_path("./ephe");
     
     // Parse date and time
@@ -57,7 +58,10 @@ serve(async (req) => {
     
     // Calculate planet positions
     const planetResults = [];
-    const flag = swisseph.SEFLG_SPEED;
+    const flag = swisseph.SEFLG_SWIEPH | swisseph.SEFLG_SIDEREAL;
+    
+    // Set Lahiri Ayanamsa (most commonly used in Vedic astrology)
+    swisseph.swe_set_sid_mode(swisseph.SE_SIDM_LAHIRI, 0, 0);
     
     for (const planet of planets) {
       try {
@@ -68,8 +72,8 @@ serve(async (req) => {
         } else {
           const longitude = result.longitude;
           const sign = Math.floor(longitude / 30);
-          const house = Math.floor(((longitude / 30) + 10) % 12) + 1; // Simple house system
           
+          // We'll calculate house placement after determining the ascendant
           const symbol = planet.id === "su" ? "☉" : 
                         planet.id === "mo" ? "☽" : 
                         planet.id === "me" ? "☿" : 
@@ -84,7 +88,6 @@ serve(async (req) => {
             name: planet.name,
             symbol: symbol,
             longitude: longitude,
-            house: house,
             sign: sign,
             retrograde: result.retrograde || (result.speed && result.speed < 0),
             color: planet.color
@@ -100,14 +103,12 @@ serve(async (req) => {
     if (rahu) {
       const ketuLongitude = (rahu.longitude + 180) % 360;
       const ketuSign = Math.floor(ketuLongitude / 30);
-      const ketuHouse = Math.floor(((ketuLongitude / 30) + 10) % 12) + 1;
       
       planetResults.push({
         id: "ke",
         name: "Ketu",
         symbol: "☋",
         longitude: ketuLongitude,
-        house: ketuHouse,
         sign: ketuSign,
         retrograde: false,
         color: "#800000" // Maroon color for Ketu
@@ -122,6 +123,12 @@ serve(async (req) => {
       'P' // Placidus house system
     );
     
+    console.log("Ascendant calculation:", ascendant);
+    
+    // Get sidereal ascendant
+    let siderealAscendant = ascendant.ascendant;
+    // The ascendant is already sidereal since we set the sidereal mode earlier
+    
     // Calculate houses
     const houses = Array.from({ length: 12 }, (_, i) => {
       const houseLongitude = ascendant.cusps[i + 1];
@@ -131,6 +138,36 @@ serve(async (req) => {
         sign: Math.floor(houseLongitude / 30)
       };
     });
+    
+    // Assign houses to planets
+    for (const planet of planetResults) {
+      // Find house for each planet based on its position relative to the ascendant
+      let houseIndex = 0;
+      for (let i = 0; i < houses.length; i++) {
+        const nextHouseIndex = (i + 1) % 12;
+        const currentHouseLongitude = houses[i].longitude;
+        const nextHouseLongitude = houses[nextHouseIndex].longitude;
+        
+        // Check if the planet is in this house
+        if (nextHouseLongitude < currentHouseLongitude) {
+          // House spans 0° Aries
+          if ((planet.longitude >= currentHouseLongitude) || 
+              (planet.longitude < nextHouseLongitude)) {
+            houseIndex = i;
+            break;
+          }
+        } else {
+          // Regular case
+          if ((planet.longitude >= currentHouseLongitude) && 
+              (planet.longitude < nextHouseLongitude)) {
+            houseIndex = i;
+            break;
+          }
+        }
+      }
+      
+      planet.house = houses[houseIndex].number;
+    }
     
     // Calculate Moon Nakshatra
     const moon = planetResults.find(p => p.id === "mo");
@@ -161,7 +198,7 @@ serve(async (req) => {
     
     // Create response object
     const chartData = {
-      ascendant: ascendant.ascendant,
+      ascendant: siderealAscendant,
       planets: planetResults,
       houses: houses,
       moonNakshatra: moonNakshatra,
