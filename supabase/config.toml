@@ -1,5 +1,2 @@
 
 project_id = "your-project-id"
-
-[functions.calculate-vedic-chart]
-verify_jwt = false

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -6,7 +5,7 @@ import BirthChartForm, { BirthDataFormValues } from './BirthChartForm';
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from 'lucide-react';
 import SouthIndianChart from './SouthIndianChart';
-import { supabaseClient } from '@/integrations/supabase/client';
+import { calculateVedicChart } from '@/services/vedicAstroService';
 
 // Types
 export interface Planet {
@@ -45,25 +44,10 @@ const VedicChart = () => {
     try {
       console.log("Calculating chart with data:", formData);
       
-      // Call the Supabase Edge Function to calculate the chart
-      const { data, error } = await supabaseClient.functions.invoke(
-        'calculate-vedic-chart',
-        {
-          body: {
-            birth_date: formData.birthDate,
-            birth_time: formData.birthTime,
-            latitude: formData.latitude,
-            longitude: formData.longitude,
-            timezone: formData.timezone,
-          },
-        }
-      );
+      // Call our service to calculate the chart
+      const data = await calculateVedicChart(formData);
       
-      if (error) {
-        throw new Error(`Function error: ${error.message}`);
-      }
-      
-      console.log("Chart data received from edge function:", data);
+      console.log("Chart data received:", data);
       setChartData(data);
       
       toast({
