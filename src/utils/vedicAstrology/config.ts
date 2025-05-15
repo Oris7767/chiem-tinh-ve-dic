@@ -3,7 +3,7 @@
 export const VEDIC_ASTRO_API_CONFIG = {
   // Correct path to the Netlify function
   API_URL: "https://vedicapi.netlify.app/.netlify/functions/calculate",
-  FALLBACK_MODE: true, // Set to true for now in case the API call fails
+  FALLBACK_MODE: false, // Set to true for now in case the API call fails
 };
 
 // This is the structure expected by the Swiss Ephemeris server
