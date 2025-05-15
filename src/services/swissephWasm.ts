@@ -31,7 +31,7 @@ export interface PlanetPosition {
   speed?: number;
   retrograde: boolean;
   sign: number;
-  house?: number;
+  house: number; // Changed from optional to required to match VedicChartData
   color: string;
 }
 
@@ -95,12 +95,12 @@ export async function initializeSwissEph(): Promise<void> {
   
   initializationPromise = new Promise<void>((resolve, reject) => {
     try {
-      // Set the path to ephemeris data
+      // Set the path to ephemeris data - Fixed function name
       // In a production environment, you'd host these files on your server or CDN
-      swisseph.set_ephe_path('/ephe');
+      swisseph.swe_set_ephe_path('/ephe');
       
-      // Set Lahiri Ayanamsa (most commonly used in Vedic astrology)
-      swisseph.set_sid_mode(swisseph.SIDM_LAHIRI, 0, 0);
+      // Set Lahiri Ayanamsa (most commonly used in Vedic astrology) - Fixed function name and constant
+      swisseph.swe_set_sid_mode(swisseph.SE_SIDM_LAHIRI, 0, 0);
       
       console.log("Swiss Ephemeris initialized successfully");
       isInitialized = true;
@@ -118,7 +118,8 @@ export async function initializeSwissEph(): Promise<void> {
  * Calculate Julian Day from date and time components
  */
 function calculateJulianDay(year: number, month: number, day: number, hour: number, minute: number): number {
-  return swisseph.julday(year, month, day, hour + minute / 60, swisseph.GREG_CAL);
+  // Fixed function name and constant
+  return swisseph.swe_julday(year, month, day, hour + minute / 60, swisseph.SE_GREG_CAL);
 }
 
 /**
@@ -146,7 +147,8 @@ export async function calculateVedicChartWasm(params: SwissEphParams): Promise<V
       if (planet.id === "ke") continue; // Ketu is calculated separately from Rahu
       
       try {
-        const result = swisseph.calc_ut(julianDay, planet.planet, flag);
+        // Fixed function name
+        const result = swisseph.swe_calc_ut(julianDay, planet.planet, flag);
         
         const longitude = result.longitude;
         const sign = Math.floor(longitude / 30);
@@ -158,6 +160,7 @@ export async function calculateVedicChartWasm(params: SwissEphParams): Promise<V
           longitude: longitude,
           retrograde: result.retrograde || (result.speed && result.speed < 0),
           sign: sign,
+          house: 1, // Default house, will be assigned properly later
           color: planet.color
         });
       } catch (err) {
@@ -178,12 +181,13 @@ export async function calculateVedicChartWasm(params: SwissEphParams): Promise<V
         longitude: ketuLongitude,
         retrograde: false,
         sign: ketuSign,
+        house: 1, // Default house, will be assigned properly later
         color: "#800000"
       });
     }
     
-    // Calculate ascendant and houses
-    const houses = swisseph.houses(julianDay, latitude, longitude, 'P'); // Placidus house system
+    // Calculate ascendant and houses - Fixed function name
+    const houses = swisseph.swe_houses(julianDay, latitude, longitude, 'P'); // Placidus house system
     console.log("Houses calculation:", houses);
     
     // The ascendant is already sidereal since we set the sidereal mode earlier

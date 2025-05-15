@@ -7,7 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from 'lucide-react';
 import SouthIndianChart from './SouthIndianChart';
 import { calculateVedicChart } from '@/services/vedicAstroService';
-import { supabase } from "@/integrations/supabase/client"; // Fixed import here
+import { supabase } from "@/integrations/supabase/client"; // Fixed import to use the correct export name
 
 // Types
 export interface Planet {

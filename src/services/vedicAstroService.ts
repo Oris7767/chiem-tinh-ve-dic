@@ -2,7 +2,7 @@
 import { DateTime } from 'luxon';
 import { VEDIC_ASTRO_API_CONFIG, VedicChartRequest, VedicChartResponse } from '@/utils/vedicAstrology/config';
 import { VedicChartData } from '@/components/VedicAstrology/VedicChart';
-import { calculateVedicChartWasm, generateFallbackChart, SwissEphParams } from './swissephWasm';
+import { calculateVedicChartWasm, generateFallbackChart, SwissEphParams, VedicChartResult } from './swissephWasm';
 
 // Constants for zodiac signs
 const SIGNS = [
@@ -55,6 +55,9 @@ export async function calculateVedicChart(formData: {
       console.log("Attempting to use WebAssembly for calculations");
       const wasmResult = await calculateVedicChartWasm(params);
       console.log("WebAssembly calculation successful:", wasmResult);
+      
+      // Since we've modified the PlanetPosition interface to make house required,
+      // the types are now compatible and we can return directly
       return wasmResult;
     } catch (wasmError) {
       console.error("WebAssembly calculation failed, falling back:", wasmError);
@@ -81,6 +84,7 @@ export async function calculateVedicChart(formData: {
       } else {
         // Use local fallback
         console.log("Using fallback mode for chart calculations");
+        // Types are now compatible since we've updated PlanetPosition
         return generateFallbackChart(params);
       }
     }
