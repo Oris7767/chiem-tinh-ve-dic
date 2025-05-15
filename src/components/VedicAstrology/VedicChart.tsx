@@ -38,11 +38,9 @@ const VedicChart = () => {
   const { toast } = useToast();
   const [chartData, setChartData] = useState<VedicChartData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleSubmit = async (formData: BirthDataFormValues) => {
     setIsLoading(true);
-    setErrorMessage(null);
     
     try {
       console.log("Calculating chart with data:", formData);
@@ -74,11 +72,9 @@ const VedicChart = () => {
       });
     } catch (error) {
       console.error("Error calculating chart:", error);
-      const errorMsg = error instanceof Error ? error.message : "Đã xảy ra lỗi không xác định";
-      setErrorMessage(errorMsg);
       toast({
         title: "Lỗi khi tính toán bản đồ sao",
-        description: errorMsg,
+        description: error instanceof Error ? error.message : "Đã xảy ra lỗi không xác định",
         variant: "destructive",
       });
     } finally {
@@ -96,20 +92,6 @@ const VedicChart = () => {
           <BirthChartForm onSubmit={handleSubmit} isLoading={isLoading} />
         </CardContent>
       </Card>
-
-      {errorMessage && (
-        <Card className="border-red-400 bg-red-50 dark:bg-red-950">
-          <CardContent className="pt-6">
-            <div className="text-red-600 dark:text-red-400">
-              <h3 className="font-bold mb-2">Lỗi khi tính toán bản đồ sao:</h3>
-              <p>{errorMessage}</p>
-              <p className="mt-2 text-sm">
-                Chú ý: Tính năng này sử dụng Supabase Edge Functions và yêu cầu thiết lập đúng với dự án Supabase của bạn.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {isLoading && (
         <div className="flex items-center justify-center p-8">

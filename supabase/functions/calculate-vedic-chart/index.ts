@@ -4,27 +4,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import { GEOAPIFY_API_KEY } from "../_shared/constants.ts";
 
-// Constants for planets and signs
-const PLANETS = [
-  { id: "su", name: "Sun", symbol: "☉", color: "#FFA500" },
-  { id: "mo", name: "Moon", symbol: "☽", color: "#SILVER" },
-  { id: "me", name: "Mercury", symbol: "☿", color: "#00FF00" },
-  { id: "ve", name: "Venus", symbol: "♀", color: "#FFFFFF" },
-  { id: "ma", name: "Mars", symbol: "♂", color: "#FF0000" },
-  { id: "ju", name: "Jupiter", symbol: "♃", color: "#FFFF00" },
-  { id: "sa", name: "Saturn", symbol: "♄", color: "#000080" },
-  { id: "ra", name: "Rahu", symbol: "☊", color: "#4B0082" },
-  { id: "ke", name: "Ketu", symbol: "☋", color: "#800000" }
-];
-
-const NAKSHATRAS = [
-  "Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira", "Ardra", 
-  "Punarvasu", "Pushya", "Ashlesha", "Magha", "Purva Phalguni", 
-  "Uttara Phalguni", "Hasta", "Chitra", "Swati", "Vishakha", 
-  "Anuradha", "Jyeshtha", "Mula", "Purva Ashadha", "Uttara Ashadha", 
-  "Shravana", "Dhanishta", "Shatabhisha", "Purva Bhadrapada", 
-  "Uttara Bhadrapada", "Revati"
-];
+// Import and use SwissEph in Deno Edge Function
+import swisseph from "npm:swisseph";
 
 // Main function to handle requests
 serve(async (req) => {
@@ -41,64 +22,116 @@ serve(async (req) => {
       birth_date, birth_time, latitude, longitude, timezone 
     });
     
+    // Set path to ephemeris data - this should be deployed with the function
+    swisseph.swe_set_ephe_path("./ephe");
+    
     // Parse date and time
     const [year, month, day] = birth_date.split('-').map(Number);
     const [hour, minute] = birth_time.split(':').map(Number);
+    const date = { year, month, day, hour, minute };
     
-    // We'll use an alternative approach for Vedic calculations since swisseph doesn't work in Deno
+    console.log("Parsed date:", date);
     
-    // Calculate Julian day (simplified formula)
-    const a = Math.floor((14 - month) / 12);
-    const y = year + 4800 - a;
-    const m = month + 12 * a - 3;
-    let jd = day + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400) - 32045;
-    
-    // Add time component
-    const timeInDays = (hour + minute / 60) / 24;
-    const julday_ut = jd + timeInDays - 0.5;
+    // Calculate Julian day
+    let julday_ut = swisseph.swe_julday(
+      date.year, 
+      date.month, 
+      date.day, 
+      date.hour + date.minute / 60, 
+      swisseph.SE_GREG_CAL
+    );
     
     console.log("Julian day:", julday_ut);
     
-    // For demo purposes, we'll generate somewhat realistic planetary positions
-    // This is not astronomically accurate but provides a viable demo
-    const seed = Number(new Date(`${birth_date}T${birth_time}`));
+    // Define planets to calculate
+    const planets = [
+      { id: "su", name: "Sun", planet: swisseph.SE_SUN, color: "#FFA500" },
+      { id: "mo", name: "Moon", planet: swisseph.SE_MOON, color: "#SILVER" },
+      { id: "me", name: "Mercury", planet: swisseph.SE_MERCURY, color: "#00FF00" },
+      { id: "ve", name: "Venus", planet: swisseph.SE_VENUS, color: "#FFFFFF" },
+      { id: "ma", name: "Mars", planet: swisseph.SE_MARS, color: "#FF0000" },
+      { id: "ju", name: "Jupiter", planet: swisseph.SE_JUPITER, color: "#FFFF00" },
+      { id: "sa", name: "Saturn", planet: swisseph.SE_SATURN, color: "#000080" },
+      { id: "ra", name: "Rahu", planet: swisseph.SE_MEAN_NODE, color: "#4B0082" }, // Rahu (North Node)
+      // Ketu (South Node) is calculated as Rahu + 180 degrees
+    ];
     
-    // Generate planetary positions based on birth details
-    const planetResults = PLANETS.map((planet, index) => {
-      const baseAngle = (seed % 1000 + index * 30) % 360; // Pseudo-random base angle
-      
-      // Add some realistic variations based on planet
-      let longitude = (baseAngle + (index * 40) % 360) % 360;
-      
-      // Special case for Ketu (always 180° from Rahu)
-      if (planet.id === "ke") {
-        const rahuPlanet = PLANETS.find(p => p.id === "ra");
-        const rahuIndex = PLANETS.indexOf(rahuPlanet);
-        const rahuLongitude = (baseAngle + (rahuIndex * 40) % 360) % 360;
-        longitude = (rahuLongitude + 180) % 360;
+    // Calculate planet positions
+    const planetResults = [];
+    const flag = swisseph.SEFLG_SWIEPH | swisseph.SEFLG_SIDEREAL;
+    
+    // Set Lahiri Ayanamsa (most commonly used in Vedic astrology)
+    swisseph.swe_set_sid_mode(swisseph.SE_SIDM_LAHIRI, 0, 0);
+    
+    for (const planet of planets) {
+      try {
+        const result = swisseph.swe_calc_ut(julday_ut, planet.planet, flag);
+        
+        if (result.error) {
+          console.error(`Error calculating ${planet.id}:`, result.error);
+        } else {
+          const longitude = result.longitude;
+          const sign = Math.floor(longitude / 30);
+          
+          // We'll calculate house placement after determining the ascendant
+          const symbol = planet.id === "su" ? "☉" : 
+                        planet.id === "mo" ? "☽" : 
+                        planet.id === "me" ? "☿" : 
+                        planet.id === "ve" ? "♀" : 
+                        planet.id === "ma" ? "♂" : 
+                        planet.id === "ju" ? "♃" : 
+                        planet.id === "sa" ? "♄" : 
+                        planet.id === "ra" ? "☊" : "?";
+          
+          planetResults.push({
+            id: planet.id,
+            name: planet.name,
+            symbol: symbol,
+            longitude: longitude,
+            sign: sign,
+            retrograde: result.retrograde || (result.speed && result.speed < 0),
+            color: planet.color
+          });
+        }
+      } catch (err) {
+        console.error(`Error calculating ${planet.id}:`, err);
       }
-      
-      const sign = Math.floor(longitude / 30);
-      
-      return {
-        id: planet.id,
-        name: planet.name,
-        symbol: planet.symbol,
-        longitude: longitude,
-        sign: sign,
-        retrograde: Math.random() > 0.8, // Random retrograde state
-        color: planet.color
-      };
-    });
+    }
     
-    // Calculate ascendant (simplified)
-    // This is a rough approximation based on sidereal time
-    const localSiderealTimeFactor = (longitude / 15 + (hour + minute / 60)) % 24;
-    const ascendantLongitude = (localSiderealTimeFactor * 15 + 90) % 360;
+    // Add Ketu (South Node) - 180 degrees from Rahu
+    const rahu = planetResults.find(p => p.id === "ra");
+    if (rahu) {
+      const ketuLongitude = (rahu.longitude + 180) % 360;
+      const ketuSign = Math.floor(ketuLongitude / 30);
+      
+      planetResults.push({
+        id: "ke",
+        name: "Ketu",
+        symbol: "☋",
+        longitude: ketuLongitude,
+        sign: ketuSign,
+        retrograde: false,
+        color: "#800000" // Maroon color for Ketu
+      });
+    }
+    
+    // Calculate ascendant (lagna)
+    const ascendant = swisseph.swe_houses(
+      julday_ut,
+      latitude,
+      longitude,
+      'P' // Placidus house system
+    );
+    
+    console.log("Ascendant calculation:", ascendant);
+    
+    // Get sidereal ascendant
+    let siderealAscendant = ascendant.ascendant;
+    // The ascendant is already sidereal since we set the sidereal mode earlier
     
     // Calculate houses
     const houses = Array.from({ length: 12 }, (_, i) => {
-      const houseLongitude = (ascendantLongitude + i * 30) % 360;
+      const houseLongitude = ascendant.cusps[i + 1];
       return {
         number: i + 1,
         longitude: houseLongitude,
@@ -143,9 +176,15 @@ serve(async (req) => {
       const moonLongitude = moon.longitude;
       // 27 nakshatras in 360 degrees
       const nakshatraIndex = Math.floor((moonLongitude * 27) / 360);
-      if (nakshatraIndex >= 0 && nakshatraIndex < NAKSHATRAS.length) {
-        moonNakshatra = NAKSHATRAS[nakshatraIndex];
-      }
+      const nakshatras = [
+        "Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira", "Ardra", 
+        "Punarvasu", "Pushya", "Ashlesha", "Magha", "Purva Phalguni", 
+        "Uttara Phalguni", "Hasta", "Chitra", "Swati", "Vishakha", 
+        "Anuradha", "Jyeshtha", "Mula", "Purva Ashadha", "Uttara Ashadha", 
+        "Shravana", "Dhanishta", "Shatabhisha", "Purva Bhadrapada", 
+        "Uttara Bhadrapada", "Revati"
+      ];
+      moonNakshatra = nakshatras[nakshatraIndex];
     }
     
     // Calculate Lunar Day (Tithi)
@@ -159,7 +198,7 @@ serve(async (req) => {
     
     // Create response object
     const chartData = {
-      ascendant: ascendantLongitude,
+      ascendant: siderealAscendant,
       planets: planetResults,
       houses: houses,
       moonNakshatra: moonNakshatra,
