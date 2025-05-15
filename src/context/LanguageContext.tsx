@@ -10,7 +10,8 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-export const LanguageProvider: React.FC<{children: ReactNode}> = ({ children }) => {
+// Fixed component definition to ensure React can properly use hooks
+export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const [language, setLanguage] = useState<Language>('en');
 
   const t = (key: TranslationKey): string => {
