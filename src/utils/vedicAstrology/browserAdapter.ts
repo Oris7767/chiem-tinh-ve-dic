@@ -33,11 +33,16 @@ export const fsUtils = {
   
   readFileSync: async (path: string): Promise<ArrayBuffer> => {
     // Use fetch to get the file content
-    const response = await fetch(path);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch file: ${path}`);
+    try {
+      const response = await fetch(path);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch file: ${path}`);
+      }
+      return response.arrayBuffer();
+    } catch (error) {
+      console.error(`Error fetching file: ${path}`, error);
+      throw error;
     }
-    return response.arrayBuffer();
   }
 };
 
