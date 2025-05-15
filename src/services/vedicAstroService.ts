@@ -1,3 +1,4 @@
+
 import { VEDIC_ASTRO_API_CONFIG, VedicChartRequest, VedicChartResponse } from '@/utils/vedicAstrology/config';
 import { VedicChartData } from '@/components/VedicAstrology/VedicChart';
 
@@ -161,21 +162,34 @@ export async function calculateVedicChart(formData: {
     
     // Otherwise, make a real API call to the Swiss Ephemeris server
     console.log("Calling Swiss Ephemeris API at:", VEDIC_ASTRO_API_CONFIG.API_URL);
-    const response = await fetch(VEDIC_ASTRO_API_CONFIG.API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(request)
-    });
     
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`API error: ${response.status} - ${errorText}`);
+    try {
+      const response = await fetch(VEDIC_ASTRO_API_CONFIG.API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(request)
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`API error (${response.status}):`, errorText);
+        throw new Error(`API error: ${response.status} - ${errorText || 'Unknown error'}`);
+      }
+      
+      const data: VedicChartResponse = await response.json();
+      console.log("API response received:", data);
+      return data as VedicChartData;
+      
+    } catch (fetchError) {
+      console.error("Fetch error:", fetchError);
+      
+      // If API call fails, fall back to client-side calculation
+      console.log("API call failed, using fallback calculation");
+      const fallbackData = generateFallbackChart(request);
+      return fallbackData as VedicChartData;
     }
-    
-    const data: VedicChartResponse = await response.json();
-    return data as VedicChartData;
     
   } catch (error) {
     console.error("Error calculating chart:", error);

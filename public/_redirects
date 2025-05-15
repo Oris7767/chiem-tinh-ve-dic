@@ -1,3 +1,5 @@
 
 /*    /index.html   200
 
+# Redirect for Netlify function
+/.netlify/functions/*  https://vedicapi.netlify.app/.netlify/functions/:splat  200

@@ -1,9 +1,9 @@
 
 // Configuration for the VedAstro calculation service
 export const VEDIC_ASTRO_API_CONFIG = {
-  // Replace this with your Netlify function URL when deployed
-  API_URL: "https://vedicapi.netlify.app/", 
-  FALLBACK_MODE: false, // Set to false when your server is ready
+  // Correct path to the Netlify function
+  API_URL: "https://vedicapi.netlify.app/.netlify/functions/calculate",
+  FALLBACK_MODE: true, // Set to true for now in case the API call fails
 };
 
 // This is the structure expected by the Swiss Ephemeris server
