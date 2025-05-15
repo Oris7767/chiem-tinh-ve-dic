@@ -6,7 +6,7 @@ import BirthChartForm, { BirthDataFormValues } from './BirthChartForm';
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from 'lucide-react';
 import SouthIndianChart from './SouthIndianChart';
-import { supabase } from '@/integrations/supabase/client';
+import { supabaseClient } from '@/integrations/supabase/client';
 
 // Types
 export interface Planet {
@@ -46,7 +46,7 @@ const VedicChart = () => {
       console.log("Calculating chart with data:", formData);
       
       // Call the Supabase Edge Function to calculate the chart
-      const { data, error } = await supabase.functions.invoke(
+      const { data, error } = await supabaseClient.functions.invoke(
         'calculate-vedic-chart',
         {
           body: {
