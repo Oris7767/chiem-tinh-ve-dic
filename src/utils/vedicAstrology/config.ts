@@ -1,10 +1,9 @@
 
 // Configuration for the VedAstro calculation service
 export const VEDIC_ASTRO_API_CONFIG = {
-  // Set to true since we're using a browser-compatible implementation
-  BROWSER_ONLY_MODE: true,
-  FALLBACK_MODE: true,
-  EPHEMERIS_PATH: "/ephe", // Path to ephemeris files (relative to public directory)
+  // Replace this with your actual Swiss Ephemeris server URL when you have it
+  API_URL: "https://your-swiss-ephemeris-server.com/api/calculate",
+  FALLBACK_MODE: true, // Set to false when your server is ready
 };
 
 // This is the structure expected by the Swiss Ephemeris server

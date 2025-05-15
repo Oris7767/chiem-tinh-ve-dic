@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -7,7 +6,6 @@ import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from 'lucide-react';
 import SouthIndianChart from './SouthIndianChart';
 import { calculateVedicChart } from '@/services/vedicAstroService';
-import { supabase } from "@/integrations/supabase/client"; // Fixed import to use the correct export name
 
 // Types
 export interface Planet {
