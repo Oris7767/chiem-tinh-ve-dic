@@ -1,4 +1,3 @@
-import { DateTime } from 'luxon';
 import { VEDIC_ASTRO_API_CONFIG, VedicChartRequest, VedicChartResponse } from '@/utils/vedicAstrology/config';
 import { VedicChartData } from '@/components/VedicAstrology/VedicChart';
 
@@ -68,8 +67,8 @@ function calculateJulianDay(year: number, month: number, day: number, hour: numb
  * This will be replaced with actual server calculations later
  */
 function generateFallbackChart(request: VedicChartRequest): VedicChartResponse {
-  const dateTime = DateTime.fromISO(`${request.birthDate}T${request.birthTime}`);
-  const timestamp = dateTime.toMillis();
+  const dateTime = new Date(`${request.birthDate}T${request.birthTime}`);
+  const timestamp = dateTime.getTime();
   const seed = timestamp + request.latitude + request.longitude;
   
   // Calculate a deterministic but fake ascendant
@@ -157,10 +156,11 @@ export async function calculateVedicChart(formData: {
       
       // Generate fallback chart data
       const fallbackData = generateFallbackChart(request);
-      return fallbackData;
+      return fallbackData as VedicChartData;
     }
     
     // Otherwise, make a real API call to the Swiss Ephemeris server
+    console.log("Calling Swiss Ephemeris API at:", VEDIC_ASTRO_API_CONFIG.API_URL);
     const response = await fetch(VEDIC_ASTRO_API_CONFIG.API_URL, {
       method: 'POST',
       headers: {
@@ -175,7 +175,7 @@ export async function calculateVedicChart(formData: {
     }
     
     const data: VedicChartResponse = await response.json();
-    return data;
+    return data as VedicChartData;
     
   } catch (error) {
     console.error("Error calculating chart:", error);
