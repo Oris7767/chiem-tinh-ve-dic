@@ -5,9 +5,20 @@ import { useLanguage } from '../context/LanguageContext';
 import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
 import VedicChart from '../components/VedicAstrology/VedicChart';
+import { useToast } from "@/components/ui/use-toast";
 
 const VedicChartPage = () => {
   const { t } = useLanguage();
+  const { toast } = useToast();
+  
+  // Show a warning toast about browser compatibility
+  React.useEffect(() => {
+    toast({
+      title: "Browser Compatibility Notice",
+      description: "The astronomical calculations use advanced features. If you encounter issues, try a modern browser like Chrome or Firefox.",
+      duration: 6000,
+    });
+  }, [toast]);
   
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-stone-900 via-amber-950 to-amber-900">

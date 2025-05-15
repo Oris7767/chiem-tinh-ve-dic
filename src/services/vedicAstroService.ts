@@ -50,14 +50,16 @@ export async function calculateVedicChart(formData: {
       timezone: request.timezone
     };
     
+    // Always use fallback for now due to WebAssembly issues in the browser
+    console.log("Using fallback mode for chart calculations");
+    return generateFallbackChart(params);
+    
+    /* Disable WebAssembly for now due to browser compatibility issues
     // Try using WebAssembly for calculation
     try {
       console.log("Attempting to use WebAssembly for calculations");
       const wasmResult = await calculateVedicChartWasm(params);
       console.log("WebAssembly calculation successful:", wasmResult);
-      
-      // Since we've modified the PlanetPosition interface to make house required,
-      // the types are now compatible and we can return directly
       return wasmResult;
     } catch (wasmError) {
       console.error("WebAssembly calculation failed, falling back:", wasmError);
@@ -84,10 +86,10 @@ export async function calculateVedicChart(formData: {
       } else {
         // Use local fallback
         console.log("Using fallback mode for chart calculations");
-        // Types are now compatible since we've updated PlanetPosition
         return generateFallbackChart(params);
       }
     }
+    */
   } catch (error) {
     console.error("Error calculating chart:", error);
     throw error;

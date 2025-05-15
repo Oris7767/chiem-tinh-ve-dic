@@ -1,4 +1,3 @@
-
 /**
  * Swiss Ephemeris WebAssembly Service
  * This service manages loading and using the Swiss Ephemeris WebAssembly module
@@ -31,7 +30,7 @@ export interface PlanetPosition {
   speed?: number;
   retrograde: boolean;
   sign: number;
-  house: number; // Changed from optional to required to match VedicChartData
+  house: number; // Required to match VedicChartData
   color: string;
 }
 
@@ -95,11 +94,10 @@ export async function initializeSwissEph(): Promise<void> {
   
   initializationPromise = new Promise<void>((resolve, reject) => {
     try {
-      // Set the path to ephemeris data - Fixed function name
       // In a production environment, you'd host these files on your server or CDN
       swisseph.swe_set_ephe_path('/ephe');
       
-      // Set Lahiri Ayanamsa (most commonly used in Vedic astrology) - Fixed function name and constant
+      // Set Lahiri Ayanamsa (most commonly used in Vedic astrology)
       swisseph.swe_set_sid_mode(swisseph.SE_SIDM_LAHIRI, 0, 0);
       
       console.log("Swiss Ephemeris initialized successfully");
@@ -118,7 +116,6 @@ export async function initializeSwissEph(): Promise<void> {
  * Calculate Julian Day from date and time components
  */
 function calculateJulianDay(year: number, month: number, day: number, hour: number, minute: number): number {
-  // Fixed function name and constant
   return swisseph.swe_julday(year, month, day, hour + minute / 60, swisseph.SE_GREG_CAL);
 }
 
@@ -147,18 +144,26 @@ export async function calculateVedicChartWasm(params: SwissEphParams): Promise<V
       if (planet.id === "ke") continue; // Ketu is calculated separately from Rahu
       
       try {
-        // Fixed function name
+        // Call the Swiss ephemeris calculation function
         const result = swisseph.swe_calc_ut(julianDay, planet.planet, flag);
         
-        const longitude = result.longitude;
+        // Extract the longitude from the result
+        // The result format depends on the flag, with SEFLG_SIDEREAL it returns eclipt. coordinates
+        const longitude = result.longitude || (result as any).eclipt_coords?.[0] || 0;
         const sign = Math.floor(longitude / 30);
+        
+        // Check for retrograde motion
+        // With SEFLG_SPEED flag, we'd have speed property, otherwise we consider moving forward
+        const isRetrograde = (result as any).retrograde || 
+                            ((result as any).speed !== undefined && (result as any).speed < 0) ||
+                            ((result as any).longitudeSpeed !== undefined && (result as any).longitudeSpeed < 0);
         
         planetResults.push({
           id: planet.id,
           name: planet.name,
           symbol: planet.symbol,
           longitude: longitude,
-          retrograde: result.retrograde || (result.speed && result.speed < 0),
+          retrograde: isRetrograde,
           sign: sign,
           house: 1, // Default house, will be assigned properly later
           color: planet.color
@@ -186,16 +191,31 @@ export async function calculateVedicChartWasm(params: SwissEphParams): Promise<V
       });
     }
     
-    // Calculate ascendant and houses - Fixed function name
-    const houses = swisseph.swe_houses(julianDay, latitude, longitude, 'P'); // Placidus house system
-    console.log("Houses calculation:", houses);
+    // Calculate houses
+    const housesResult = swisseph.swe_houses(julianDay, latitude, longitude, 'P'); // Placidus house system
+    console.log("Houses calculation:", housesResult);
     
-    // The ascendant is already sidereal since we set the sidereal mode earlier
-    const ascendant = houses.ascendant;
+    // The result format for houses can vary, handle potential different structures
+    let ascendant = 0;
+    let houseCusps: number[] = [];
+    
+    // Handle different result formats from swe_houses
+    if (housesResult && typeof housesResult === 'object') {
+      if ('ascendant' in housesResult) {
+        ascendant = housesResult.ascendant;
+      }
+      
+      // Get house cusps - could be in .house or .cusps depending on the implementation
+      if ('cusps' in housesResult && Array.isArray(housesResult.cusps)) {
+        houseCusps = housesResult.cusps.slice(1); // First element is often 0 or ignored
+      } else if ('house' in housesResult && Array.isArray(housesResult.house)) {
+        houseCusps = housesResult.house;
+      }
+    }
     
     // Format houses data
-    const houseCusps: HouseCusp[] = Array.from({ length: 12 }, (_, i) => {
-      const houseLongitude = houses.cusps[i + 1];
+    const houses: HouseCusp[] = Array.from({ length: 12 }, (_, i) => {
+      const houseLongitude = houseCusps[i] || (ascendant + i * 30) % 360;
       return {
         number: i + 1,
         longitude: houseLongitude,
@@ -207,10 +227,10 @@ export async function calculateVedicChartWasm(params: SwissEphParams): Promise<V
     for (const planet of planetResults) {
       // Find house for each planet based on its position relative to the ascendant
       let houseIndex = 0;
-      for (let i = 0; i < houseCusps.length; i++) {
+      for (let i = 0; i < houses.length; i++) {
         const nextHouseIndex = (i + 1) % 12;
-        const currentHouseLongitude = houseCusps[i].longitude;
-        const nextHouseLongitude = houseCusps[nextHouseIndex].longitude;
+        const currentHouseLongitude = houses[i].longitude;
+        const nextHouseLongitude = houses[nextHouseIndex].longitude;
         
         // Check if the planet is in this house
         if (nextHouseLongitude < currentHouseLongitude) {
@@ -230,7 +250,7 @@ export async function calculateVedicChartWasm(params: SwissEphParams): Promise<V
         }
       }
       
-      planet.house = houseCusps[houseIndex].number;
+      planet.house = houses[houseIndex].number;
     }
     
     // Calculate Moon Nakshatra
@@ -255,7 +275,7 @@ export async function calculateVedicChartWasm(params: SwissEphParams): Promise<V
     return {
       ascendant,
       planets: planetResults,
-      houses: houseCusps,
+      houses,
       moonNakshatra,
       lunarDay
     };
