@@ -1,12 +1,16 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import BirthChartForm, { BirthDataFormValues } from './BirthChartForm';
+import { LoginForm, RegisterForm } from './AuthForms';
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2 } from 'lucide-react';
+import { Loader2, LogOut } from 'lucide-react';
 import SouthIndianChart from './SouthIndianChart';
+import DashaCalculator from './DashaCalculator';
 import { calculateVedicChart } from '@/services/vedicAstroService';
+import { Button } from "@/components/ui/button";
+import { supabase } from '@/integrations/supabase/client';
 
 // Types
 export interface Planet {
@@ -38,9 +42,32 @@ const VedicChart = () => {
   const { toast } = useToast();
   const [chartData, setChartData] = useState<VedicChartData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [formData, setFormData] = useState<BirthDataFormValues | null>(null);
+  
+  // Check for user session on component mount
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    
+    checkSession();
+    
+    // Listen for authentication state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const handleSubmit = async (formData: BirthDataFormValues) => {
     setIsLoading(true);
+    setFormData(formData);
     
     try {
       console.log("Calculating chart with data:", formData);
@@ -50,6 +77,22 @@ const VedicChart = () => {
       
       console.log("Chart data received:", data);
       setChartData(data);
+      
+      // If user is logged in, save the chart data to Supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Save birth chart data
+        const { error: chartError } = await supabase.from('birth_charts').insert({
+          user_id: user.id,
+          planets: data.planets,
+          houses: data.houses,
+          nakshatras: { moonNakshatra: data.moonNakshatra }
+        });
+        
+        if (chartError) {
+          console.error("Error saving chart data:", chartError);
+        }
+      }
       
       toast({
         title: "Bản đồ sao đã được tính toán thành công!",
@@ -67,8 +110,48 @@ const VedicChart = () => {
     }
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    toast({
+      title: "Đã đăng xuất",
+      description: "Đăng xuất thành công khỏi tài khoản của bạn.",
+    });
+  };
+
+  const handleAuthSuccess = () => {
+    toast({
+      title: "Xin chào!",
+      description: "Bạn đã đăng nhập thành công.",
+    });
+  };
+
   return (
     <div className="space-y-8">
+      {user ? (
+        <div className="flex justify-between items-center">
+          <div>
+            <p className="text-amber-100">Xin chào, {user.user_metadata?.name || user.email}</p>
+          </div>
+          <Button variant="outline" onClick={handleLogout}>
+            <LogOut className="mr-2 h-4 w-4" />
+            Đăng xuất
+          </Button>
+        </div>
+      ) : (
+        <Tabs defaultValue="login" value={authMode} onValueChange={(value) => setAuthMode(value as 'login' | 'register')}>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="login">Đăng nhập</TabsTrigger>
+            <TabsTrigger value="register">Đăng ký</TabsTrigger>
+          </TabsList>
+          <TabsContent value="login">
+            <LoginForm onSuccess={handleAuthSuccess} />
+          </TabsContent>
+          <TabsContent value="register">
+            <RegisterForm onSuccess={() => setAuthMode('login')} />
+          </TabsContent>
+        </Tabs>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle className="text-center">Tạo bản đồ sao chiêm tinh Vệ Đà</CardTitle>
@@ -86,7 +169,27 @@ const VedicChart = () => {
       )}
 
       {chartData && (
-        <ChartDisplay chartData={chartData} />
+        <Tabs defaultValue="chart">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="chart">Bản đồ sao</TabsTrigger>
+            <TabsTrigger value="dasha">Vimshottari Dasha</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="chart">
+            <ChartDisplay chartData={chartData} />
+          </TabsContent>
+          
+          <TabsContent value="dasha">
+            {formData && (
+              <DashaCalculator 
+                chartData={chartData} 
+                birthDate={formData.birthDate}
+                birthTime={formData.birthTime}
+                timeZone={formData.timezone}
+              />
+            )}
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   );
@@ -156,7 +259,7 @@ const ChartDisplay = ({ chartData }: ChartDisplayProps) => {
                 {chartData.planets.map((planet) => (
                   <div key={planet.id} className="flex items-center justify-between p-2 border-b">
                     <div className="flex items-center">
-                      <span className="font-semibold text-lg mr-2" style={{ color: planet.color }}>
+                      <span className="font-semibold text-lg mr-2">
                         {getPlanetAbbr(planet.name)}
                       </span>
                       <span>{planet.name}</span>

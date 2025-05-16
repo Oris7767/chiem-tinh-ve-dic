@@ -1,25 +1,26 @@
+
 import { VEDIC_ASTRO_API_CONFIG, VedicChartRequest, VedicChartResponse } from '@/utils/vedicAstrology/config';
 import { VedicChartData } from '@/components/VedicAstrology/VedicChart';
+import { supabase } from '@/integrations/supabase/client';
+import { DateTime } from 'luxon';
 
 // Constants for zodiac signs
 const SIGNS = [
-  "Mesha (Aries)", "Vrishabha (Taurus)", "Mithuna (Gemini)", 
-  "Karka (Cancer)", "Simha (Leo)", "Kanya (Virgo)",
-  "Tula (Libra)", "Vrishchika (Scorpio)", "Dhanu (Sagittarius)", 
-  "Makara (Capricorn)", "Kumbha (Aquarius)", "Meena (Pisces)"
+  "Ari", "Tau", "Gem", "Can", "Leo", "Vir",
+  "Lib", "Sco", "Sag", "Cap", "Aqu", "Pis"
 ];
 
 // Planets data
 const PLANETS = [
-  { id: "su", name: "Sun", symbol: "☉", color: "#FFA500" },
-  { id: "mo", name: "Moon", symbol: "☽", color: "#SILVER" },
-  { id: "me", name: "Mercury", symbol: "☿", color: "#00FF00" },
-  { id: "ve", name: "Venus", symbol: "♀", color: "#FFFFFF" },
-  { id: "ma", name: "Mars", symbol: "♂", color: "#FF0000" },
-  { id: "ju", name: "Jupiter", symbol: "♃", color: "#FFFF00" },
-  { id: "sa", name: "Saturn", symbol: "♄", color: "#000080" },
-  { id: "ra", name: "Rahu", symbol: "☊", color: "#4B0082" },
-  { id: "ke", name: "Ketu", symbol: "☋", color: "#800000" }
+  { id: "su", name: "Sun", symbol: "☉", color: "#000000" },
+  { id: "mo", name: "Moon", symbol: "☽", color: "#000000" },
+  { id: "me", name: "Mercury", symbol: "☿", color: "#000000" },
+  { id: "ve", name: "Venus", symbol: "♀", color: "#000000" },
+  { id: "ma", name: "Mars", symbol: "♂", color: "#000000" },
+  { id: "ju", name: "Jupiter", symbol: "♃", color: "#000000" },
+  { id: "sa", name: "Saturn", symbol: "♄", color: "#000000" },
+  { id: "ra", name: "Rahu", symbol: "☊", color: "#000000" },
+  { id: "ke", name: "Ketu", symbol: "☋", color: "#000000" }
 ];
 
 // List of 27 Nakshatras
@@ -128,6 +129,43 @@ function generateFallbackChart(request: VedicChartRequest): VedicChartResponse {
 }
 
 /**
+ * Fetch a saved chart for the current user if available
+ */
+async function fetchSavedChart(email: string): Promise<VedicChartData | null> {
+  try {
+    // First get the user id by email
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) return null;
+    
+    // Fetch the latest chart for this user
+    const { data: charts, error } = await supabase
+      .from('birth_charts')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(1);
+      
+    if (error || !charts || charts.length === 0) {
+      return null;
+    }
+    
+    // Convert the stored chart data to the expected format
+    const chartData = charts[0];
+    return {
+      ascendant: chartData.houses?.[0]?.longitude || 0,
+      planets: chartData.planets || [],
+      houses: chartData.houses || [],
+      moonNakshatra: chartData.nakshatras?.moonNakshatra || '',
+      lunarDay: 1 // Default if not stored
+    };
+  } catch (error) {
+    console.error("Error fetching saved chart:", error);
+    return null;
+  }
+}
+
+/**
  * Calculate Vedic chart based on birth information
  */
 export async function calculateVedicChart(formData: {
@@ -137,15 +175,28 @@ export async function calculateVedicChart(formData: {
   longitude: number;
   timezone: string;
   location: string;
+  name?: string;
+  email?: string;
 }): Promise<VedicChartData> {
   try {
+    // Check if user is logged in and has a saved chart
+    if (formData.email) {
+      const savedChart = await fetchSavedChart(formData.email);
+      if (savedChart) {
+        console.log("Using saved chart for user:", formData.email);
+        return savedChart;
+      }
+    }
+    
     // Prepare request object for the API
     const request: VedicChartRequest = {
       birthDate: formData.birthDate,
       birthTime: formData.birthTime,
       latitude: formData.latitude, 
       longitude: formData.longitude,
-      timezone: formData.timezone
+      timezone: formData.timezone,
+      name: formData.name,
+      email: formData.email
     };
     
     console.log("Calculating chart with data:", request);
@@ -182,6 +233,18 @@ export async function calculateVedicChart(formData: {
       
       const data: VedicChartResponse = await response.json();
       console.log("API response received:", data);
+      
+      // Save the chart data for logged in users
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user && formData.email) {
+        await supabase.from('birth_charts').insert({
+          user_id: user.id,
+          planets: data.planets,
+          houses: data.houses,
+          nakshatras: { moonNakshatra: data.moonNakshatra }
+        });
+      }
+      
       return data as VedicChartData;
       
     } catch (fetchError) {

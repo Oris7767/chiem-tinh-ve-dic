@@ -13,6 +13,8 @@ export interface VedicChartRequest {
   latitude: number;      // Decimal degrees
   longitude: number;     // Decimal degrees
   timezone: string;      // IANA timezone name
+  name?: string;         // Optional name field
+  email?: string;        // Optional email field
 }
 
 // This matches the expected response format from the server

@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { getPlanetColor } from '@/utils/VedicAstro/Planets';
 
 interface Planet {
   id: string;
@@ -44,12 +43,6 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({ chartData }) => {
     acc[house.number] = house.sign;
     return acc;
   }, {} as Record<number, number>);
-
-  // Zodiac sign abbreviations
-  const signAbbreviations = [
-    "Ari", "Tau", "Gem", "Can", "Leo", "Vir",
-    "Lib", "Sco", "Sag", "Cap", "Aqu", "Pis"
-  ];
 
   // Shortened sign abbreviations (3 characters)
   const shortSignAbbr = [
@@ -158,7 +151,7 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({ chartData }) => {
                   fill="#B45309"
                   fontWeight="bold"
                 >
-                  {shortSignAbbr[signIndex]} - {houseNumber}
+                  {shortSignAbbr[signIndex]} {houseNumber}
                   {houseNumber === 1 && " ⬆"} {/* Special symbol for ascendant */}
                 </text>
                 
@@ -170,7 +163,7 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({ chartData }) => {
                       x={x + 10}
                       y={y + 40 + idx * 14}
                       fontSize="12"
-                      fill={getPlanetColor(planet.name)}
+                      fill="#000000" // Changed to black for all planets
                     >
                       {getPlanetAbbr(planet.name)} {getDegreesInSign(planet.longitude)}°
                       {planet.retrograde ? 'ᴿ' : ''}
