@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -90,13 +89,13 @@ const VedicChart = () => {
       // If user is logged in, save the chart data to Supabase
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        // Save birth chart data - ensure we're passing an array for the insert
-        const { error: chartError } = await supabase.from('birth_charts').insert({
+        // Save birth chart data - fix: convert to array for insert
+        const { error: chartError } = await supabase.from('birth_charts').insert([{
           user_id: user.id,
           planets: data.planets,
           houses: data.houses,
           nakshatras: { moonNakshatra: data.moonNakshatra }
-        });
+        }]);
         
         if (chartError) {
           console.error("Error saving chart data:", chartError);

@@ -1,8 +1,8 @@
-
 import { VEDIC_ASTRO_API_CONFIG, VedicChartRequest, VedicChartResponse } from '@/utils/vedicAstrology/config';
-import { VedicChartData } from '@/components/VedicAstrology/VedicChart';
+import { VedicChartData, Planet, House } from '@/components/VedicAstrology/VedicChart';
 import { supabase } from '@/integrations/supabase/client';
 import { DateTime } from 'luxon';
+import { Json } from '@/integrations/supabase/types';
 
 // Constants for zodiac signs
 const SIGNS = [
@@ -129,6 +129,27 @@ function generateFallbackChart(request: VedicChartRequest): VedicChartResponse {
 }
 
 /**
+ * Safely parse stored JSON data into the expected format
+ */
+function safeParseJson<T>(jsonData: Json | null, defaultValue: T): T {
+  if (!jsonData) return defaultValue;
+  
+  try {
+    if (typeof jsonData === 'string') {
+      return JSON.parse(jsonData) as T;
+    } else if (Array.isArray(jsonData)) {
+      return jsonData as unknown as T;
+    } else if (typeof jsonData === 'object') {
+      return jsonData as unknown as T;
+    } 
+    return defaultValue;
+  } catch (error) {
+    console.error("Error parsing JSON data:", error);
+    return defaultValue;
+  }
+}
+
+/**
  * Fetch a saved chart for the current user if available
  */
 async function fetchSavedChart(email: string): Promise<VedicChartData | null> {
@@ -153,12 +174,10 @@ async function fetchSavedChart(email: string): Promise<VedicChartData | null> {
     // Convert the stored chart data to the expected format
     const chartData = charts[0];
     
-    // Ensure the data is properly typed
-    const planets = Array.isArray(chartData.planets) ? chartData.planets : [];
-    const houses = Array.isArray(chartData.houses) ? chartData.houses : [];
-    const nakshatras = typeof chartData.nakshatras === 'object' && chartData.nakshatras 
-      ? chartData.nakshatras 
-      : { moonNakshatra: '' };
+    // Parse the stored JSON data properly
+    const planets = safeParseJson<Planet[]>(chartData.planets, []);
+    const houses = safeParseJson<House[]>(chartData.houses, []);
+    const nakshatras = safeParseJson<{moonNakshatra: string}>(chartData.nakshatras, { moonNakshatra: '' });
     
     return {
       ascendant: houses[0]?.longitude || 0,
