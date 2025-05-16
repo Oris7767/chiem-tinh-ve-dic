@@ -1,7 +1,8 @@
+
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Search, Calendar, Clock, MapPin, Mail, User } from 'lucide-react';
 import {
   Form,
@@ -15,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DateTime } from 'luxon';
 import { supabase } from '@/integrations/supabase/client';
+import { VEDIC_ASTRO_API_CONFIG } from '@/utils/vedicAstrology/config';
 
 // Define the schema for the form data
 const formSchema = z.object({
@@ -35,9 +37,23 @@ interface BirthChartFormProps {
   isLoading: boolean;
 }
 
+interface LocationSuggestion {
+  properties: {
+    formatted: string;
+    lat: number;
+    lon: number;
+    timezone?: {
+      name: string;
+    };
+  };
+}
+
 const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
   const [savedCharts, setSavedCharts] = useState<any[]>([]);
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
+  const [locationSuggestions, setLocationSuggestions] = useState<LocationSuggestion[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const form = useForm<BirthDataFormValues>({
     resolver: zodResolver(formSchema),
@@ -112,38 +128,63 @@ const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
     }
   };
 
-  // Function to handle location search and geocoding
-  const handleLocationSearch = async (locationString: string) => {
-    try {
-      // Use OpenStreetMap Nominatim API for geocoding
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationString)}`
-      );
-      const data = await response.json();
+  // Function to search for locations using Geoapify Autocomplete API
+  const searchLocation = async (query: string) => {
+    if (!query || query.length < 2) {
+      setLocationSuggestions([]);
+      return;
+    }
 
-      if (data && data.length > 0) {
-        const location = data[0];
-        form.setValue('latitude', parseFloat(location.lat));
-        form.setValue('longitude', parseFloat(location.lon));
-        
-        // Try to get timezone based on coordinates
-        try {
-          const tzResponse = await fetch(
-            `https://api.timezonedb.com/v2.1/get-time-zone?key=YOUR_API_KEY&format=json&by=position&lat=${location.lat}&lng=${location.lon}`
-          );
-          const tzData = await tzResponse.json();
-          
-          if (tzData && tzData.status === 'OK') {
-            form.setValue('timezone', tzData.zoneName);
-          }
-        } catch (error) {
-          // Fallback to default timezone if API fails
-          console.error('Error fetching timezone:', error);
-        }
+    setIsSearching(true);
+    
+    try {
+      const response = await fetch(
+        `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&format=json&apiKey=${VEDIC_ASTRO_API_CONFIG.GEOAPIFY_API_KEY}`
+      );
+      
+      const data = await response.json();
+      
+      if (data && data.results) {
+        setLocationSuggestions(data.results);
+      } else {
+        setLocationSuggestions([]);
       }
     } catch (error) {
       console.error('Error during location search:', error);
+      setLocationSuggestions([]);
+    } finally {
+      setIsSearching(false);
     }
+  };
+
+  // Handle location input changes with debounce
+  const handleLocationInputChange = (value: string) => {
+    form.setValue('location', value);
+    
+    // Clear the previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    // Set a new timeout for the search
+    searchTimeoutRef.current = setTimeout(() => {
+      searchLocation(value);
+    }, 300);
+  };
+
+  // Handle location suggestion selection
+  const handleSelectLocation = (suggestion: LocationSuggestion) => {
+    form.setValue('location', suggestion.properties.formatted);
+    form.setValue('latitude', suggestion.properties.lat);
+    form.setValue('longitude', suggestion.properties.lon);
+    
+    // Set timezone if available from the API
+    if (suggestion.properties.timezone && suggestion.properties.timezone.name) {
+      form.setValue('timezone', suggestion.properties.timezone.name);
+    }
+    
+    // Clear the suggestions
+    setLocationSuggestions([]);
   };
 
   return (
@@ -225,7 +266,7 @@ const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
           control={form.control}
           name="location"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="relative">
               <FormLabel>Nơi sinh</FormLabel>
               <FormControl>
                 <div className="relative">
@@ -234,16 +275,26 @@ const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
                     placeholder="Thành phố, Quốc gia"
                     className="pl-8"
                     {...field}
-                    onChange={(e) => {
-                      field.onChange(e);
-                    }}
-                    onBlur={(e) => {
-                      field.onBlur();
-                      handleLocationSearch(e.target.value);
-                    }}
+                    onChange={(e) => handleLocationInputChange(e.target.value)}
                   />
                 </div>
               </FormControl>
+              {locationSuggestions.length > 0 && (
+                <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
+                  {locationSuggestions.map((suggestion, index) => (
+                    <div
+                      key={index}
+                      className="p-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => handleSelectLocation(suggestion)}
+                    >
+                      {suggestion.properties.formatted}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {isSearching && (
+                <div className="text-xs text-amber-600 mt-1">Đang tìm kiếm địa điểm...</div>
+              )}
               <FormMessage />
             </FormItem>
           )}
@@ -295,7 +346,7 @@ const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
               <FormItem>
                 <FormLabel>Múi giờ</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input {...field} readOnly />
                 </FormControl>
                 <FormMessage />
               </FormItem>

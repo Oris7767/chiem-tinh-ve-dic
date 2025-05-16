@@ -73,7 +73,16 @@ const VedicChart = () => {
       console.log("Calculating chart with data:", formData);
       
       // Call our service to calculate the chart
-      const data = await calculateVedicChart(formData);
+      const data = await calculateVedicChart({
+        birthDate: formData.birthDate,
+        birthTime: formData.birthTime,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
+        timezone: formData.timezone,
+        location: formData.location,
+        name: formData.name,
+        email: formData.email
+      });
       
       console.log("Chart data received:", data);
       setChartData(data);
@@ -81,7 +90,7 @@ const VedicChart = () => {
       // If user is logged in, save the chart data to Supabase
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        // Save birth chart data
+        // Save birth chart data - ensure we're passing an array for the insert
         const { error: chartError } = await supabase.from('birth_charts').insert({
           user_id: user.id,
           planets: data.planets,

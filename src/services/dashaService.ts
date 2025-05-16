@@ -1,165 +1,201 @@
 
 import { DateTime } from 'luxon';
 import { supabase } from '@/integrations/supabase/client';
-import { DashaResult } from '@/components/VedicAstrology/DashaCalculator';
 
-interface DashaReference {
+export interface DashaResult {
   planet: string;
-  symbol: string;
-  mahadasha_years: number;
-  planetary_info?: Record<string, string>;
-  dasha_effects?: Record<string, string>;
-  antardasha_percentages?: Record<string, number>;
+  startDate: string;
+  endDate: string;
+  subDashas?: DashaResult[];
 }
 
-// The order of planets in Vimshottari Dasha system
-const DASHA_PLANET_ORDER = [
-  'Sun', 'Moon', 'Mars', 'Rahu', 'Jupiter', 'Saturn', 'Mercury', 'Ketu', 'Venus'
-];
-
-// Mapping nakshatras to their ruling planets for dasha calculation
-const NAKSHATRA_RULERS: Record<string, string> = {
-  'Ashwini': 'Ketu',
-  'Bharani': 'Venus',
-  'Krittika': 'Sun',
-  'Rohini': 'Moon',
-  'Mrigashira': 'Mars',
-  'Ardra': 'Rahu',
-  'Punarvasu': 'Jupiter',
-  'Pushya': 'Saturn',
-  'Ashlesha': 'Mercury',
-  'Magha': 'Ketu',
-  'Purva Phalguni': 'Venus',
-  'Uttara Phalguni': 'Sun',
-  'Hasta': 'Moon',
-  'Chitra': 'Mars',
-  'Swati': 'Rahu',
-  'Vishakha': 'Jupiter',
-  'Anuradha': 'Saturn',
-  'Jyeshtha': 'Mercury',
-  'Mula': 'Ketu',
-  'Purva Ashadha': 'Venus',
-  'Uttara Ashadha': 'Sun',
-  'Shravana': 'Moon',
-  'Dhanishta': 'Mars',
-  'Shatabhisha': 'Rahu',
-  'Purva Bhadrapada': 'Jupiter',
-  'Uttara Bhadrapada': 'Saturn',
-  'Revati': 'Mercury'
+// Dasha period years for each planet
+const dashaPeriods = {
+  "Sun": 6,
+  "Moon": 10,
+  "Mars": 7,
+  "Rahu": 18,
+  "Jupiter": 16,
+  "Saturn": 19,
+  "Mercury": 17,
+  "Ketu": 7,
+  "Venus": 20
 };
 
-export async function calculateDashaResults(
+// Planet order in Vimshottari Dasha
+const planetOrder = [
+  "Sun", "Moon", "Mars", "Rahu", "Jupiter", 
+  "Saturn", "Mercury", "Ketu", "Venus"
+];
+
+// Nakshatra to ruling planet mapping
+const nakshatraToPlanet = {
+  "Ashwini": "Ketu",
+  "Bharani": "Venus",
+  "Krittika": "Sun",
+  "Rohini": "Moon",
+  "Mrigasira": "Mars",
+  "Ardra": "Rahu",
+  "Punarvasu": "Jupiter",
+  "Pushya": "Saturn",
+  "Ashlesha": "Mercury",
+  "Magha": "Ketu",
+  "Purva Phalguni": "Venus",
+  "Uttara Phalguni": "Sun",
+  "Hasta": "Moon",
+  "Chitra": "Mars",
+  "Swati": "Rahu",
+  "Vishakha": "Jupiter",
+  "Anuradha": "Saturn",
+  "Jyeshtha": "Mercury",
+  "Mula": "Ketu",
+  "Purva Ashadha": "Venus",
+  "Uttara Ashadha": "Sun",
+  "Shravana": "Moon",
+  "Dhanishta": "Mars",
+  "Shatabhisha": "Rahu",
+  "Purva Bhadrapada": "Jupiter",
+  "Uttara Bhadrapada": "Saturn",
+  "Revati": "Mercury"
+};
+
+// Helper function to get the next dasha planet
+const getNextPlanet = (currentPlanet: string): string => {
+  const currentIndex = planetOrder.indexOf(currentPlanet);
+  return planetOrder[(currentIndex + 1) % planetOrder.length];
+};
+
+// Calculate the elapsed portion of birth nakshatra and dasha
+const calculateElapsedBirthDasha = (birthDateTime: DateTime, moonNakshatra: string): number => {
+  // In a real implementation, this would calculate the precise portion of the nakshatra traversed
+  // For now, we'll use a simplified approach with random but deterministic value
+  const seed = birthDateTime.toMillis();
+  return (seed % 100) / 100; // Returns a value between 0 and 1
+};
+
+// Calculate Dasha results for a person
+export const calculateDashaResults = async (
   birthDateTime: DateTime,
   moonNakshatra: string
-): Promise<DashaResult[]> {
+): Promise<DashaResult[]> => {
   try {
-    // Fetch dasha reference data from Supabase
-    const { data: dashaData, error } = await supabase
-      .from('dasha_reference')
-      .select('planet, symbol, mahadasha_years');
-      
-    if (error) throw new Error(`Error fetching dasha reference: ${error.message}`);
+    // Get initial dasha planet from moon nakshatra
+    const birthDashaPlanet = nakshatraToPlanet[moonNakshatra as keyof typeof nakshatraToPlanet] || "Sun";
     
-    // Create a map of planet to its dasha years
-    const planetYearsMap = new Map<string, number>();
-    dashaData?.forEach((item) => {
-      planetYearsMap.set(item.planet, item.mahadasha_years);
-    });
-
-    // Find the starting planet based on moon nakshatra
-    const startingPlanet = NAKSHATRA_RULERS[moonNakshatra] || 'Moon'; // default to Moon if not found
+    // Calculate elapsed portion of the birth dasha
+    const elapsedPortion = calculateElapsedBirthDasha(birthDateTime, moonNakshatra);
+    const remainingPortion = 1 - elapsedPortion;
     
-    // Total years for the cycle (120 years in Vimshottari system)
-    const totalCycleYears = 120;
+    // Calculate the remaining years in the birth dasha
+    const birthDashaFullYears = dashaPeriods[birthDashaPlanet as keyof typeof dashaPeriods];
+    const remainingYears = birthDashaFullYears * remainingPortion;
     
-    // Calculate birth dasha balance
-    // This is a simplified calculation, in reality it depends on the position of Moon within the nakshatra
-    const birthDashaBalanceYears = 5; // Simplified: assuming 5 years balance at birth
+    // Generate the dasha periods
+    const dashas: DashaResult[] = [];
+    let currentPlanet = birthDashaPlanet;
+    let currentStartDate = birthDateTime;
     
-    // Generate dasha periods
-    const dashaResults: DashaResult[] = [];
-    let currentDate = birthDateTime;
-    let currentPlanetIndex = DASHA_PLANET_ORDER.indexOf(startingPlanet);
+    // First add the birth dasha with remaining time
+    let currentEndDate = currentStartDate.plus({ years: remainingYears });
     
-    // First add the balance of birth dasha
-    const birthDashaPlanet = DASHA_PLANET_ORDER[currentPlanetIndex];
-    const birthDashaYears = planetYearsMap.get(birthDashaPlanet) || 0;
-    
-    const firstDashaStartDate = currentDate.toISO();
-    const firstDashaEndDate = currentDate.plus({ years: birthDashaBalanceYears }).toISO();
-    
-    dashaResults.push({
-      planet: birthDashaPlanet,
-      startDate: firstDashaStartDate,
-      endDate: firstDashaEndDate,
-      subDashas: generateSubDashas(birthDashaPlanet, currentDate, birthDashaBalanceYears, planetYearsMap)
+    dashas.push({
+      planet: currentPlanet,
+      startDate: currentStartDate.toISO(),
+      endDate: currentEndDate.toISO(),
+      subDashas: calculateSubDashas(currentPlanet, currentStartDate, currentEndDate)
     });
     
-    // Move to the next dasha
-    currentDate = currentDate.plus({ years: birthDashaBalanceYears });
-    currentPlanetIndex = (currentPlanetIndex + 1) % DASHA_PLANET_ORDER.length;
-    
-    // Generate the next few dashas (limiting to 5 total dashas for practicality)
-    for (let i = 0; i < 4; i++) {
-      const planet = DASHA_PLANET_ORDER[currentPlanetIndex];
-      const years = planetYearsMap.get(planet) || 0;
+    // Calculate 3 more dashas after the birth dasha
+    for (let i = 0; i < 3; i++) {
+      currentPlanet = getNextPlanet(currentPlanet);
+      currentStartDate = currentEndDate;
       
-      const startDate = currentDate.toISO();
-      const endDate = currentDate.plus({ years }).toISO();
+      const planetFullYears = dashaPeriods[currentPlanet as keyof typeof dashaPeriods];
+      currentEndDate = currentStartDate.plus({ years: planetFullYears });
       
-      dashaResults.push({
-        planet,
-        startDate,
-        endDate,
-        subDashas: generateSubDashas(planet, currentDate, years, planetYearsMap)
+      dashas.push({
+        planet: currentPlanet,
+        startDate: currentStartDate.toISO(),
+        endDate: currentEndDate.toISO(),
+        subDashas: calculateSubDashas(currentPlanet, currentStartDate, currentEndDate)
       });
-      
-      currentDate = currentDate.plus({ years });
-      currentPlanetIndex = (currentPlanetIndex + 1) % DASHA_PLANET_ORDER.length;
     }
-    
-    return dashaResults;
-  } catch (error) {
-    console.error("Error in dasha calculation:", error);
-    throw error;
-  }
-}
 
-function generateSubDashas(
-  mainPlanet: string,
-  startDateTime: DateTime,
-  totalYears: number,
-  planetYearsMap: Map<string, number>
-): DashaResult[] {
+    // Save the dasha reference data in the database if not already there
+    await checkAndCreateDashaReference();
+    
+    return dashas;
+  } catch (error) {
+    console.error("Error calculating dashas:", error);
+    throw new Error("Failed to calculate dasha periods");
+  }
+};
+
+// Calculate sub-dashas (antardasha) for a mahadasha period
+const calculateSubDashas = (
+  mahadashaPlanet: string,
+  startDate: DateTime,
+  endDate: DateTime
+): DashaResult[] => {
   const subDashas: DashaResult[] = [];
-  let currentDate = startDateTime;
+  const mahadashaDuration = endDate.diff(startDate).as('milliseconds');
+  const mahadashaPeriod = dashaPeriods[mahadashaPlanet as keyof typeof dashaPeriods];
   
-  // Start with the main planet's antardasha
-  let currentPlanetIndex = DASHA_PLANET_ORDER.indexOf(mainPlanet);
+  // Start with the mahadasha planet itself for the first sub-dasha
+  let currentSubPlanet = mahadashaPlanet;
+  let currentSubStart = startDate;
   
-  const totalCycleYears = 120;
-  
-  // Calculate each sub-dasha
-  for (let i = 0; i < DASHA_PLANET_ORDER.length; i++) {
-    const planet = DASHA_PLANET_ORDER[currentPlanetIndex];
-    const mainDashaYears = planetYearsMap.get(mainPlanet) || 0;
-    const subDashaYears = planetYearsMap.get(planet) || 0;
+  // Calculate all sub-dashas for this mahadasha
+  for (let i = 0; i < planetOrder.length; i++) {
+    const subPlanetPeriod = dashaPeriods[currentSubPlanet as keyof typeof dashaPeriods];
+    
+    // The proportion of the mahadasha that this sub-dasha occupies
+    const subDashaFraction = subPlanetPeriod / 120; // 120 is the total years of all dashas
     
     // Calculate the duration of this sub-dasha
-    const subDashaDuration = (mainDashaYears * subDashaYears) / totalCycleYears;
+    const subDashaDuration = mahadashaDuration * subDashaFraction;
+    const subDashaEnd = new DateTime(currentSubStart).plus({ milliseconds: subDashaDuration });
     
-    const startDate = currentDate.toISO();
-    const endDate = currentDate.plus({ years: subDashaDuration }).toISO();
-    
+    // Add to the list of sub-dashas
     subDashas.push({
-      planet,
-      startDate,
-      endDate
+      planet: currentSubPlanet,
+      startDate: currentSubStart.toISO(),
+      endDate: subDashaEnd.toISO()
     });
     
-    currentDate = currentDate.plus({ years: subDashaDuration });
-    currentPlanetIndex = (currentPlanetIndex + 1) % DASHA_PLANET_ORDER.length;
+    // Move to the next planet for the next sub-dasha
+    currentSubPlanet = getNextPlanet(currentSubPlanet);
+    currentSubStart = subDashaEnd;
+    
+    // If we've gone past the end of the mahadasha, stop
+    if (currentSubStart > endDate) {
+      break;
+    }
   }
   
   return subDashas;
-}
+};
+
+// Check if dasha reference data exists and create it if needed
+const checkAndCreateDashaReference = async () => {
+  const { data } = await supabase
+    .from('dasha_reference')
+    .select('id')
+    .limit(1);
+    
+  if (!data || data.length === 0) {
+    // Create the dasha reference data
+    const dashaReferenceData = planetOrder.map(planet => ({
+      planet,
+      symbol: planet.substring(0, 2),
+      mahadasha_years: dashaPeriods[planet as keyof typeof dashaPeriods],
+      planetary_info: { nature: "placeholder" },
+      dasha_effects: { 
+        good: "Placeholder positive effects", 
+        bad: "Placeholder challenging effects" 
+      }
+    }));
+    
+    await supabase.from('dasha_reference').insert(dashaReferenceData);
+  }
+};

@@ -38,12 +38,6 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({ chartData }) => {
     return acc;
   }, {} as Record<number, Planet[]>);
 
-  // Get sign for each house
-  const houseToSign = chartData.houses.reduce((acc, house) => {
-    acc[house.number] = house.sign;
-    return acc;
-  }, {} as Record<number, number>);
-
   // Shortened sign abbreviations (3 characters)
   const shortSignAbbr = [
     "Ari", "Tau", "Gem", "Can", "Leo", "Vir",
@@ -66,26 +60,27 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({ chartData }) => {
     return map[name] || name.substring(0, 2);
   };
 
-  // Determine the ascendant sign
+  // Determine the ascendant sign and house
   const ascSign = Math.floor(chartData.ascendant / 30);
+  const ascHouse = 1; // The ascendant is always in the 1st house
   
-  // In South Indian Chart, the houses are fixed at specific positions (4x4 grid with middle cells removed)
-  // We need to map each house to the correct position based on the ascendant
+  // In South Indian Chart, the signs are fixed, houses move based on the ascendant
+  // The positions in a 4x4 grid (with middle removed)
   const positions = [
     [0, 1], [0, 2], [0, 3], [1, 3],
     [2, 3], [3, 3], [3, 2], [3, 1],
     [3, 0], [2, 0], [1, 0], [0, 0]
   ];
 
-  // Calculate which house goes where based on the ascendant
-  // In South Indian chart, the 1st house (where ascendant is) is always at the same position
-  // but we need to adjust which houses show in each position
-  const getHouseNumber = (posIndex: number) => {
-    // House 1 is at positions[0], where ascendant falls
-    return ((posIndex + 1) % 12) || 12;
+  // Calculate which house goes in each position
+  const getHouseNumber = (signIndex: number) => {
+    // Find the distance from this sign to the ascendant sign
+    const distance = (signIndex - ascSign + 12) % 12;
+    // House 1 is always where ascendant is
+    return ((distance + 1) % 12) || 12;
   };
 
-  // Check if a position is one of the center cells to be removed
+  // Check if a position is one of the center cells
   const isCenterCell = (row: number, col: number) => {
     return (row === 1 && col === 1) || 
            (row === 1 && col === 2) ||
@@ -105,87 +100,68 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({ chartData }) => {
         className="w-full h-full border border-amber-200 rounded-lg"
       >
         {/* Draw the 4x4 grid with middle cells removed */}
-        {Array.from({ length: 4 }, (_, row) => (
-          Array.from({ length: 4 }, (_, col) => {
-            // Skip center cells
-            if (isCenterCell(row, col)) {
-              return null;
-            }
-            
-            // Find the position in the chart order
-            const positionIndex = positions.findIndex(p => 
-              p[0] === row && p[1] === col
-            );
-            
-            if (positionIndex === -1) return null;
-            
-            // Calculate house number for this position
-            const houseNumber = getHouseNumber(positionIndex);
-            
-            // Get sign for this house
-            const signIndex = (positionIndex + ascSign) % 12;
-            
-            // Get planets in this house
-            const planetsInHouse = planetsByHouse[houseNumber] || [];
-            
-            const x = col * 100;
-            const y = row * 100;
-            
-            return (
-              <g key={`cell-${row}-${col}`}>
-                <rect
-                  x={x}
-                  y={y}
-                  width={100}
-                  height={100}
-                  fill="none"
-                  stroke="#B45309"
-                  strokeWidth="1"
-                />
-                
-                {/* Show sign abbreviation and house number */}
-                <text
-                  x={x + 10}
-                  y={y + 20}
-                  fontSize="12"
-                  fill="#B45309"
-                  fontWeight="bold"
-                >
-                  {shortSignAbbr[signIndex]} {houseNumber}
-                  {houseNumber === 1 && " ⬆"} {/* Special symbol for ascendant */}
-                </text>
-                
-                {/* Display planets in this house */}
-                <g>
-                  {planetsInHouse.map((planet, idx) => (
-                    <text
-                      key={planet.id}
-                      x={x + 10}
-                      y={y + 40 + idx * 14}
-                      fontSize="12"
-                      fill="#000000" // Changed to black for all planets
-                    >
-                      {getPlanetAbbr(planet.name)} {getDegreesInSign(planet.longitude)}°
-                      {planet.retrograde ? 'ᴿ' : ''}
-                    </text>
-                  ))}
-                </g>
+        {Array.from({ length: 12 }, (_, index) => {
+          const signIndex = index;
+          const [row, col] = positions[index];
+          const houseNumber = getHouseNumber(signIndex);
+          
+          // Get planets in this house
+          const planetsInHouse = planetsByHouse[houseNumber] || [];
+          
+          const x = col * 100;
+          const y = row * 100;
+          
+          return (
+            <g key={`cell-${row}-${col}`}>
+              <rect
+                x={x}
+                y={y}
+                width={100}
+                height={100}
+                fill="none"
+                stroke="#B45309"
+                strokeWidth="1"
+              />
+              
+              {/* Show fixed sign abbreviation and moving house number */}
+              <text
+                x={x + 10}
+                y={y + 20}
+                fontSize="12"
+                fill="#B45309"
+                fontWeight="bold"
+              >
+                {shortSignAbbr[signIndex]} {houseNumber}
+                {houseNumber === 1 && " ⬆"} {/* Special symbol for ascendant */}
+              </text>
+              
+              {/* Display planets in this house */}
+              <g>
+                {planetsInHouse.map((planet, idx) => (
+                  <text
+                    key={planet.id}
+                    x={x + 10}
+                    y={y + 40 + idx * 14}
+                    fontSize="12"
+                    fill="#000000"
+                  >
+                    {getPlanetAbbr(planet.name)} {getDegreesInSign(planet.longitude)}°
+                    {planet.retrograde ? 'ᴿ' : ''}
+                  </text>
+                ))}
               </g>
-            );
-          })
-        ))}
+            </g>
+          );
+        })}
         
-        {/* Ascendant marker in the center */}
-        <text
-          x={200}
-          y={200}
-          fontSize="16"
-          fill="#B45309"
-          textAnchor="middle"
-          fontWeight="bold"
-        >
-          Asc: {shortSignAbbr[ascSign]} {getDegreesInSign(chartData.ascendant)}°
-        </text>
+        {/* Logo in the center */}
+        <image 
+          href="/lovable-uploads/caad05e4-b4c3-4988-9357-3e27463a7041.png" 
+          x="150" 
+          y="150" 
+          width="100" 
+          height="100"
+        />
       </svg>
     </div>
   );

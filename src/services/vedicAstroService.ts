@@ -152,11 +152,19 @@ async function fetchSavedChart(email: string): Promise<VedicChartData | null> {
     
     // Convert the stored chart data to the expected format
     const chartData = charts[0];
+    
+    // Ensure the data is properly typed
+    const planets = Array.isArray(chartData.planets) ? chartData.planets : [];
+    const houses = Array.isArray(chartData.houses) ? chartData.houses : [];
+    const nakshatras = typeof chartData.nakshatras === 'object' && chartData.nakshatras 
+      ? chartData.nakshatras 
+      : { moonNakshatra: '' };
+    
     return {
-      ascendant: chartData.houses?.[0]?.longitude || 0,
-      planets: chartData.planets || [],
-      houses: chartData.houses || [],
-      moonNakshatra: chartData.nakshatras?.moonNakshatra || '',
+      ascendant: houses[0]?.longitude || 0,
+      planets,
+      houses,
+      moonNakshatra: nakshatras.moonNakshatra || '',
       lunarDay: 1 // Default if not stored
     };
   } catch (error) {
