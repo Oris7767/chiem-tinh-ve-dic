@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { getPlanetColor, getPlanetSymbol } from '@/utils/VedicAstro/Planets';
-import { SIGN_COLORS, getSignSymbol } from '@/utils/VedicAstro/Signs';
+import { getPlanetColor } from '@/utils/VedicAstro/Planets';
 
 interface Planet {
   id: string;
@@ -31,9 +30,12 @@ interface SouthIndianChartProps {
 
 const SouthIndianChart: React.FC<SouthIndianChartProps> = ({ chartData }) => {
   // Map planets to houses
-  const planetsByHouse = chartData.houses.reduce((acc, _, index) => {
-    const houseNumber = index + 1;
-    acc[houseNumber] = chartData.planets.filter(planet => planet.house === houseNumber);
+  const planetsByHouse = chartData.planets.reduce((acc, planet) => {
+    const houseNumber = planet.house;
+    if (!acc[houseNumber]) {
+      acc[houseNumber] = [];
+    }
+    acc[houseNumber].push(planet);
     return acc;
   }, {} as Record<number, Planet[]>);
 
@@ -49,36 +51,58 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({ chartData }) => {
     "Lib", "Sco", "Sag", "Cap", "Aqu", "Pis"
   ];
 
-  // Define the positions for the South Indian chart (4x4 grid with middle 4 cells removed)
-  // In South Indian style, Aries is fixed at the top second position
-  const vedic_order_positions = [
+  // Shortened sign abbreviations (3 characters)
+  const shortSignAbbr = [
+    "Ari", "Tau", "Gem", "Can", "Leo", "Vir",
+    "Lib", "Sco", "Sag", "Cap", "Aqu", "Pis"
+  ];
+
+  // Planet abbreviations
+  const getPlanetAbbr = (name: string) => {
+    const map: Record<string, string> = {
+      "Sun": "Su",
+      "Moon": "Mo",
+      "Mercury": "Me",
+      "Venus": "Ve",
+      "Mars": "Ma",
+      "Jupiter": "Ju",
+      "Saturn": "Sa",
+      "Rahu": "Ra",
+      "Ketu": "Ke"
+    };
+    return map[name] || name.substring(0, 2);
+  };
+
+  // Determine the ascendant sign
+  const ascSign = Math.floor(chartData.ascendant / 30);
+  
+  // In South Indian Chart, the houses are fixed at specific positions (4x4 grid with middle cells removed)
+  // We need to map each house to the correct position based on the ascendant
+  const positions = [
     [0, 1], [0, 2], [0, 3], [1, 3],
     [2, 3], [3, 3], [3, 2], [3, 1],
     [3, 0], [2, 0], [1, 0], [0, 0]
   ];
 
-  // Map zodiac signs to fixed positions in the chart
-  // Starting with Aries at the second position from the left in the top row
-  const signPositions = Array.from({ length: 12 }, (_, i) => {
-    const signIndex = i; // 0 = Aries, 1 = Taurus, etc.
-    const position = vedic_order_positions[i];
-    return {
-      position,
-      signIndex,
-      planets: chartData.planets.filter(planet => planet.sign === signIndex)
-    };
-  });
+  // Calculate which house goes where based on the ascendant
+  // In South Indian chart, the 1st house (where ascendant is) is always at the same position
+  // but we need to adjust which houses show in each position
+  const getHouseNumber = (posIndex: number) => {
+    // House 1 is at positions[0], where ascendant falls
+    return ((posIndex + 1) % 12) || 12;
+  };
 
-  // Calculate house numbers based on the ascendant
-  // The house number 1 is where the ascendant falls
-  const ascSign = Math.floor(chartData.ascendant / 30);
-  
   // Check if a position is one of the center cells to be removed
   const isCenterCell = (row: number, col: number) => {
     return (row === 1 && col === 1) || 
            (row === 1 && col === 2) ||
            (row === 2 && col === 1) ||
            (row === 2 && col === 2);
+  };
+
+  // Calculate degrees within sign (0-29.99)
+  const getDegreesInSign = (longitude: number) => {
+    return (longitude % 30).toFixed(2);
   };
 
   return (
@@ -95,18 +119,18 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({ chartData }) => {
               return null;
             }
             
-            // Find the position in the vedic order
-            const positionIndex = vedic_order_positions.findIndex(p => 
+            // Find the position in the chart order
+            const positionIndex = positions.findIndex(p => 
               p[0] === row && p[1] === col
             );
             
             if (positionIndex === -1) return null;
             
-            // Get the sign for this position
-            const signIndex = positionIndex; // In South Indian chart, signs are fixed
+            // Calculate house number for this position
+            const houseNumber = getHouseNumber(positionIndex);
             
-            // Calculate house number based on ascendant
-            const houseNumber = ((signIndex - ascSign + 12) % 12) + 1;
+            // Get sign for this house
+            const signIndex = (positionIndex + ascSign) % 12;
             
             // Get planets in this house
             const planetsInHouse = planetsByHouse[houseNumber] || [];
@@ -126,14 +150,16 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({ chartData }) => {
                   strokeWidth="1"
                 />
                 
-                {/* Show sign and house number */}
+                {/* Show sign abbreviation and house number */}
                 <text
                   x={x + 10}
                   y={y + 20}
                   fontSize="12"
                   fill="#B45309"
+                  fontWeight="bold"
                 >
-                  {signAbbreviations[signIndex]} - {houseNumber}
+                  {shortSignAbbr[signIndex]} - {houseNumber}
+                  {houseNumber === 1 && " ⬆"} {/* Special symbol for ascendant */}
                 </text>
                 
                 {/* Display planets in this house */}
@@ -146,7 +172,8 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({ chartData }) => {
                       fontSize="12"
                       fill={getPlanetColor(planet.name)}
                     >
-                      {getPlanetSymbol(planet.name)} {planet.retrograde ? 'ᴿ' : ''}
+                      {getPlanetAbbr(planet.name)} {getDegreesInSign(planet.longitude)}°
+                      {planet.retrograde ? 'ᴿ' : ''}
                     </text>
                   ))}
                 </g>
@@ -164,7 +191,7 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({ chartData }) => {
           textAnchor="middle"
           fontWeight="bold"
         >
-          Lagna: {signAbbreviations[ascSign]}
+          Asc: {shortSignAbbr[ascSign]} {getDegreesInSign(chartData.ascendant)}°
         </text>
       </svg>
     </div>

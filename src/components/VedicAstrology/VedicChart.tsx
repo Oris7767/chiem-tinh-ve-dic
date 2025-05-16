@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -96,13 +97,34 @@ interface ChartDisplayProps {
 }
 
 const ChartDisplay = ({ chartData }: ChartDisplayProps) => {
-  // Constants for zodiac signs
+  // Constants for zodiac signs (with shorter abbreviations)
   const SIGNS = [
-    "Mesha (Aries)", "Vrishabha (Taurus)", "Mithuna (Gemini)", 
-    "Karka (Cancer)", "Simha (Leo)", "Kanya (Virgo)",
-    "Tula (Libra)", "Vrishchika (Scorpio)", "Dhanu (Sagittarius)", 
-    "Makara (Capricorn)", "Kumbha (Aquarius)", "Meena (Pisces)"
+    "Ari (Aries)", "Tau (Taurus)", "Gem (Gemini)", 
+    "Can (Cancer)", "Leo (Leo)", "Vir (Virgo)",
+    "Lib (Libra)", "Sco (Scorpio)", "Sag (Sagittarius)", 
+    "Cap (Capricorn)", "Aqu (Aquarius)", "Pis (Pisces)"
   ];
+  
+  // Planet abbreviations
+  const getPlanetAbbr = (name: string) => {
+    const map: Record<string, string> = {
+      "Sun": "Su",
+      "Moon": "Mo",
+      "Mercury": "Me",
+      "Venus": "Ve",
+      "Mars": "Ma",
+      "Jupiter": "Ju",
+      "Saturn": "Sa",
+      "Rahu": "Ra",
+      "Ketu": "Ke"
+    };
+    return map[name] || name.substring(0, 2);
+  };
+
+  // Calculate degrees within sign (0-29.99)
+  const getDegreesInSign = (longitude: number) => {
+    return (longitude % 30).toFixed(2);
+  };
 
   return (
     <div className="space-y-6">
@@ -135,14 +157,14 @@ const ChartDisplay = ({ chartData }: ChartDisplayProps) => {
                   <div key={planet.id} className="flex items-center justify-between p-2 border-b">
                     <div className="flex items-center">
                       <span className="font-semibold text-lg mr-2" style={{ color: planet.color }}>
-                        {planet.symbol}
+                        {getPlanetAbbr(planet.name)}
                       </span>
                       <span>{planet.name}</span>
                     </div>
                     <div className="text-right">
                       <div>{SIGNS[planet.sign]}</div>
                       <div className="text-sm text-gray-500">
-                        Cung {planet.house} • {planet.longitude.toFixed(2)}°
+                        Cung {planet.house} • {getDegreesInSign(planet.longitude)}° ({planet.longitude.toFixed(2)}°)
                         {planet.retrograde && <span className="ml-1 text-red-500">R</span>}
                       </div>
                     </div>
@@ -155,10 +177,10 @@ const ChartDisplay = ({ chartData }: ChartDisplayProps) => {
               <div className="space-y-1">
                 {chartData.houses.map((house) => (
                   <div key={house.number} className="flex items-center justify-between p-2 border-b">
-                    <div>Cung {house.number}</div>
+                    <div>Cung {house.number}{house.number === 1 ? " (Asc)" : ""}</div>
                     <div className="text-right">
                       <div>{SIGNS[house.sign]}</div>
-                      <div className="text-sm text-gray-500">{house.longitude.toFixed(2)}°</div>
+                      <div className="text-sm text-gray-500">{getDegreesInSign(house.longitude)}° ({house.longitude.toFixed(2)}°)</div>
                     </div>
                   </div>
                 ))}
@@ -169,7 +191,7 @@ const ChartDisplay = ({ chartData }: ChartDisplayProps) => {
               <div className="space-y-4">
                 <div>
                   <h3 className="font-bold">Ascendant (Lagna)</h3>
-                  <p>{SIGNS[Math.floor(chartData.ascendant / 30)]} • {chartData.ascendant.toFixed(2)}°</p>
+                  <p>{SIGNS[Math.floor(chartData.ascendant / 30)]} • {getDegreesInSign(chartData.ascendant)}° ({chartData.ascendant.toFixed(2)}°)</p>
                 </div>
                 
                 <div>

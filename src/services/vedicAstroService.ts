@@ -1,4 +1,3 @@
-
 import { VEDIC_ASTRO_API_CONFIG, VedicChartRequest, VedicChartResponse } from '@/utils/vedicAstrology/config';
 import { VedicChartData } from '@/components/VedicAstrology/VedicChart';
 
@@ -82,9 +81,8 @@ function generateFallbackChart(request: VedicChartRequest): VedicChartResponse {
     const sign = Math.floor(longitude / 30);
     
     // Calculate house based on planet position relative to ascendant
-    let houseNumber = Math.floor((longitude - ascendant) / 30);
-    if (houseNumber < 0) houseNumber += 12;
-    houseNumber = (houseNumber + 1) % 12 || 12; // Houses are 1-12, not 0-11
+    let houseNumber = Math.floor((longitude - ascendant + 360) / 30) + 1;
+    if (houseNumber > 12) houseNumber -= 12;
     
     return {
       id: planet.id,
@@ -100,11 +98,14 @@ function generateFallbackChart(request: VedicChartRequest): VedicChartResponse {
   
   // Calculate houses
   const houses = Array.from({ length: 12 }, (_, i) => {
-    const houseLongitude = (ascendant + i * 30) % 360;
+    const houseNumber = i + 1;
+    const houseLongitude = (ascendant + (i * 30)) % 360;
+    const sign = Math.floor(houseLongitude / 30);
+    
     return {
-      number: i + 1,
+      number: houseNumber,
       longitude: houseLongitude,
-      sign: Math.floor(houseLongitude / 30)
+      sign: sign
     };
   });
   
@@ -167,7 +168,8 @@ export async function calculateVedicChart(formData: {
       const response = await fetch(VEDIC_ASTRO_API_CONFIG.API_URL, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         body: JSON.stringify(request)
       });
