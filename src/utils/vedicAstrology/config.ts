@@ -1,9 +1,9 @@
 
 // Configuration for the VedAstro calculation service
 export const VEDIC_ASTRO_API_CONFIG = {
-  // Correct path to the Netlify function
-  API_URL: "https://vedicapi.netlify.app/.netlify/functions/calculate",
-  FALLBACK_MODE: true, // Set to true in case the API call fails
+  // User's custom API endpoint
+  API_URL: "https://vedicvn-api.onrender.com",
+  FALLBACK_MODE: false, // Set to false to use the API
   GEOAPIFY_API_KEY: "5c8b31ca4a494758b0f3b5bd7341db2d", // Free API key for geolocation
   EMAIL_SERVICE: {
     USE_GMAIL: true, // Set to true to use Gmail instead of Supabase
@@ -14,8 +14,10 @@ export const VEDIC_ASTRO_API_CONFIG = {
 
 // This is the structure expected by the Swiss Ephemeris server
 export interface VedicChartRequest {
-  birthDate: string;     // YYYY-MM-DD format
-  birthTime: string;     // HH:MM format
+  birthDate?: string;     // YYYY-MM-DD format
+  birthTime?: string;     // HH:MM format
+  date: string;          // YYYY-MM-DD format for the API
+  time: string;          // HH:MM format for the API
   latitude: number;      // Decimal degrees
   longitude: number;     // Decimal degrees
   timezone: string;      // IANA timezone name
