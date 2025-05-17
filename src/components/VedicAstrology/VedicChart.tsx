@@ -1,16 +1,19 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import BirthChartForm, { BirthDataFormValues } from './BirthChartForm';
 import { LoginForm, RegisterForm } from './AuthForms';
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2, LogOut } from 'lucide-react';
+import { Download, Loader2, LogOut } from 'lucide-react';
 import SouthIndianChart from './SouthIndianChart';
 import DashaCalculator from './DashaCalculator';
 import { calculateVedicChart } from '@/services/vedicAstroService';
 import { Button } from "@/components/ui/button";
 import { supabase } from '@/integrations/supabase/client';
 import { Json } from '@/integrations/supabase/types';
+import { VEDIC_ASTRO_API_CONFIG } from '@/utils/vedicAstrology/config';
+import { DateTime } from 'luxon';
 
 // Types
 export interface Planet {
@@ -134,6 +137,50 @@ const VedicChart = () => {
     });
   };
 
+  const downloadChartAsSVG = () => {
+    if (!chartData) return;
+    
+    const svgElement = document.getElementById('birth-chart-svg');
+    if (!svgElement) return;
+    
+    // Create a clone of the SVG element to modify
+    const svgClone = svgElement.cloneNode(true) as SVGSVGElement;
+    
+    // Set the width and height attributes
+    svgClone.setAttribute('width', '800');
+    svgClone.setAttribute('height', '800');
+    
+    // Convert to string
+    const serializer = new XMLSerializer();
+    let source = serializer.serializeToString(svgClone);
+    
+    // Add XML declaration
+    if (!source.match(/^<\?xml/)) {
+      source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+    }
+    
+    // Convert to URL data
+    const svgBlob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(svgBlob);
+    
+    // Create a link and trigger download
+    const downloadLink = document.createElement('a');
+    downloadLink.href = url;
+    
+    // Generate a filename based on birth data
+    const fileName = formData 
+      ? `vedic-chart-${formData.name.replace(/\s+/g, '-')}-${formData.birthDate}.svg`
+      : 'vedic-birth-chart.svg';
+    
+    downloadLink.download = fileName;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    
+    // Cleanup
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-8">
       {user ? (
@@ -185,7 +232,11 @@ const VedicChart = () => {
           </TabsList>
           
           <TabsContent value="chart">
-            <ChartDisplay chartData={chartData} />
+            <ChartDisplay 
+              chartData={chartData} 
+              userData={formData} 
+              onDownload={downloadChartAsSVG} 
+            />
           </TabsContent>
           
           <TabsContent value="dasha">
@@ -206,118 +257,44 @@ const VedicChart = () => {
 
 interface ChartDisplayProps {
   chartData: VedicChartData;
+  userData?: BirthDataFormValues | null;
+  onDownload?: () => void;
 }
 
-const ChartDisplay = ({ chartData }: ChartDisplayProps) => {
-  // Constants for zodiac signs (with shorter abbreviations)
-  const SIGNS = [
-    "Ari (Aries)", "Tau (Taurus)", "Gem (Gemini)", 
-    "Can (Cancer)", "Leo (Leo)", "Vir (Virgo)",
-    "Lib (Libra)", "Sco (Scorpio)", "Sag (Sagittarius)", 
-    "Cap (Capricorn)", "Aqu (Aquarius)", "Pis (Pisces)"
-  ];
+const ChartDisplay = ({ chartData, userData, onDownload }: ChartDisplayProps) => {
+  // Format birth info for display in the chart
+  const getBirthInfo = () => {
+    if (!userData) return '';
+    
+    const birthDate = userData.birthDate ? 
+      DateTime.fromISO(userData.birthDate).toFormat('dd/MM/yyyy') : '';
+    
+    const birthTime = userData.birthTime || '';
+    
+    return `${birthDate} ${birthTime} - ${userData.location}`;
+  };
   
-  // Planet abbreviations
-  const getPlanetAbbr = (name: string) => {
-    const map: Record<string, string> = {
-      "Sun": "Su",
-      "Moon": "Mo",
-      "Mercury": "Me",
-      "Venus": "Ve",
-      "Mars": "Ma",
-      "Jupiter": "Ju",
-      "Saturn": "Sa",
-      "Rahu": "Ra",
-      "Ketu": "Ke"
-    };
-    return map[name] || name.substring(0, 2);
-  };
-
-  // Calculate degrees within sign (0-29.99)
-  const getDegreesInSign = (longitude: number) => {
-    return (longitude % 30).toFixed(2);
-  };
-
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Bản đồ sao</CardTitle>
+          {onDownload && (
+            <Button variant="outline" size="sm" onClick={onDownload}>
+              <Download className="h-4 w-4 mr-2" />
+              Lưu bản đồ
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
-          <div className="aspect-square max-w-full md:max-w-xl mx-auto">
-            <SouthIndianChart chartData={chartData} />
+          <div className="aspect-square max-w-full md:max-w-2xl mx-auto">
+            <SouthIndianChart 
+              chartData={chartData} 
+              showDetails={true}
+              userName={userData?.name}
+              birthInfo={getBirthInfo()}
+            />
           </div>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Chi tiết bản đồ sao</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="planets">
-            <TabsList className="mb-4">
-              <TabsTrigger value="planets">Các hành tinh</TabsTrigger>
-              <TabsTrigger value="houses">Các cung</TabsTrigger>
-              <TabsTrigger value="details">Chi tiết</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="planets">
-              <div className="space-y-1">
-                {chartData.planets.map((planet) => (
-                  <div key={planet.id} className="flex items-center justify-between p-2 border-b">
-                    <div className="flex items-center">
-                      <span className="font-semibold text-lg mr-2">
-                        {getPlanetAbbr(planet.name)}
-                      </span>
-                      <span>{planet.name}</span>
-                    </div>
-                    <div className="text-right">
-                      <div>{SIGNS[planet.sign]}</div>
-                      <div className="text-sm text-gray-500">
-                        Cung {planet.house} • {getDegreesInSign(planet.longitude)}° ({planet.longitude.toFixed(2)}°)
-                        {planet.retrograde && <span className="ml-1 text-red-500">R</span>}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="houses">
-              <div className="space-y-1">
-                {chartData.houses.map((house) => (
-                  <div key={house.number} className="flex items-center justify-between p-2 border-b">
-                    <div>Cung {house.number}{house.number === 1 ? " (Asc)" : ""}</div>
-                    <div className="text-right">
-                      <div>{SIGNS[house.sign]}</div>
-                      <div className="text-sm text-gray-500">{getDegreesInSign(house.longitude)}° ({house.longitude.toFixed(2)}°)</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="details">
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-bold">Ascendant (Lagna)</h3>
-                  <p>{SIGNS[Math.floor(chartData.ascendant / 30)]} • {getDegreesInSign(chartData.ascendant)}° ({chartData.ascendant.toFixed(2)}°)</p>
-                </div>
-                
-                <div>
-                  <h3 className="font-bold">Nakshatra của Mặt Trăng</h3>
-                  <p>{chartData.moonNakshatra}</p>
-                </div>
-                
-                <div>
-                  <h3 className="font-bold">Ngày âm lịch (Tithi)</h3>
-                  <p>{chartData.lunarDay}</p>
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
         </CardContent>
       </Card>
     </div>

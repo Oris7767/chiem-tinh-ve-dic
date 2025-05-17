@@ -1,8 +1,8 @@
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState, useRef } from 'react';
-import { Search, Calendar, Clock, MapPin, Mail, User } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Calendar, Clock, Mail, User } from 'lucide-react';
 import {
   Form,
   FormControl,
@@ -13,9 +13,8 @@ import {
 } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { DateTime } from 'luxon';
 import { supabase } from '@/integrations/supabase/client';
-import { VEDIC_ASTRO_API_CONFIG } from '@/utils/vedicAstrology/config';
+import { LocationSelector } from './LocationSelector';
 
 // Define the schema for the form data
 const formSchema = z.object({
@@ -36,25 +35,9 @@ interface BirthChartFormProps {
   isLoading: boolean;
 }
 
-interface LocationSuggestion {
-  properties: {
-    formatted: string;
-    lat: number;
-    lon: number;
-    timezone?: {
-      name: string;
-    };
-  };
-}
-
 const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
   const [savedCharts, setSavedCharts] = useState<any[]>([]);
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
-  const [locationSuggestions, setLocationSuggestions] = useState<LocationSuggestion[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const locationInputRef = useRef<HTMLDivElement>(null);
 
   const form = useForm<BirthDataFormValues>({
     resolver: zodResolver(formSchema),
@@ -69,19 +52,6 @@ const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
       timezone: 'Asia/Ho_Chi_Minh',
     },
   });
-
-  // Handle clicks outside the location dropdown to close it
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (locationInputRef.current && !locationInputRef.current.contains(event.target as Node)) {
-        setShowLocationDropdown(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
 
   // Check authentication status
   useEffect(() => {
@@ -142,66 +112,12 @@ const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
     }
   };
 
-  // Function to search for locations using Geoapify Autocomplete API
-  const searchLocation = async (query: string) => {
-    if (!query || query.length < 2) {
-      setLocationSuggestions([]);
-      setShowLocationDropdown(false);
-      return;
-    }
-
-    setIsSearching(true);
-    setShowLocationDropdown(true);
-    
-    try {
-      const response = await fetch(
-        `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&format=json&apiKey=${VEDIC_ASTRO_API_CONFIG.GEOAPIFY_API_KEY}`
-      );
-      
-      const data = await response.json();
-      
-      if (data && data.results) {
-        setLocationSuggestions(data.results);
-      } else {
-        setLocationSuggestions([]);
-      }
-    } catch (error) {
-      console.error('Error during location search:', error);
-      setLocationSuggestions([]);
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  // Handle location input changes with debounce
-  const handleLocationInputChange = (value: string) => {
-    form.setValue('location', value);
-    
-    // Clear the previous timeout
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-    
-    // Set a new timeout for the search
-    searchTimeoutRef.current = setTimeout(() => {
-      searchLocation(value);
-    }, 300);
-  };
-
-  // Handle location suggestion selection
-  const handleSelectLocation = (suggestion: LocationSuggestion) => {
-    form.setValue('location', suggestion.properties.formatted);
-    form.setValue('latitude', suggestion.properties.lat);
-    form.setValue('longitude', suggestion.properties.lon);
-    
-    // Set timezone if available from the API
-    if (suggestion.properties.timezone && suggestion.properties.timezone.name) {
-      form.setValue('timezone', suggestion.properties.timezone.name);
-    }
-    
-    // Clear the suggestions and hide dropdown
-    setLocationSuggestions([]);
-    setShowLocationDropdown(false);
+  // Handle location selection from the LocationSelector component
+  const handleLocationSelected = (locationData: any) => {
+    form.setValue('location', `${locationData.city}, ${locationData.country}`);
+    form.setValue('latitude', locationData.latitude);
+    form.setValue('longitude', locationData.longitude);
+    form.setValue('timezone', locationData.timezone);
   };
 
   return (
@@ -282,40 +198,12 @@ const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
         <FormField
           control={form.control}
           name="location"
-          render={({ field }) => (
-            <FormItem className="relative" ref={locationInputRef}>
+          render={() => (
+            <FormItem>
               <FormLabel>Nơi sinh</FormLabel>
               <FormControl>
-                <div className="relative">
-                  <MapPin className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Thành phố, Quốc gia"
-                    className="pl-8"
-                    {...field}
-                    onChange={(e) => handleLocationInputChange(e.target.value)}
-                    onFocus={() => field.value && setShowLocationDropdown(true)}
-                  />
-                </div>
+                <LocationSelector onLocationSelected={handleLocationSelected} />
               </FormControl>
-              {showLocationDropdown && locationSuggestions.length > 0 && (
-                <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border rounded-md shadow-lg max-h-60 overflow-auto">
-                  {locationSuggestions.map((suggestion, index) => (
-                    <div
-                      key={index}
-                      className="p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center"
-                      onClick={() => handleSelectLocation(suggestion)}
-                    >
-                      <MapPin className="h-4 w-4 mr-2 text-amber-500" />
-                      <span>{suggestion.properties.formatted}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {isSearching && (
-                <div className="text-xs text-amber-600 mt-1 flex items-center">
-                  <span className="animate-spin mr-1">⏳</span> Đang tìm kiếm địa điểm...
-                </div>
-              )}
               <FormMessage />
             </FormItem>
           )}
