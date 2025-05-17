@@ -19,7 +19,7 @@ const sendEmailWithGmail = async (
     hostname: "smtp.gmail.com",
     port: 465,
     username: "Votiveacademy@gmail.com",
-    password: Deno.env.get("GMAIL_APP_PASSWORD") || "",
+    password: "rbuw mnaj ikms qkwn", // Using the app password directly
     secure: true,
   });
 

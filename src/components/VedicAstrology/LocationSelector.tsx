@@ -60,6 +60,26 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
       }
     };
   }, []);
+  
+  // Initial setup - select country and send basic location data
+  useEffect(() => {
+    if (country) {
+      const countryName = COUNTRIES.find(c => c.code === country)?.name || '';
+      
+      // Send initial location data when country is selected
+      const selectedCountry = COUNTRIES.find(c => c.code === country);
+      if (selectedCountry) {
+        onLocationSelected({
+          formatted: selectedCountry.name,
+          city: '',
+          country: selectedCountry.name,
+          latitude: 0,  // Default latitude
+          longitude: 0, // Default longitude
+          timezone: 'UTC' // Default timezone
+        });
+      }
+    }
+  }, [country, onLocationSelected]);
 
   // Function to search for locations using Geoapify Autocomplete API
   const searchLocation = async (query: string, countryCode: string) => {
@@ -105,6 +125,17 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
     searchTimeoutRef.current = setTimeout(() => {
       searchLocation(value, country);
     }, 300);
+
+    // If the city field has been modified, update location with current input
+    const countryName = COUNTRIES.find(c => c.code === country)?.name || '';
+    onLocationSelected({
+      formatted: `${value}, ${countryName}`,
+      city: value,
+      country: countryName,
+      latitude: 0,  // Will be updated when a specific city is selected
+      longitude: 0, // Will be updated when a specific city is selected
+      timezone: 'UTC' // Will be updated when a specific city is selected
+    });
   };
 
   // Handle country change
@@ -114,6 +145,17 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
     if (city) {
       searchLocation(city, value);
     }
+    
+    // Update with just the country selection
+    const countryName = COUNTRIES.find(c => c.code === value)?.name || '';
+    onLocationSelected({
+      formatted: countryName,
+      city: city,
+      country: countryName,
+      latitude: 0,  // Default latitude
+      longitude: 0, // Default longitude
+      timezone: 'UTC' // Default timezone
+    });
   };
 
   // Handle location suggestion selection
@@ -132,6 +174,9 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
       longitude: lon,
       timezone: timezone?.name || 'UTC'
     });
+    
+    // Update city input with selected city name
+    setCity(cityName);
     
     // Clear the suggestions and hide dropdown
     setSuggestions([]);

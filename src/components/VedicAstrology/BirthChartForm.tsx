@@ -19,13 +19,13 @@ import { LocationSelector } from './LocationSelector';
 // Define the schema for the form data
 const formSchema = z.object({
   name: z.string().min(1, 'Vui lòng nhập tên của bạn'),
-  email: z.string().email('Vui lòng nhập email hợp lệ').optional(),
+  email: z.string().email('Vui lòng nhập email hợp lệ').optional().or(z.literal('')),
   birthDate: z.string().min(1, 'Vui lòng chọn ngày sinh'),
   birthTime: z.string().min(1, 'Vui lòng nhập giờ sinh'),
   location: z.string().min(1, 'Vui lòng nhập địa điểm sinh'),
-  latitude: z.number().min(-90).max(90),
-  longitude: z.number().min(-180).max(180),
-  timezone: z.string().min(1, 'Vui lòng chọn múi giờ'),
+  latitude: z.number(),
+  longitude: z.number(), 
+  timezone: z.string(),
 });
 
 export type BirthDataFormValues = z.infer<typeof formSchema>;
@@ -38,6 +38,7 @@ interface BirthChartFormProps {
 const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
   const [savedCharts, setSavedCharts] = useState<any[]>([]);
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
+  const [hasSelectedLocation, setHasSelectedLocation] = useState(false);
 
   const form = useForm<BirthDataFormValues>({
     resolver: zodResolver(formSchema),
@@ -101,6 +102,15 @@ const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
   }, [form]);
 
   const handleFormSubmit = async (values: BirthDataFormValues) => {
+    // Only proceed if location has been selected
+    if (!hasSelectedLocation) {
+      form.setError('location', { 
+        type: 'manual', 
+        message: 'Vui lòng chọn một địa điểm hợp lệ' 
+      });
+      return;
+    }
+    
     // Call the parent component's onSubmit handler
     onSubmit(values);
     
@@ -114,10 +124,16 @@ const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
 
   // Handle location selection from the LocationSelector component
   const handleLocationSelected = (locationData: any) => {
-    form.setValue('location', `${locationData.city}, ${locationData.country}`);
+    form.setValue('location', `${locationData.city ? locationData.city + ', ' : ''}${locationData.country}`);
     form.setValue('latitude', locationData.latitude);
     form.setValue('longitude', locationData.longitude);
     form.setValue('timezone', locationData.timezone);
+    
+    // Mark location as selected even if just a country is chosen
+    setHasSelectedLocation(true);
+    
+    // Clear any location field errors since we now have a selection
+    form.clearErrors('location');
   };
 
   return (
@@ -198,7 +214,7 @@ const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
         <FormField
           control={form.control}
           name="location"
-          render={() => (
+          render={({ field }) => (
             <FormItem>
               <FormLabel>Nơi sinh</FormLabel>
               <FormControl>
