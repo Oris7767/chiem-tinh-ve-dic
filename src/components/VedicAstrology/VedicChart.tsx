@@ -12,8 +12,8 @@ import { calculateVedicChart } from '@/services/vedicAstroService';
 import { Button } from "@/components/ui/button";
 import { supabase } from '@/integrations/supabase/client';
 import { Json } from '@/integrations/supabase/types';
-import { VEDIC_ASTRO_API_CONFIG } from '@/utils/vedicAstrology/config';
 import { DateTime } from 'luxon';
+import { Progress } from "@/components/ui/progress";
 
 // Types
 export interface Planet {
@@ -45,9 +45,20 @@ const VedicChart = () => {
   const { toast } = useToast();
   const [chartData, setChartData] = useState<VedicChartData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [loadingIntervalId, setLoadingIntervalId] = useState<NodeJS.Timeout | null>(null);
   const [user, setUser] = useState<any>(null);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [formData, setFormData] = useState<BirthDataFormValues | null>(null);
+  
+  // Xử lý loading progress và hủy interval khi component unmount
+  useEffect(() => {
+    return () => {
+      if (loadingIntervalId) {
+        clearInterval(loadingIntervalId);
+      }
+    };
+  }, [loadingIntervalId]);
   
   // Check for user session on component mount
   useEffect(() => {
@@ -71,6 +82,19 @@ const VedicChart = () => {
   const handleSubmit = async (formData: BirthDataFormValues) => {
     setIsLoading(true);
     setFormData(formData);
+    setLoadingProgress(0);
+    
+    // Set up loading progress animation
+    const interval = setInterval(() => {
+      setLoadingProgress(prev => {
+        // Tăng dần progress, đảm bảo không vượt quá 95%
+        // để người dùng hiểu là vẫn đang đợi
+        const newProgress = prev + (95 - prev) * 0.05;
+        return newProgress > 95 ? 95 : newProgress;
+      });
+    }, 1000);
+    
+    setLoadingIntervalId(interval);
     
     try {
       console.log("Calculating chart with data:", formData);
@@ -90,21 +114,8 @@ const VedicChart = () => {
       console.log("Chart data received:", data);
       setChartData(data);
       
-      // If user is logged in, save the chart data to Supabase
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        // Convert the complex objects to JSON-compatible formats
-        const { error: chartError } = await supabase.from('birth_charts').insert({
-          user_id: user.id,
-          planets: data.planets as unknown as Json,
-          houses: data.houses as unknown as Json,
-          nakshatras: { moonNakshatra: data.moonNakshatra } as unknown as Json
-        });
-        
-        if (chartError) {
-          console.error("Error saving chart data:", chartError);
-        }
-      }
+      // Set progress to 100% when completed
+      setLoadingProgress(100);
       
       toast({
         title: "Bản đồ sao đã được tính toán thành công!",
@@ -118,6 +129,11 @@ const VedicChart = () => {
         variant: "destructive",
       });
     } finally {
+      // Clear the interval and reset loading state
+      if (loadingIntervalId) {
+        clearInterval(loadingIntervalId);
+        setLoadingIntervalId(null);
+      }
       setIsLoading(false);
     }
   };
@@ -218,10 +234,22 @@ const VedicChart = () => {
       </Card>
 
       {isLoading && (
-        <div className="flex items-center justify-center p-8">
-          <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
-          <span className="ml-2 text-amber-700">Đang tính toán bản đồ sao...</span>
-        </div>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center justify-center space-y-4">
+              <div className="flex items-center space-x-2">
+                <Loader2 className="h-5 w-5 animate-spin text-amber-600" />
+                <span className="text-amber-700">Đang tính toán bản đồ sao...</span>
+              </div>
+              <div className="w-full">
+                <Progress value={loadingProgress} className="h-2" />
+                <p className="text-xs text-muted-foreground text-center mt-1">
+                  {loadingProgress < 100 ? "Đang chờ phản hồi từ máy chủ..." : "Hoàn tất!"}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {chartData && (
