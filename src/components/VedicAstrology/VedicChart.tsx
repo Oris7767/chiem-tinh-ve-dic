@@ -89,13 +89,13 @@ const VedicChart = () => {
       // If user is logged in, save the chart data to Supabase
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        // Fix: Convert complex objects to JSON strings before inserting to match expected types
-        const { error: chartError } = await supabase.from('birth_charts').insert({
+        // Fix: Wrap the object in an array to match the expected insert format
+        const { error: chartError } = await supabase.from('birth_charts').insert([{
           user_id: user.id,
           planets: data.planets,
           houses: data.houses,
           nakshatras: { moonNakshatra: data.moonNakshatra }
-        });
+        }]);
         
         if (chartError) {
           console.error("Error saving chart data:", chartError);
