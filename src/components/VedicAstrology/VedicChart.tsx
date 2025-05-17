@@ -10,6 +10,7 @@ import DashaCalculator from './DashaCalculator';
 import { calculateVedicChart } from '@/services/vedicAstroService';
 import { Button } from "@/components/ui/button";
 import { supabase } from '@/integrations/supabase/client';
+import { Json } from '@/integrations/supabase/types';
 
 // Types
 export interface Planet {
@@ -89,13 +90,13 @@ const VedicChart = () => {
       // If user is logged in, save the chart data to Supabase
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        // Fix: Wrap the object in an array to match the expected insert format
-        const { error: chartError } = await supabase.from('birth_charts').insert([{
+        // Convert the complex objects to JSON-compatible formats
+        const { error: chartError } = await supabase.from('birth_charts').insert({
           user_id: user.id,
-          planets: data.planets,
-          houses: data.houses,
-          nakshatras: { moonNakshatra: data.moonNakshatra }
-        }]);
+          planets: data.planets as unknown as Json,
+          houses: data.houses as unknown as Json,
+          nakshatras: { moonNakshatra: data.moonNakshatra } as unknown as Json
+        });
         
         if (chartError) {
           console.error("Error saving chart data:", chartError);
