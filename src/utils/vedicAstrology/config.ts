@@ -14,6 +14,7 @@ export interface VedicChartRequest {
   latitude: number;      // Decimal degrees
   longitude: number;     // Decimal degrees
   timezone: string;      // IANA timezone name
+  location?: string;     // Location name (city, country)
   name?: string;         // Optional name field
   email?: string;        // Optional email field
 }
@@ -38,4 +39,19 @@ export interface VedicChartResponse {
   }>;
   moonNakshatra: string;
   lunarDay: number;
+}
+
+// Geoapify API response interface
+export interface GeoapifyLocationResponse {
+  results?: Array<{
+    properties: {
+      formatted: string;
+      lat: number;
+      lon: number;
+      timezone?: {
+        name: string;
+      }
+    }
+  }>;
+  error?: string;
 }

@@ -1,4 +1,3 @@
-
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -53,7 +52,9 @@ const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
   const [locationSuggestions, setLocationSuggestions] = useState<LocationSuggestion[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const locationInputRef = useRef<HTMLDivElement>(null);
 
   const form = useForm<BirthDataFormValues>({
     resolver: zodResolver(formSchema),
@@ -68,6 +69,19 @@ const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
       timezone: 'Asia/Ho_Chi_Minh',
     },
   });
+
+  // Handle clicks outside the location dropdown to close it
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (locationInputRef.current && !locationInputRef.current.contains(event.target as Node)) {
+        setShowLocationDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // Check authentication status
   useEffect(() => {
@@ -132,10 +146,12 @@ const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
   const searchLocation = async (query: string) => {
     if (!query || query.length < 2) {
       setLocationSuggestions([]);
+      setShowLocationDropdown(false);
       return;
     }
 
     setIsSearching(true);
+    setShowLocationDropdown(true);
     
     try {
       const response = await fetch(
@@ -183,8 +199,9 @@ const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
       form.setValue('timezone', suggestion.properties.timezone.name);
     }
     
-    // Clear the suggestions
+    // Clear the suggestions and hide dropdown
     setLocationSuggestions([]);
+    setShowLocationDropdown(false);
   };
 
   return (
@@ -266,7 +283,7 @@ const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
           control={form.control}
           name="location"
           render={({ field }) => (
-            <FormItem className="relative">
+            <FormItem className="relative" ref={locationInputRef}>
               <FormLabel>Nơi sinh</FormLabel>
               <FormControl>
                 <div className="relative">
@@ -276,83 +293,38 @@ const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
                     className="pl-8"
                     {...field}
                     onChange={(e) => handleLocationInputChange(e.target.value)}
+                    onFocus={() => field.value && setShowLocationDropdown(true)}
                   />
                 </div>
               </FormControl>
-              {locationSuggestions.length > 0 && (
-                <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
+              {showLocationDropdown && locationSuggestions.length > 0 && (
+                <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border rounded-md shadow-lg max-h-60 overflow-auto">
                   {locationSuggestions.map((suggestion, index) => (
                     <div
                       key={index}
-                      className="p-2 hover:bg-gray-100 cursor-pointer"
+                      className="p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center"
                       onClick={() => handleSelectLocation(suggestion)}
                     >
-                      {suggestion.properties.formatted}
+                      <MapPin className="h-4 w-4 mr-2 text-amber-500" />
+                      <span>{suggestion.properties.formatted}</span>
                     </div>
                   ))}
                 </div>
               )}
               {isSearching && (
-                <div className="text-xs text-amber-600 mt-1">Đang tìm kiếm địa điểm...</div>
+                <div className="text-xs text-amber-600 mt-1 flex items-center">
+                  <span className="animate-spin mr-1">⏳</span> Đang tìm kiếm địa điểm...
+                </div>
               )}
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <FormField
-            control={form.control}
-            name="latitude"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Vĩ độ</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    step="any"
-                    {...field}
-                    onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="longitude"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Kinh độ</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    step="any"
-                    {...field}
-                    onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="timezone"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Múi giờ</FormLabel>
-                <FormControl>
-                  <Input {...field} readOnly />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        {/* Hidden fields for latitude, longitude, and timezone */}
+        <input type="hidden" {...form.register('latitude', { valueAsNumber: true })} />
+        <input type="hidden" {...form.register('longitude', { valueAsNumber: true })} />
+        <input type="hidden" {...form.register('timezone')} />
 
         <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading ? "Đang tính toán..." : "Tính toán bản đồ sao"}
