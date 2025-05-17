@@ -2,7 +2,7 @@
 // Configuration for the VedAstro calculation service
 export const VEDIC_ASTRO_API_CONFIG = {
   // User's custom API endpoint
-  API_URL: "https://vedicvn-api.onrender.com",
+  API_URL: "https://vedicvn-api.onrender.com/api/chart",
   FALLBACK_MODE: false, // Set to false to use the API
   API_TIMEOUT: 60000, // 60 seconds timeout for API calls
   GEOAPIFY_API_KEY: "5c8b31ca4a494758b0f3b5bd7341db2d", // Free API key for geolocation
