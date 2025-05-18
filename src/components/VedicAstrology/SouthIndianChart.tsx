@@ -52,6 +52,14 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({
     "Ari", "Tau", "Gem", "Can", "Leo", "Vir",
     "Lib", "Sco", "Sag", "Cap", "Aqu", "Pis"
   ];
+  
+  // Full sign names
+  const SIGNS = [
+    "Aries", "Taurus", "Gemini", 
+    "Cancer", "Leo", "Virgo",
+    "Libra", "Scorpio", "Sagittarius", 
+    "Capricorn", "Aquarius", "Pisces"
+  ];
 
   // Planet abbreviations
   const getPlanetAbbr = (name: string) => {
@@ -94,16 +102,18 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({
     return (longitude % 30).toFixed(2);
   };
 
-  // Get zodiac sign names for detailed view
-  const SIGNS = [
-    "Aries", "Taurus", "Gemini", 
-    "Cancer", "Leo", "Virgo",
-    "Libra", "Scorpio", "Sagittarius", 
-    "Capricorn", "Aquarius", "Pisces"
-  ];
-
   // Generate detailed planet information for the side panel
   const renderPlanetDetails = () => {
+    if (chartData.planets.length === 0) {
+      return (
+        <g transform="translate(430, 120)">
+          <text x="0" y="0" fontSize="12" fill="#B45309" textAnchor="start">
+            Không có dữ liệu hành tinh từ API
+          </text>
+        </g>
+      );
+    }
+    
     return chartData.planets.map((planet, index) => (
       <g key={`planet-detail-${planet.id}`} transform={`translate(430, ${120 + index * 20})`}>
         <text x="0" y="0" fontSize="12" fill="#000000" textAnchor="start">
@@ -246,11 +256,11 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({
             </text>
             
             <text x="430" y="440" fontSize="12" fill="#000000">
-              Moon Nakshatra: {chartData.moonNakshatra}
+              Moon Nakshatra: {chartData.moonNakshatra || "N/A"}
             </text>
             
             <text x="430" y="460" fontSize="12" fill="#000000">
-              Lunar Day (Tithi): {chartData.lunarDay}
+              Lunar Day (Tithi): {chartData.lunarDay || "N/A"}
             </text>
             
             <text x="430" y="480" fontSize="12" fill="#000000">

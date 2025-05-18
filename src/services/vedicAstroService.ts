@@ -11,18 +11,46 @@ const SIGNS = [
   "Lib", "Sco", "Sag", "Cap", "Aqu", "Pis"
 ];
 
+const SIGN_TO_INDEX: Record<string, number> = {
+  "Aries": 0, 
+  "Taurus": 1, 
+  "Gemini": 2, 
+  "Cancer": 3, 
+  "Leo": 4, 
+  "Virgo": 5,
+  "Libra": 6, 
+  "Scorpio": 7, 
+  "Sagittarius": 8, 
+  "Capricorn": 9, 
+  "Aquarius": 10, 
+  "Pisces": 11
+};
+
 // Planets data
 const PLANETS = [
-  { id: "su", name: "Sun", symbol: "☉", color: "#000000" },
-  { id: "mo", name: "Moon", symbol: "☽", color: "#000000" },
-  { id: "me", name: "Mercury", symbol: "☿", color: "#000000" },
-  { id: "ve", name: "Venus", symbol: "♀", color: "#000000" },
-  { id: "ma", name: "Mars", symbol: "♂", color: "#000000" },
-  { id: "ju", name: "Jupiter", symbol: "♃", color: "#000000" },
-  { id: "sa", name: "Saturn", symbol: "♄", color: "#000000" },
-  { id: "ra", name: "Rahu", symbol: "☊", color: "#000000" },
-  { id: "ke", name: "Ketu", symbol: "☋", color: "#000000" }
+  { id: "su", name: "Sun", symbol: "☉", color: "#E25822" },
+  { id: "mo", name: "Moon", symbol: "☽", color: "#D3D3D3" },
+  { id: "me", name: "Mercury", symbol: "☿", color: "#00A36C" },
+  { id: "ve", name: "Venus", symbol: "♀", color: "#BF40BF" },
+  { id: "ma", name: "Mars", symbol: "♂", color: "#FF0000" },
+  { id: "ju", name: "Jupiter", symbol: "♃", color: "#FFD700" },
+  { id: "sa", name: "Saturn", symbol: "♄", color: "#696969" },
+  { id: "ra", name: "Rahu", symbol: "☊", color: "#ADD8E6" },
+  { id: "ke", name: "Ketu", symbol: "☋", color: "#CD7F32" }
 ];
+
+// Map planet name to its data
+const PLANET_MAP: Record<string, any> = {
+  "SUN": { id: "su", name: "Sun", symbol: "☉", color: "#E25822" },
+  "MOON": { id: "mo", name: "Moon", symbol: "☽", color: "#D3D3D3" },
+  "MERCURY": { id: "me", name: "Mercury", symbol: "☿", color: "#00A36C" },
+  "VENUS": { id: "ve", name: "Venus", symbol: "♀", color: "#BF40BF" },
+  "MARS": { id: "ma", name: "Mars", symbol: "♂", color: "#FF0000" },
+  "JUPITER": { id: "ju", name: "Jupiter", symbol: "♃", color: "#FFD700" },
+  "SATURN": { id: "sa", name: "Saturn", symbol: "♄", color: "#696969" },
+  "RAHU": { id: "ra", name: "Rahu", symbol: "☊", color: "#ADD8E6" },
+  "KETU": { id: "ke", name: "Ketu", symbol: "☋", color: "#CD7F32" }
+};
 
 // List of 27 Nakshatras
 const NAKSHATRAS = [
@@ -119,6 +147,23 @@ async function fetchWithTimeout(url: string, options: RequestInit, timeout: numb
 }
 
 /**
+ * Convert local time to UTC time
+ */
+function convertToUTC(date: string, time: string, timezone: string): { utcDate: string, utcTime: string } {
+  // Create a DateTime object in the specified timezone
+  const dt = DateTime.fromFormat(`${date} ${time}`, 'yyyy-MM-dd HH:mm', { zone: timezone });
+  
+  // Convert to UTC
+  const utcDt = dt.toUTC();
+  
+  // Format output
+  const utcDate = utcDt.toFormat('yyyy-MM-dd');
+  const utcTime = utcDt.toFormat('HH:mm');
+  
+  return { utcDate, utcTime };
+}
+
+/**
  * Calculate Vedic chart based on birth information
  */
 export async function calculateVedicChart(formData: {
@@ -158,13 +203,20 @@ export async function calculateVedicChart(formData: {
     console.log("Calculating chart with data:", request);
     console.log("Calling Vedic Astrology API at:", VEDIC_ASTRO_API_CONFIG.API_URL);
     
+    // Convert local time to UTC
+    const { utcDate, utcTime } = convertToUTC(
+      formData.birthDate, 
+      formData.birthTime, 
+      formData.timezone
+    );
+    
     // Format the payload according to the specified format
     const apiPayload = {
-      date: formData.birthDate,
-      time: formData.birthTime,
+      date: utcDate,
+      time: utcTime,
       latitude: formData.latitude,
       longitude: formData.longitude,
-      timezone: formData.timezone
+      timezone: "UTC" // Always UTC since we've converted the time
     };
     
     console.log("Sending payload to API:", apiPayload);
@@ -190,8 +242,11 @@ export async function calculateVedicChart(formData: {
         throw new Error(`API error: ${response.status} - ${errorText || 'Lỗi không xác định'}`);
       }
       
-      const data: VedicChartResponse = await response.json();
-      console.log("API response received:", data);
+      const apiData: VedicChartResponse = await response.json();
+      console.log("API response received:", apiData);
+      
+      // Convert API response to VedicChartData format
+      const data = convertApiResponseToChartData(apiData);
       
       // Save the chart data for logged in users
       const { data: { user } } = await supabase.auth.getUser();
@@ -204,7 +259,7 @@ export async function calculateVedicChart(formData: {
         });
       }
       
-      return data as VedicChartData;
+      return data;
     } catch (fetchError) {
       console.error("API call failed:", fetchError);
       
@@ -220,4 +275,38 @@ export async function calculateVedicChart(formData: {
     console.error("Error calculating chart:", error);
     throw error;
   }
+}
+
+/**
+ * Convert API response format to app's VedicChartData format
+ */
+function convertApiResponseToChartData(apiData: VedicChartResponse): VedicChartData {
+  // Convert ascendant data
+  const ascendantSign = SIGN_TO_INDEX[apiData.ascendant.sign] || 0;
+  const ascendantDegree = apiData.ascendant.degree || 0;
+  const ascendantLongitude = ascendantSign * 30 + ascendantDegree;
+  
+  // Convert houses data
+  const houses: House[] = apiData.houses.map(house => {
+    const signIndex = SIGN_TO_INDEX[house.sign] || 0;
+    return {
+      number: house.house,
+      longitude: signIndex * 30 + (house.degree || 0),
+      sign: signIndex
+    };
+  });
+  
+  // For now, planets array may be empty from API
+  const planets: Planet[] = [];
+  
+  // If we have dasha data, extract the current dasha planet for display
+  const currentDashaInfo = apiData.dashas?.current || '';
+  
+  return {
+    ascendant: ascendantLongitude,
+    planets: planets,
+    houses: houses,
+    moonNakshatra: apiData.ascendant.nakshatra || '',
+    lunarDay: 1 // Default value as this isn't in the current API response
+  };
 }

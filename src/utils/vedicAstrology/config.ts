@@ -27,26 +27,26 @@ export interface VedicChartRequest {
   email?: string;        // Optional email field
 }
 
-// This matches the expected response format from the server
+// Cập nhật interface để khớp với định dạng JSON từ API
 export interface VedicChartResponse {
-  ascendant: number;
-  planets: Array<{
-    id: string;
-    name: string;
-    symbol: string;
-    longitude: number;
-    sign: number;
-    house: number;
-    retrograde: boolean;
-    color: string;
-  }>;
+  ascendant: {
+    sign: string;
+    degree: number;
+    nakshatra: string;
+  };
+  planets: Array<any>; // Mảng rỗng từ API hiện tại
   houses: Array<{
-    number: number;
-    longitude: number;
-    sign: number;
+    house: number;
+    sign: string;
+    degree: number;
   }>;
-  moonNakshatra: string;
-  lunarDay: number;
+  dashas: {
+    current: string;
+    sequence: Array<{
+      planet: string;
+      endDate: string;
+    }>;
+  };
 }
 
 // Geoapify API response interface

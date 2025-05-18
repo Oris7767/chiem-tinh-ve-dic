@@ -50,6 +50,7 @@ const VedicChart = () => {
   const [user, setUser] = useState<any>(null);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [formData, setFormData] = useState<BirthDataFormValues | null>(null);
+  const [error, setError] = useState<string | null>(null);
   
   // Xử lý loading progress và hủy interval khi component unmount
   useEffect(() => {
@@ -83,6 +84,7 @@ const VedicChart = () => {
     setIsLoading(true);
     setFormData(formData);
     setLoadingProgress(0);
+    setError(null);
     
     // Set up loading progress animation
     const interval = setInterval(() => {
@@ -123,6 +125,7 @@ const VedicChart = () => {
       });
     } catch (error) {
       console.error("Error calculating chart:", error);
+      setError(error instanceof Error ? error.message : "Đã xảy ra lỗi không xác định");
       toast({
         title: "Lỗi khi tính toán bản đồ sao",
         description: error instanceof Error ? error.message : "Đã xảy ra lỗi không xác định",
@@ -248,6 +251,17 @@ const VedicChart = () => {
                 </p>
               </div>
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {error && (
+        <Card className="border-red-500">
+          <CardContent className="pt-6 text-center">
+            <div className="text-red-500 font-medium">Lỗi: {error}</div>
+            <p className="text-sm text-red-400 mt-2">
+              Vui lòng kiểm tra thông tin và thử lại. Đảm bảo các tọa độ và múi giờ là chính xác.
+            </p>
           </CardContent>
         </Card>
       )}
