@@ -1,4 +1,3 @@
-
 // Configuration for the VedAstro calculation service
 export const VEDIC_ASTRO_API_CONFIG = {
   // User's custom API endpoint
@@ -13,53 +12,57 @@ export const VEDIC_ASTRO_API_CONFIG = {
   }
 };
 
-// This is the structure expected by the Swiss Ephemeris server
+// Request payload sent to the Swiss Ephemeris API
 export interface VedicChartRequest {
-  birthDate?: string;     // YYYY-MM-DD format
-  birthTime?: string;     // HH:MM format
   date: string;          // YYYY-MM-DD format for the API
   time: string;          // HH:MM format for the API
   latitude: number;      // Decimal degrees
   longitude: number;     // Decimal degrees
   timezone: string;      // IANA timezone name
-  location?: string;     // Location name (city, country)
-  name?: string;         // Optional name field
-  email?: string;        // Optional email field
+  // Optional user details
+  birthDate?: string;    // YYYY-MM-DD (if needed)
+  birthTime?: string;    // HH:MM (if needed)
+  location?: string;
+  name?: string;
+  email?: string;
 }
 
-// Cập nhật interface để khớp với định dạng JSON từ API
+// Response structure from the Swiss Ephemeris API
+export interface Ascendant {
+  sign: string;
+  degree: number;
+  nakshatra: string;
+}
+
+export interface PlanetaryPosition {
+  planet: string;
+  longitude: number;
+  latitude: number;
+  sign: string;
+  nakshatra: string;
+  house: number;
+  retrograde: boolean;
+}
+
+export interface HousePosition {
+  house: number;
+  sign: string;
+  degree: number;
+}
+
+export interface DashaDetail {
+  planet: string;
+  endDate: string; // ISO string
+}
+
+export interface Dasha {
+  current: string;
+  sequence: DashaDetail[];
+}
+
 export interface VedicChartResponse {
-  ascendant: {
-    sign: string;
-    degree: number;
-    nakshatra: string;
-  };
-  planets: number; // Mảng rỗng từ API hiện tại
-  houses: string;
-    house: number;
-    sign: string;
-    degree: number;
-  }>;
-  dashas: {
-    current: string;
-    sequence: Array<{
-      planet: string;
-      endDate: string;
-    }>;
-  };
-}
-
-// Geoapify API response interface
-export interface GeoapifyLocationResponse {
-  results?: Array<{
-    properties: {
-      formatted: string;
-      lat: number;
-      lon: number;
-      timezone?: {
-        name: string;
-      }
-    }
-  }>;
-  error?: string;
+  ascendant: Ascendant;
+  planets: PlanetaryPosition[];
+  houses: HousePosition[];
+  dashas: Dasha;
 }
