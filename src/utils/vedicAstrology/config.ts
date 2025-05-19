@@ -34,8 +34,8 @@ export interface VedicChartResponse {
     degree: number;
     nakshatra: string;
   };
-  planets: Array<any>; // Mảng rỗng từ API hiện tại
-  houses: Array<{
+  planets: number; // Mảng rỗng từ API hiện tại
+  houses: string;
     house: number;
     sign: string;
     degree: number;
