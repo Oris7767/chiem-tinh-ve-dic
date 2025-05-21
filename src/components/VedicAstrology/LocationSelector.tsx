@@ -82,35 +82,55 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
   }, [country, onLocationSelected]);
 
   // Function to search for locations using Geoapify Autocomplete API
-  const searchLocation = async (query: string, countryCode: string) => {
-    if (!query || query.length < 2) {
+
+  // Function to search for locations using Geoapify Autocomplete API
+const searchLocation = async (query: string, countryCode: string) => {
+  if (!query || query.length < 2) {
+    setSuggestions([]);
+    setShowSuggestions(false);
+    return;
+  }
+
+  setIsSearching(true);
+  setShowSuggestions(true);
+
+  const requestOptions: RequestInit = { method: 'GET' };
+
+  try {
+    const url =
+      `https://api.geoapify.com/v1/geocode/autocomplete` +
+      `?text=${encodeURIComponent(query)}` +
+      `&limit=5` +
+      `&apiKey=${VEDIC_ASTRO_API_CONFIG.GEOAPIFY_API_KEY}`;
+
+    console.log('Geoapify URL:', url);
+    const response = await fetch(url, requestOptions);
+
+    if (!response.ok) {
+      console.error('Geoapify responded status:', response.status);
       setSuggestions([]);
-      setShowSuggestions(false);
       return;
     }
 
-    setIsSearching(true);
-    setShowSuggestions(true);
-    
-    try {
-      const response = await fetch(
-        `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&filter=countrycode:${countryCode}&format=json&apiKey=${VEDIC_ASTRO_API_CONFIG.GEOAPIFY_API_KEY}`
+    const data: GeoapifyLocationResponse = await response.json();
+    if (data.results) {
+      // Lọc thủ công theo country_code
+      const filtered = data.results.filter(r =>
+        r.properties.country_code?.toUpperCase() === countryCode.toUpperCase()
       );
-      
-      const data: GeoapifyLocationResponse = await response.json();
-      
-      if (data && data.results) {
-        setSuggestions(data.results);
-      } else {
-        setSuggestions([]);
-      }
-    } catch (error) {
-      console.error('Error during location search:', error);
+      setSuggestions(filtered);
+    } else {
       setSuggestions([]);
-    } finally {
-      setIsSearching(false);
     }
-  };
+  } catch (error) {
+    console.error('Error during location search:', error);
+    setSuggestions([]);
+  } finally {
+    setIsSearching(false);
+  }
+};
+
+
 
   // Handle city input changes with debounce
   const handleCityInputChange = (value: string) => {

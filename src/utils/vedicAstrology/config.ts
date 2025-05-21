@@ -4,7 +4,7 @@ export const VEDIC_ASTRO_API_CONFIG = {
   API_URL: "https://vedicvn-api.onrender.com/api/fullchart",
   FALLBACK_MODE: false, // Set to false to use the API
   API_TIMEOUT: 60000, // 60 seconds timeout for API calls
-  GEOAPIFY_API_KEY: "5c8b31ca4a494758b0f3b5bd7341db2d", // Free API key for geolocation
+  GEOAPIFY_API_KEY: "522a159a787444c0bf969ad2a48c63ca", // Free API key for geolocation
   EMAIL_SERVICE: {
     USE_GMAIL: true, // Set to true to use Gmail instead of Supabase
     SENDER_EMAIL: "Votiveacademy@gmail.com", // Gmail address for sending emails
@@ -65,4 +65,19 @@ export interface VedicChartResponse {
   planets: PlanetaryPosition[];
   houses: HousePosition[];
   dashas: Dasha;
+}
+
+// Geoapify API response interface
+export interface GeoapifyLocationResponse {
+  results?: Array<{
+    properties: {
+      formatted: string;
+      lat: number;
+      lon: number;
+      timezone?: {
+        name: string;
+      }
+    }
+  }>;
+  error?: string;
 }

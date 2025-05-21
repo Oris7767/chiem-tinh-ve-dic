@@ -111,7 +111,7 @@ const VedicChart = () => {
         location: formData.location,
         name: formData.name,
         email: formData.email
-      });
+      }); //
       
       console.log("Chart data received:", data);
       setChartData(data);

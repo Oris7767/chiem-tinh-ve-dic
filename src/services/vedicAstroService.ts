@@ -281,32 +281,44 @@ export async function calculateVedicChart(formData: {
  * Convert API response format to app's VedicChartData format
  */
 function convertApiResponseToChartData(apiData: VedicChartResponse): VedicChartData {
-  // Convert ascendant data
-  const ascendantSign = SIGN_TO_INDEX[apiData.ascendant.sign] || 0;
-  const ascendantDegree = apiData.ascendant.degree || 0;
-  const ascendantLongitude = ascendantSign * 30 + ascendantDegree;
-  
-  // Convert houses data
-  const houses: House[] = apiData.houses.map(house => {
-    const signIndex = SIGN_TO_INDEX[house.sign] || 0;
+  // Ascendant
+  const ascSignIdx   = SIGN_TO_INDEX[apiData.ascendant.sign] || 0;
+  const ascDeg       = apiData.ascendant.degree  || 0;
+  const ascLongitude = ascSignIdx * 30 + ascDeg;
+
+  // Houses
+  const houses: House[] = apiData.houses.map(h => ({
+    number: h.house,
+    sign: SIGN_TO_INDEX[h.sign] || 0,
+    longitude: (SIGN_TO_INDEX[h.sign] || 0) * 30 + (h.degree || 0),
+  }));
+
+  // Planets
+  const planets: Planet[] = apiData.planets.map(p => {
+    const key       = p.planet.toUpperCase();       // p.planet hoặc p.name
+    const info      = PLANET_MAP[key]  || {};
+    const lon       = p.longitude;
+    const degInSign = lon % 30;
+
     return {
-      number: house.house,
-      longitude: signIndex * 30 + (house.degree || 0),
-      sign: signIndex
+      id:     info.id      || key.toLowerCase(),
+      name:   info.name    || p.planet,              
+      symbol: info.symbol  || "",
+      color:  info.color   || "#ccc",
+      sign:   SIGN_TO_INDEX[p.sign] || 0,
+      longitude: lon,
+      house:  p.house,
+      retrograde: p.retrograde,
+      // tách riêng degree nếu VedicChartData định nghĩa
+      // degree: degInSign
     };
   });
-  
-  // For now, planets array may be empty from API
-  const planets: Planet[] = [];
-  
-  // If we have dasha data, extract the current dasha planet for display
-  const currentDashaInfo = apiData.dashas?.current || '';
-  
+
   return {
-    ascendant: ascendantLongitude,
-    planets: planets,
-    houses: houses,
-    moonNakshatra: apiData.ascendant.nakshatra || '',
-    lunarDay: 1 // Default value as this isn't in the current API response
+    ascendant: ascLongitude,
+    houses,
+    planets,
+    moonNakshatra: apiData.dashas?.current || apiData.ascendant.nakshatra || "",
+    lunarDay: 1
   };
 }
