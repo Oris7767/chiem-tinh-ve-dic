@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { MapPin, Search } from 'lucide-react';
 import { COUNTRIES } from '@/utils/vedicAstrology/countries';
@@ -82,55 +81,51 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
   }, [country, onLocationSelected]);
 
   // Function to search for locations using Geoapify Autocomplete API
-
-  // Function to search for locations using Geoapify Autocomplete API
-const searchLocation = async (query: string, countryCode: string) => {
-  if (!query || query.length < 2) {
-    setSuggestions([]);
-    setShowSuggestions(false);
-    return;
-  }
-
-  setIsSearching(true);
-  setShowSuggestions(true);
-
-  const requestOptions: RequestInit = { method: 'GET' };
-
-  try {
-    const url =
-      `https://api.geoapify.com/v1/geocode/autocomplete` +
-      `?text=${encodeURIComponent(query)}` +
-      `&limit=5` +
-      `&apiKey=${VEDIC_ASTRO_API_CONFIG.GEOAPIFY_API_KEY}`;
-
-    console.log('Geoapify URL:', url);
-    const response = await fetch(url, requestOptions);
-
-    if (!response.ok) {
-      console.error('Geoapify responded status:', response.status);
+  const searchLocation = async (query: string, countryCode: string) => {
+    if (!query || query.length < 2) {
       setSuggestions([]);
+      setShowSuggestions(false);
       return;
     }
 
-    const data: GeoapifyLocationResponse = await response.json();
-    if (data.results) {
-      // Lọc thủ công theo country_code
-      const filtered = data.results.filter(r =>
-        r.properties.country_code?.toUpperCase() === countryCode.toUpperCase()
-      );
-      setSuggestions(filtered);
-    } else {
+    setIsSearching(true);
+    setShowSuggestions(true);
+
+    const requestOptions: RequestInit = { method: 'GET' };
+
+    try {
+      const url =
+        `https://api.geoapify.com/v1/geocode/autocomplete` +
+        `?text=${encodeURIComponent(query)}` +
+        `&limit=5` +
+        `&apiKey=${VEDIC_ASTRO_API_CONFIG.GEOAPIFY_API_KEY}`;
+
+      console.log('Geoapify URL:', url);
+      const response = await fetch(url, requestOptions);
+
+      if (!response.ok) {
+        console.error('Geoapify responded status:', response.status);
+        setSuggestions([]);
+        return;
+      }
+
+      const data: GeoapifyLocationResponse = await response.json();
+      if (data.features) {
+        // Lọc thủ công theo country_code
+        const filtered = data.features.filter(feature =>
+          feature.properties.country_code?.toUpperCase() === countryCode.toUpperCase()
+        );
+        setSuggestions(filtered);
+      } else {
+        setSuggestions([]);
+      }
+    } catch (error) {
+      console.error('Error during location search:', error);
       setSuggestions([]);
+    } finally {
+      setIsSearching(false);
     }
-  } catch (error) {
-    console.error('Error during location search:', error);
-    setSuggestions([]);
-  } finally {
-    setIsSearching(false);
-  }
-};
-
-
+  };
 
   // Handle city input changes with debounce
   const handleCityInputChange = (value: string) => {
@@ -179,19 +174,20 @@ const searchLocation = async (query: string, countryCode: string) => {
   };
 
   // Handle location suggestion selection
-  const handleSelectLocation = (suggestion: any) => {
-    const { formatted, lat, lon, timezone } = suggestion.properties;
-    const countryName = COUNTRIES.find(c => c.code === country)?.name || '';
+  const handleSelectLocation = (suggestion: GeoapifyLocationResponse['features'][0]) => {
+    const properties = suggestion.properties;
+    const { formatted, lat, lon, timezone, city, country } = properties;
+    const countryName = COUNTRIES.find(c => c.code === country)?.name || country || '';
     
-    // Extract city from formatted address or use the input
+    // Extract city name from properties or formatted address
     const cityName = city || formatted.split(',')[0];
     
     onLocationSelected({
       formatted: formatted,
       city: cityName,
       country: countryName,
-      latitude: lat,
-      longitude: lon,
+      latitude: lat || 0,
+      longitude: lon || 0,
       timezone: timezone?.name || 'UTC'
     });
     

@@ -69,15 +69,41 @@ export interface VedicChartResponse {
 
 // Geoapify API response interface
 export interface GeoapifyLocationResponse {
-  results?: Array<{
+  type: string;
+  features: Array<{
+    type: string;
     properties: {
+      datasource: {
+        sourcename: string;
+        attribution: string;
+        license: string;
+        url: string;
+      };
+      country: string;
+      country_code: string;
+      city?: string;
       formatted: string;
       lat: number;
       lon: number;
       timezone?: {
         name: string;
-      }
-    }
+        offset_STD: string;
+        offset_STD_seconds: number;
+        offset_DST: string;
+        offset_DST_seconds: number;
+      };
+    };
+    geometry: {
+      type: string;
+      coordinates: [number, number];
+    };
+    bbox?: [number, number, number, number];
   }>;
-  error?: string;
+  query?: {
+    text: string;
+    parsed: {
+      city?: string;
+      expected_type: string;
+    };
+  };
 }
