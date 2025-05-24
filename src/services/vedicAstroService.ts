@@ -167,23 +167,6 @@ export async function calculateVedicChart(formData: {
       }
     }
     
-    // Prepare request object for the API
-    const request: VedicChartRequest = {
-      birthDate: formData.birthDate,
-      birthTime: formData.birthTime,
-      // Format data according to API requirements
-      date: formData.birthDate,
-      time: formData.birthTime,
-      latitude: formData.latitude, 
-      longitude: formData.longitude,
-      timezone: formData.timezone,
-      name: formData.name,
-      email: formData.email
-    };
-    
-    console.log("Calculating chart with data:", request);
-    console.log("Calling Vedic Astrology API at:", VEDIC_ASTRO_API_CONFIG.API_URL);
-    
     // Format the payload according to the specified format
     const apiPayload = {
       date: formData.birthDate,

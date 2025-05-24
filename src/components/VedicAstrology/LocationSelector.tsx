@@ -176,8 +176,8 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
   // Handle location suggestion selection
   const handleSelectLocation = (suggestion: GeoapifyLocationResponse['features'][0]) => {
     const properties = suggestion.properties;
-    const { formatted, lat, lon, timezone, city, country } = properties;
-    const countryName = COUNTRIES.find(c => c.code === country)?.name || country || '';
+    const { formatted, lat, lon, timezone, city, country_code } = properties;
+    const countryName = COUNTRIES.find(c => c.code === country_code?.toUpperCase())?.name || country || '';
     
     // Extract city name from properties or formatted address
     const cityName = city || formatted.split(',')[0];
@@ -186,15 +186,15 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
       formatted: formatted,
       city: cityName,
       country: countryName,
-      latitude: lat || 0,
-      longitude: lon || 0,
-      timezone: timezone?.name || 'UTC'
+      latitude: lat,
+      longitude: lon,
+      timezone: timezone?.name || 'UTC' // Use timezone name from Geoapify or fallback to UTC
     });
     
     // Update city input with selected city name
     setCity(cityName);
     
-    // Clear the suggestions and hide dropdown
+    // Clear suggestions after selection
     setSuggestions([]);
     setShowSuggestions(false);
   };
