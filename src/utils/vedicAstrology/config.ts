@@ -1,7 +1,7 @@
 // Configuration for the VedAstro calculation service
 export const VEDIC_ASTRO_API_CONFIG = {
   // User's custom API endpoint
-  API_URL: "https://vedicvn-api.onrender.com/api/fullchart",
+  API_URL: "https://vedicvn-api.onrender.com/api/chart",
   FALLBACK_MODE: false, // Set to false to use the API
   API_TIMEOUT: 180000, // 3 minutes timeout for API calls
   MAX_RETRIES: 3, // Maximum number of retry attempts
