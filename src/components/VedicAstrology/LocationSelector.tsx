@@ -64,19 +64,8 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
   useEffect(() => {
     if (country) {
       const countryName = COUNTRIES.find(c => c.code === country)?.name || '';
-      
-      // Send initial location data when country is selected
-      const selectedCountry = COUNTRIES.find(c => c.code === country);
-      if (selectedCountry) {
-        onLocationSelected({
-          formatted: selectedCountry.name,
-          city: '',
-          country: selectedCountry.name,
-          latitude: 0,  // Default latitude
-          longitude: 0, // Default longitude
-          timezone: 'UTC' // Default timezone
-        });
-      }
+      // Don't send initial location data when country is selected
+      // Let user select a specific location from suggestions
     }
   }, [country, onLocationSelected]);
 
