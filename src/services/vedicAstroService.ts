@@ -158,6 +158,18 @@ export async function calculateVedicChart(formData: {
   email?: string;
 }): Promise<VedicChartData> {
   try {
+    // Log the incoming form data
+    console.log('Received form data:', {
+      birthDate: formData.birthDate,
+      birthTime: formData.birthTime,
+      latitude: formData.latitude,
+      longitude: formData.longitude,
+      timezone: formData.timezone,
+      location: formData.location,
+      name: formData.name,
+      email: formData.email
+    });
+
     // Check if user is logged in and has a saved chart
     if (formData.email) {
       const savedChart = await fetchSavedChart(formData.email);
@@ -174,6 +186,9 @@ export async function calculateVedicChart(formData: {
       longitude: formData.longitude,
       timezone: formData.timezone
     };
+
+    // Log the API payload
+    console.log('Sending API payload:', apiPayload);
     
     try {
       // Use fetchWithTimeout to set a maximum waiting time
@@ -192,10 +207,14 @@ export async function calculateVedicChart(formData: {
       
       if (!response.ok) {
         const errorText = await response.text();
+        console.error('API Error Response:', errorText);
         throw new Error(`API error: ${response.status} - ${errorText || 'Lỗi không xác định'}`);
       }
       
       const apiData: VedicChartResponse = await response.json();
+      
+      // Log the API response
+      console.log('API Response:', apiData);
       
       // Convert API response to VedicChartData format
       const data = convertApiResponseToChartData(apiData);
