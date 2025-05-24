@@ -101,9 +101,27 @@ const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
     };
   }, [form]);
 
-  const handleFormSubmit = async (values: BirthDataFormValues) => {
-    console.log('Form values being submitted:', values);
+  const handleLocationSelected = (locationData: {
+    formatted: string;
+    city: string;
+    country: string;
+    latitude: number;
+    longitude: number;
+    timezone: string;
+  }) => {
+    form.setValue('location', locationData.formatted);
+    form.setValue('latitude', locationData.latitude);
+    form.setValue('longitude', locationData.longitude);
+    form.setValue('timezone', locationData.timezone);
     
+    // Mark location as selected even if just a country is chosen
+    setHasSelectedLocation(true);
+    
+    // Clear any location field errors since we now have a selection
+    form.clearErrors('location');
+  };
+
+  const handleFormSubmit = async (values: BirthDataFormValues) => {
     // Check if we have valid coordinates
     if (!values.latitude || !values.longitude || values.latitude === 0 || values.longitude === 0) {
       form.setError('location', { 
@@ -122,32 +140,6 @@ const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
       // The actual chart data will be saved after calculation in the parent component
       console.log('User is logged in, chart data will be saved after calculation');
     }
-  };
-
-  // Handle location selection
-  const handleLocationSelected = (locationData: {
-    formatted: string;
-    city: string;
-    country: string;
-    latitude: number;
-    longitude: number;
-    timezone: string;
-  }) => {
-    console.log('Location data received in BirthChartForm:', locationData);
-    
-    form.setValue('location', locationData.formatted);
-    form.setValue('latitude', locationData.latitude);
-    form.setValue('longitude', locationData.longitude);
-    form.setValue('timezone', locationData.timezone);
-    
-    // Mark location as selected even if just a country is chosen
-    setHasSelectedLocation(true);
-    
-    // Clear any location field errors since we now have a selection
-    form.clearErrors('location');
-    
-    // Log current form values after update
-    console.log('Current form values:', form.getValues());
   };
 
   return (

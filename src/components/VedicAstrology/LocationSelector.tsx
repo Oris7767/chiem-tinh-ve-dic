@@ -161,7 +161,6 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
     
     // Ensure we have valid coordinates
     if (!lat || !lon) {
-      console.error('Invalid coordinates from Geoapify:', properties);
       return;
     }
     
@@ -170,17 +169,14 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
     // Extract city name from properties or formatted address
     const cityName = city || formatted.split(',')[0];
     
-    const locationData = {
+    onLocationSelected({
       formatted: formatted,
       city: cityName,
       country: countryName,
       latitude: lat,
       longitude: lon,
       timezone: timezone?.name || 'UTC'
-    };
-    
-    console.log('Location data being sent:', locationData);
-    onLocationSelected(locationData);
+    });
     
     // Update city input with selected city name
     setCity(cityName);

@@ -158,13 +158,10 @@ export async function calculateVedicChart(formData: {
   email?: string;
 }): Promise<VedicChartData> {
   try {
-    console.log('Raw form data received:', formData);
-    
     // Check if user is logged in and has a saved chart
     if (formData.email) {
       const savedChart = await fetchSavedChart(formData.email);
       if (savedChart) {
-        console.log("Using saved chart for user:", formData.email);
         return savedChart;
       }
     }
@@ -177,9 +174,6 @@ export async function calculateVedicChart(formData: {
       longitude: formData.longitude,
       timezone: formData.timezone
     };
-    
-    console.log("Sending payload to API:", apiPayload);
-    console.log("API URL being used:", VEDIC_ASTRO_API_CONFIG.API_URL);
     
     try {
       // Use fetchWithTimeout to set a maximum waiting time
@@ -198,12 +192,10 @@ export async function calculateVedicChart(formData: {
       
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`API error (${response.status}):`, errorText);
         throw new Error(`API error: ${response.status} - ${errorText || 'Lỗi không xác định'}`);
       }
       
       const apiData: VedicChartResponse = await response.json();
-      console.log("API response received:", apiData);
       
       // Convert API response to VedicChartData format
       const data = convertApiResponseToChartData(apiData);
@@ -221,8 +213,6 @@ export async function calculateVedicChart(formData: {
       
       return data;
     } catch (fetchError) {
-      console.error("API call failed:", fetchError);
-      
       // Check if it was a timeout error
       if (fetchError.name === 'AbortError') {
         throw new Error('Quá thời gian chờ phản hồi từ máy chủ. Vui lòng thử lại sau.');
@@ -232,7 +222,6 @@ export async function calculateVedicChart(formData: {
       throw new Error(`Lỗi khi tính toán bản đồ sao: ${fetchError.message}`);
     }
   } catch (error) {
-    console.error("Error calculating chart:", error);
     throw error;
   }
 }
