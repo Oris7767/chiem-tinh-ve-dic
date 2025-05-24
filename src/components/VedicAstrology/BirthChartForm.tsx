@@ -50,7 +50,7 @@ const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
       location: '',
       latitude: 0,
       longitude: 0,
-      timezone: 'Asia/Ho_Chi_Minh',
+      timezone: 'UTC', // Default to UTC until location is selected
     },
   });
 
@@ -122,9 +122,16 @@ const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
     }
   };
 
-  // Handle location selection from the LocationSelector component
-  const handleLocationSelected = (locationData: any) => {
-    form.setValue('location', `${locationData.city ? locationData.city + ', ' : ''}${locationData.country}`);
+  // Handle location selection
+  const handleLocationSelected = (locationData: {
+    formatted: string;
+    city: string;
+    country: string;
+    latitude: number;
+    longitude: number;
+    timezone: string;
+  }) => {
+    form.setValue('location', locationData.formatted);
     form.setValue('latitude', locationData.latitude);
     form.setValue('longitude', locationData.longitude);
     form.setValue('timezone', locationData.timezone);
