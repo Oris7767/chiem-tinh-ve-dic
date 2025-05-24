@@ -1,8 +1,6 @@
-
 import { VEDIC_ASTRO_API_CONFIG, VedicChartRequest, VedicChartResponse } from '@/utils/vedicAstrology/config';
 import { VedicChartData, Planet, House } from '@/components/VedicAstrology/VedicChart';
 import { supabase } from '@/integrations/supabase/client';
-import { DateTime } from 'luxon';
 import { Json } from '@/integrations/supabase/types';
 
 // Constants for zodiac signs
@@ -147,23 +145,6 @@ async function fetchWithTimeout(url: string, options: RequestInit, timeout: numb
 }
 
 /**
- * Convert local time to UTC time
- */
-function convertToUTC(date: string, time: string, timezone: string): { utcDate: string, utcTime: string } {
-  // Create a DateTime object in the specified timezone
-  const dt = DateTime.fromFormat(`${date} ${time}`, 'yyyy-MM-dd HH:mm', { zone: timezone });
-  
-  // Convert to UTC
-  const utcDt = dt.toUTC();
-  
-  // Format output
-  const utcDate = utcDt.toFormat('yyyy-MM-dd');
-  const utcTime = utcDt.toFormat('HH:mm');
-  
-  return { utcDate, utcTime };
-}
-
-/**
  * Calculate Vedic chart based on birth information
  */
 export async function calculateVedicChart(formData: {
@@ -203,20 +184,13 @@ export async function calculateVedicChart(formData: {
     console.log("Calculating chart with data:", request);
     console.log("Calling Vedic Astrology API at:", VEDIC_ASTRO_API_CONFIG.API_URL);
     
-    // Convert local time to UTC
-    const { utcDate, utcTime } = convertToUTC(
-      formData.birthDate, 
-      formData.birthTime, 
-      formData.timezone
-    );
-    
     // Format the payload according to the specified format
     const apiPayload = {
-      date: utcDate,
-      time: utcTime,
+      date: formData.birthDate,
+      time: formData.birthTime,
       latitude: formData.latitude,
       longitude: formData.longitude,
-      timezone: "UTC" // Always UTC since we've converted the time
+      timezone: formData.timezone
     };
     
     console.log("Sending payload to API:", apiPayload);
