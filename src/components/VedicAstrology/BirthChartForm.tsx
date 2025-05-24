@@ -104,11 +104,11 @@ const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
   const handleFormSubmit = async (values: BirthDataFormValues) => {
     console.log('Form values being submitted:', values);
     
-    // Only proceed if location has been selected
-    if (!hasSelectedLocation) {
+    // Check if we have valid coordinates
+    if (!values.latitude || !values.longitude || values.latitude === 0 || values.longitude === 0) {
       form.setError('location', { 
         type: 'manual', 
-        message: 'Vui lòng chọn một địa điểm hợp lệ' 
+        message: 'Vui lòng chọn một địa điểm cụ thể từ danh sách gợi ý' 
       });
       return;
     }

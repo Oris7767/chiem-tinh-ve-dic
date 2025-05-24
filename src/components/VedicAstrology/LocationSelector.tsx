@@ -127,6 +127,18 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
     }
   };
 
+  // Handle country change
+  const handleCountryChange = (value: string) => {
+    setCountry(value);
+    // Reset city and suggestions when country changes
+    if (city) {
+      searchLocation(city, value);
+    }
+    setCity('');
+    setSuggestions([]);
+    setShowSuggestions(false);
+  };
+
   // Handle city input changes with debounce
   const handleCityInputChange = (value: string) => {
     setCity(value);
@@ -140,43 +152,19 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
     searchTimeoutRef.current = setTimeout(() => {
       searchLocation(value, country);
     }, 300);
-
-    // If the city field has been modified, update location with current input
-    const countryName = COUNTRIES.find(c => c.code === country)?.name || '';
-    onLocationSelected({
-      formatted: `${value}, ${countryName}`,
-      city: value,
-      country: countryName,
-      latitude: 0,  // Will be updated when a specific city is selected
-      longitude: 0, // Will be updated when a specific city is selected
-      timezone: 'UTC' // Will be updated when a specific city is selected
-    });
-  };
-
-  // Handle country change
-  const handleCountryChange = (value: string) => {
-    setCountry(value);
-    // Reset city and suggestions when country changes
-    if (city) {
-      searchLocation(city, value);
-    }
-    
-    // Update with just the country selection
-    const countryName = COUNTRIES.find(c => c.code === value)?.name || '';
-    onLocationSelected({
-      formatted: countryName,
-      city: city,
-      country: countryName,
-      latitude: 0,  // Default latitude
-      longitude: 0, // Default longitude
-      timezone: 'UTC' // Default timezone
-    });
   };
 
   // Handle location suggestion selection
   const handleSelectLocation = (suggestion: GeoapifyLocationResponse['features'][0]) => {
     const properties = suggestion.properties;
     const { formatted, lat, lon, timezone, city, country_code } = properties;
+    
+    // Ensure we have valid coordinates
+    if (!lat || !lon) {
+      console.error('Invalid coordinates from Geoapify:', properties);
+      return;
+    }
+    
     const countryName = COUNTRIES.find(c => c.code === country_code?.toUpperCase())?.name || country || '';
     
     // Extract city name from properties or formatted address
