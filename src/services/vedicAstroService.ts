@@ -158,6 +158,8 @@ export async function calculateVedicChart(formData: {
   email?: string;
 }): Promise<VedicChartData> {
   try {
+    console.log('Raw form data received:', formData);
+    
     // Check if user is logged in and has a saved chart
     if (formData.email) {
       const savedChart = await fetchSavedChart(formData.email);
@@ -177,6 +179,7 @@ export async function calculateVedicChart(formData: {
     };
     
     console.log("Sending payload to API:", apiPayload);
+    console.log("API URL being used:", VEDIC_ASTRO_API_CONFIG.API_URL);
     
     try {
       // Use fetchWithTimeout to set a maximum waiting time

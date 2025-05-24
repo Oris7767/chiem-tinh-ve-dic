@@ -182,14 +182,17 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
     // Extract city name from properties or formatted address
     const cityName = city || formatted.split(',')[0];
     
-    onLocationSelected({
+    const locationData = {
       formatted: formatted,
       city: cityName,
       country: countryName,
       latitude: lat,
       longitude: lon,
-      timezone: timezone?.name || 'UTC' // Use timezone name from Geoapify or fallback to UTC
-    });
+      timezone: timezone?.name || 'UTC'
+    };
+    
+    console.log('Location data being sent:', locationData);
+    onLocationSelected(locationData);
     
     // Update city input with selected city name
     setCity(cityName);

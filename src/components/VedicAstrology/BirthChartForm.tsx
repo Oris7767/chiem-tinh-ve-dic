@@ -102,6 +102,8 @@ const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
   }, [form]);
 
   const handleFormSubmit = async (values: BirthDataFormValues) => {
+    console.log('Form values being submitted:', values);
+    
     // Only proceed if location has been selected
     if (!hasSelectedLocation) {
       form.setError('location', { 
@@ -131,6 +133,8 @@ const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
     longitude: number;
     timezone: string;
   }) => {
+    console.log('Location data received in BirthChartForm:', locationData);
+    
     form.setValue('location', locationData.formatted);
     form.setValue('latitude', locationData.latitude);
     form.setValue('longitude', locationData.longitude);
@@ -141,6 +145,9 @@ const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
     
     // Clear any location field errors since we now have a selection
     form.clearErrors('location');
+    
+    // Log current form values after update
+    console.log('Current form values:', form.getValues());
   };
 
   return (
