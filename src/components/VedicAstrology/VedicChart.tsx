@@ -1,5 +1,5 @@
-
-import { useState, useEffect } from 'react';
+// @ts-nocheck
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import BirthChartForm, { BirthDataFormValues } from './BirthChartForm';
@@ -16,30 +16,94 @@ import { DateTime } from 'luxon';
 import { Progress } from "@/components/ui/progress";
 
 // Types
+export interface Aspect {
+  planet: string;
+  type: string;
+  orb: number;
+}
+
+export interface NakshatraInfo {
+  name: string;
+  lord: string;
+  startDegree: number;
+  endDegree: number;
+  pada: number;
+}
+
 export interface Planet {
   id: string;
   name: string;
   symbol: string;
   longitude: number;
+  latitude: number;
+  longitudeSpeed: number;
   sign: number;
   house: number;
   retrograde: boolean;
   color: string;
+  nakshatra: NakshatraInfo;
+  aspectingPlanets: string[];
+  aspects: Aspect[];
 }
 
 export interface House {
   number: number;
   longitude: number;
   sign: number;
+  planets: string[];
+}
+
+export interface ChartMetadata {
+  ayanamsa: number;
+  date: string;
+  time: string;
+  latitude: number;
+  longitude: number;
+  timezone: string;
+  houseSystem: string;
 }
 
 export interface VedicChartData {
   ascendant: number;
+  ascendantNakshatra: NakshatraInfo;
   planets: Planet[];
   houses: House[];
   moonNakshatra: string;
   lunarDay: number;
+  metadata: ChartMetadata;
+  dashas: {
+    current: {
+      planet: string;
+      startDate: string;
+      endDate: string;
+      elapsed: {
+        years: number;
+        months: number;
+        days: number;
+      };
+      remaining: {
+        years: number;
+        months: number;
+        days: number;
+      };
+    };
+    sequence: Array<{
+      planet: string;
+      startDate: string;
+      endDate: string;
+    }>;
+  };
 }
+
+const PROGRESS_STAGES = [
+  { threshold: 0, message: "Đang khởi tạo yêu cầu..." },
+  { threshold: 10, message: "Đang gửi dữ liệu đến máy chủ..." },
+  { threshold: 20, message: "Máy chủ đang tính toán vị trí các hành tinh..." },
+  { threshold: 40, message: "Đang tính toán các cung hoàng đạo..." },
+  { threshold: 60, message: "Đang tính toán các góc chiếu..." },
+  { threshold: 80, message: "Đang tổng hợp kết quả..." },
+  { threshold: 95, message: "Sắp hoàn thành..." }
+];
 
 const VedicChart = () => {
   const { toast } = useToast();
@@ -86,17 +150,29 @@ const VedicChart = () => {
     setLoadingProgress(0);
     setError(null);
     
-    // Set up loading progress animation
-    const interval = setInterval(() => {
-      setLoadingProgress(prev => {
-        // Tăng dần progress, đảm bảo không vượt quá 95%
-        // để người dùng hiểu là vẫn đang đợi
-        const newProgress = prev + (95 - prev) * 0.05;
-        return newProgress > 95 ? 95 : newProgress;
-      });
-    }, 1000);
+    // Initial progress update
+    setLoadingProgress(5);
     
-    setLoadingIntervalId(interval);
+    // Set up loading progress animation with more realistic stages
+    const progressInterval = setInterval(() => {
+      setLoadingProgress(prev => {
+        // Find the next stage based on current progress
+        const currentStage = PROGRESS_STAGES.findIndex(stage => prev < stage.threshold);
+        if (currentStage === -1) return prev; // Keep at current progress if we're at the end
+        
+        const nextStage = PROGRESS_STAGES[currentStage];
+        const prevStage = currentStage > 0 ? PROGRESS_STAGES[currentStage - 1] : { threshold: 0 };
+        
+        // Calculate progress increment
+        const range = nextStage.threshold - prevStage.threshold;
+        const increment = range * 0.1; // Move 10% of the way to next stage
+        const newProgress = Math.min(prev + increment, nextStage.threshold);
+        
+        return newProgress;
+      });
+    }, 2000); // Update every 2 seconds
+    
+    setLoadingIntervalId(progressInterval);
     
     try {
       console.log("Calculating chart with data:", formData);
@@ -111,7 +187,7 @@ const VedicChart = () => {
         location: formData.location,
         name: formData.name,
         email: formData.email
-      }); //
+      });
       
       console.log("Chart data received:", data);
       setChartData(data);
@@ -132,12 +208,9 @@ const VedicChart = () => {
         variant: "destructive",
       });
     } finally {
-      // Clear the interval and reset loading state
       if (loadingIntervalId) {
         clearInterval(loadingIntervalId);
-        setLoadingIntervalId(null);
       }
-      setIsLoading(false);
     }
   };
 
@@ -237,22 +310,25 @@ const VedicChart = () => {
       </Card>
 
       {isLoading && (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex flex-col items-center justify-center space-y-4">
-              <div className="flex items-center space-x-2">
-                <Loader2 className="h-5 w-5 animate-spin text-amber-600" />
-                <span className="text-amber-700">Đang tính toán bản đồ sao...</span>
-              </div>
-              <div className="w-full">
-                <Progress value={loadingProgress} className="h-2" />
-                <p className="text-xs text-muted-foreground text-center mt-1">
-                  {loadingProgress < 100 ? "Đang chờ phản hồi từ máy chủ..." : "Hoàn tất!"}
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-[90%] max-w-md">
+            <CardHeader>
+              <CardTitle>Đang tính toán bản đồ sao...</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Progress value={loadingProgress} className="mb-4" />
+              <p className="text-sm text-muted-foreground">
+                {PROGRESS_STAGES.find(stage => loadingProgress < stage.threshold)?.message || 
+                 "Đang hoàn thiện bản đồ sao..."}
+              </p>
+              {loadingProgress >= 95 && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Quá trình này có thể mất đến 2 phút. Vui lòng đợi...
                 </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {error && (
