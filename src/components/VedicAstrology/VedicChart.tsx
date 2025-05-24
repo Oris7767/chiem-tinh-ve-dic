@@ -14,6 +14,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { Json } from '@/integrations/supabase/types';
 import { DateTime } from 'luxon';
 import { Progress } from "@/components/ui/progress";
+import PlanetAspectsTable from './PlanetAspectsTable';
+import PlanetDetailsTable from './PlanetDetailsTable';
+import HouseDetailsTable from './HouseDetailsTable';
 
 // Types
 export interface Aspect {
@@ -211,6 +214,8 @@ const VedicChart = () => {
       if (loadingIntervalId) {
         clearInterval(loadingIntervalId);
       }
+      // Hide loading popup
+      setIsLoading(false);
     }
   };
 
@@ -361,9 +366,6 @@ const VedicChart = () => {
             {formData && (
               <DashaCalculator 
                 chartData={chartData} 
-                birthDate={formData.birthDate}
-                birthTime={formData.birthTime}
-                timeZone={formData.timezone}
               />
             )}
           </TabsContent>
@@ -415,6 +417,13 @@ const ChartDisplay = ({ chartData, userData, onDownload }: ChartDisplayProps) =>
           </div>
         </CardContent>
       </Card>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <PlanetDetailsTable planets={chartData.planets} />
+        <HouseDetailsTable houses={chartData.houses} planets={chartData.planets} />
+      </div>
+
+      <PlanetAspectsTable planets={chartData.planets} />
     </div>
   );
 };

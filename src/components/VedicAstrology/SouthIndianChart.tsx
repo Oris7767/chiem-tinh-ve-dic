@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface Planet {
@@ -26,14 +25,12 @@ interface VedicChartData {
 
 interface SouthIndianChartProps {
   chartData: VedicChartData;
-  showDetails?: boolean;
   userName?: string;
   birthInfo?: string;
 }
 
 const SouthIndianChart: React.FC<SouthIndianChartProps> = ({ 
   chartData, 
-  showDetails = true,
   userName = '',
   birthInfo = ''
 }) => {
@@ -51,14 +48,6 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({
   const shortSignAbbr = [
     "Ari", "Tau", "Gem", "Can", "Leo", "Vir",
     "Lib", "Sco", "Sag", "Cap", "Aqu", "Pis"
-  ];
-  
-  // Full sign names
-  const SIGNS = [
-    "Aries", "Taurus", "Gemini", 
-    "Cancer", "Leo", "Virgo",
-    "Libra", "Scorpio", "Sagittarius", 
-    "Capricorn", "Aquarius", "Pisces"
   ];
 
   // Planet abbreviations
@@ -102,59 +91,26 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({
     return (longitude % 30).toFixed(2);
   };
 
-  // Generate detailed planet information for the side panel
-  const renderPlanetDetails = () => {
-    if (chartData.planets.length === 0) {
-      return (
-        <g transform="translate(430, 120)">
-          <text x="0" y="0" fontSize="12" fill="#B45309" textAnchor="start">
-            Không có dữ liệu hành tinh từ API
-          </text>
-        </g>
-      );
-    }
-    
-    return chartData.planets.map((planet, index) => (
-      <g key={`planet-detail-${planet.id}`} transform={`translate(430, ${120 + index * 20})`}>
-        <text x="0" y="0" fontSize="12" fill="#000000" textAnchor="start">
-          {getPlanetAbbr(planet.name)}: {SIGNS[planet.sign]} {getDegreesInSign(planet.longitude)}°
-          {planet.retrograde ? 'ᴿ' : ''}
-        </text>
-      </g>
-    ));
-  };
-
-  // Generate house details for the side panel
-  const renderHouseDetails = () => {
-    return chartData.houses.map((house, index) => (
-      <g key={`house-detail-${house.number}`} transform={`translate(430, ${270 + index * 20})`}>
-        <text x="0" y="0" fontSize="12" fill="#000000" textAnchor="start">
-          {house.number === 1 ? "Asc" : `House ${house.number}`}: {SIGNS[house.sign]} {getDegreesInSign(house.longitude)}°
-        </text>
-      </g>
-    ));
-  };
-
   return (
     <div className="relative w-full h-full">
       <svg
-        viewBox="0 0 600 600"
+        viewBox="0 0 400 400"
         className="w-full h-full border border-amber-200 rounded-lg"
         id="birth-chart-svg"
       >
         {/* Add a white background for better image saving */}
-        <rect x="0" y="0" width="600" height="600" fill="white" />
+        <rect x="0" y="0" width="400" height="400" fill="white" />
         
         {/* Chart Title and Birth Info */}
         {(userName || birthInfo) && (
           <g>
             {userName && (
-              <text x="300" y="30" fontSize="16" fontWeight="bold" textAnchor="middle" fill="#B45309">
+              <text x="200" y="30" fontSize="16" fontWeight="bold" textAnchor="middle" fill="#B45309">
                 Vedic Birth Chart for {userName}
               </text>
             )}
             {birthInfo && (
-              <text x="300" y="50" fontSize="12" textAnchor="middle" fill="#666">
+              <text x="200" y="50" fontSize="12" textAnchor="middle" fill="#666">
                 {birthInfo}
               </text>
             )}
@@ -227,52 +183,6 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({
             height="75"
           />
         </g>
-
-        {/* Detailed information panel if requested */}
-        {showDetails && (
-          <g>
-            {/* Panel Background */}
-            <rect x="420" y="70" width="150" height="450" fill="#f9f5eb" fillOpacity="0.5" rx="5" ry="5" />
-            
-            {/* Panel Title - Planets */}
-            <text x="430" y="100" fontSize="14" fontWeight="bold" fill="#B45309">
-              Planets
-            </text>
-            
-            {/* Planet Details */}
-            {renderPlanetDetails()}
-            
-            {/* Panel Title - Houses */}
-            <text x="430" y="250" fontSize="14" fontWeight="bold" fill="#B45309">
-              Houses
-            </text>
-            
-            {/* House Details */}
-            {renderHouseDetails()}
-            
-            {/* Additional Information */}
-            <text x="430" y="420" fontSize="14" fontWeight="bold" fill="#B45309">
-              Special Information
-            </text>
-            
-            <text x="430" y="440" fontSize="12" fill="#000000">
-              Moon Nakshatra: {chartData.moonNakshatra || "N/A"}
-            </text>
-            
-            <text x="430" y="460" fontSize="12" fill="#000000">
-              Lunar Day (Tithi): {chartData.lunarDay || "N/A"}
-            </text>
-            
-            <text x="430" y="480" fontSize="12" fill="#000000">
-              Ascendant: {SIGNS[Math.floor(chartData.ascendant / 30)]} {getDegreesInSign(chartData.ascendant)}°
-            </text>
-            
-            {/* Watermark */}
-            <text x="460" y="520" fontSize="10" fill="#999" textAnchor="middle">
-              Generated by VedicAstro
-            </text>
-          </g>
-        )}
       </svg>
     </div>
   );
