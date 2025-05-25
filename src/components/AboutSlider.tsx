@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { Sparkles } from 'lucide-react';
+import { GraduationCap, Stars, Users } from 'lucide-react';
 import {
   Carousel,
   CarouselContent,
@@ -17,13 +16,19 @@ const AUTOPLAY_INTERVAL = 5000; // 5 seconds per slide
 const AboutSlider = () => {
   const slides = [
     {
-      content: "Votive ra đời trong thời điểm Thổ Tinh ngự tại Bảo Bình – một biểu tượng chiêm tinh cho sự tái cấu trúc tri thức qua lăng kính nhân đạo và công nghệ. Chúng tôi kế thừa tinh hoa của Chiêm Tinh Học Vệ Đà (Jyotish) – hệ thống chiêm tinh đã được đúc kết qua hơn 4000 năm – và tái hiện lại chúng trong bối cảnh đời sống hiện đại."
+      icon: GraduationCap,
+      title: "Khóa học Số học & Chiêm tinh Vệ Đà",
+      content: "Khám phá lớp học chuyên sâu về Chiêm tinh Vệ Đà (Jyotish) & Số học Vệ Đà (Sankhya) – nơi bạn học cách giải mã bản đồ tâm hồn, thời vận và karmic patterns. Lớp nhỏ 6 người, học trực tiếp cùng giảng viên, hỗ trợ suốt hành trình chiêm nghiệm."
     },
     {
-      content: "Với tinh thần của Bảo Bình, Votive không ngừng đổi mới cách tiếp cận tri thức cổ xưa bằng công nghệ tiên tiến, nhưng vẫn luôn đặt Con Người làm trung tâm. Mỗi bản đồ sao không chỉ là dữ liệu – mà là hành trình cá nhân cần được lắng nghe, thấu hiểu và soi sáng."
+      icon: Stars,
+      title: "Dịch vụ tư vấn chiêm tinh cá nhân hóa",
+      content: "Luận giải lá số chi tiết theo hệ thống Vệ Đà chính thống:\n→ Khám phá bản chất linh hồn, nghiệp cũ\n→ Hỏi đáp về tình yêu, công việc, thời điểm tốt\n→ Gợi mở hướng đi phù hợp với bản mệnh.\nTư vấn 1:1 – sâu sắc, chữa lành, định hướng rõ ràng."
     },
     {
-      content: "Chúng tôi hướng đến sự cân bằng giữa hiện đại và truyền thống, giúp bạn khám phá bản thân, định hình con đường riêng, và kết nối sâu sắc hơn với chính mình."
+      icon: Users,
+      title: "Cộng đồng chiêm tinh & kênh kết nối",
+      content: "Tham gia Patreon để nhận dự báo chiêm tinh hàng tháng.\nTrò chuyện trong Discord cùng những tâm hồn đồng điệu.\nTheo dõi nội dung hàng ngày trên Facebook, X (Twitter) và Instagram.\nChúng ta cùng kết nối qua ánh sáng các vì sao"
     }
   ];
 
@@ -65,9 +70,10 @@ const AboutSlider = () => {
             <div key={index} className="flex-[0_0_100%] min-w-0 pl-4">
               <div className="p-1">
                 <Card className="border-none glass-card overflow-hidden">
-                  <CardContent className="flex flex-col justify-center items-center p-6 md:p-10 text-center min-h-[300px]">
-                    <Sparkles className="h-8 w-8 mb-4 text-amber-600" />
-                    <p className="text-lg md:text-xl text-amber-900 leading-relaxed">{slide.content}</p>
+                  <CardContent className="flex flex-col justify-center items-center p-6 md:p-10 text-center min-h-[400px]">
+                    {React.createElement(slide.icon, { className: "h-12 w-12 mb-6 text-amber-600" })}
+                    <h3 className="text-2xl font-semibold text-amber-900 mb-4">{slide.title}</h3>
+                    <p className="text-lg md:text-xl text-amber-900 leading-relaxed whitespace-pre-line">{slide.content}</p>
                   </CardContent>
                 </Card>
               </div>

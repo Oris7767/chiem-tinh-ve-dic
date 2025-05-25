@@ -126,25 +126,31 @@ const Hero = () => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="max-w-3xl mx-auto text-center"
+      className="max-w-4xl mx-auto text-center"
     >
       <span className="inline-block py-1 px-3 rounded-full bg-primary/10 text-primary mb-4 animate-fade-in">
-        {t('nav.about')}
+        Về Votive
       </span>
-      <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 animate-fade-in">
-        {t('about.title')}
+      <h2 className="text-3xl md:text-4xl font-bold mb-8 animate-fade-in">
+        Chiêm Tinh Học Vệ Đà Trong Thời Đại Mới
       </h2>
-      <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed animate-fade-in-delay">
-        {t('about.subtitle')}
-      </p>
-      <div className="grid md:grid-cols-2 gap-6 text-left">
+      <div className="space-y-6 text-left">
         <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg">
-          <h3 className="text-xl font-bold text-primary mb-3">{t('about.origins.title')}</h3>
-          <p className="text-gray-600">{t('about.origins.p1')}</p>
+          <p className="text-gray-700 leading-relaxed">
+            Votive ra đời trong thời điểm Thổ Tinh ngự tại Bảo Bình – một biểu tượng chiêm tinh cho sự tái cấu trúc tri thức qua lăng kính nhân đạo và công nghệ. Chúng tôi kế thừa tinh hoa của Chiêm Tinh Học Vệ Đà (Jyotish) – hệ thống chiêm tinh đã được đúc kết qua hơn 4000 năm – và tái hiện lại chúng trong bối cảnh đời sống hiện đại.
+          </p>
         </div>
+        
         <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg">
-          <h3 className="text-xl font-bold text-primary mb-3">{t('about.difference.title')}</h3>
-          <p className="text-gray-600">{t('about.difference.p1')}</p>
+          <p className="text-gray-700 leading-relaxed">
+            Với tinh thần của Bảo Bình, Votive không ngừng đổi mới cách tiếp cận tri thức cổ xưa bằng công nghệ tiên tiến, nhưng vẫn luôn đặt Con Người làm trung tâm. Mỗi bản đồ sao không chỉ là dữ liệu – mà là hành trình cá nhân cần được lắng nghe, thấu hiểu và soi sáng.
+          </p>
+        </div>
+        
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg">
+          <p className="text-gray-700 leading-relaxed">
+            Chúng tôi hướng đến sự cân bằng giữa hiện đại và truyền thống, giúp bạn khám phá bản thân, định hình con đường riêng, và kết nối sâu sắc hơn với chính mình.
+          </p>
         </div>
       </div>
     </motion.div>
@@ -173,7 +179,7 @@ const Hero = () => {
         </AnimatePresence>
 
         {/* Slide indicators */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-2">
+        <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 flex space-x-2">
           {[0, 1].map((index) => (
             <button
               key={index}
