@@ -41,7 +41,7 @@ const HouseDetailsTable: React.FC<HouseDetailsTableProps> = ({ houses, planets }
 
   const getPlanetSymbols = (planetIds: string[]): JSX.Element[] => {
     return planetIds.map(planetId => {
-      const planet = planets.find(p => p.id === planetId.toLowerCase());
+      const planet = planets.find(p => p.id === planetId);
       if (!planet) return null;
       return (
         <span

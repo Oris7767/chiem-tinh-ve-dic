@@ -358,19 +358,8 @@ function convertApiResponseToChartData(apiData: VedicChartResponse): VedicChartD
   const ascDeg = apiData.ascendant.sign.degree || 0;
   const ascLongitude = ascSignIdx * 30 + ascDeg;
 
-  
-  // Houses with planets
-  const houses: House[] = apiData.houses.map(h => ({
-    number: h.number,
-    sign: SIGN_TO_INDEX[h.sign] || 0,
-    longitude: (SIGN_TO_INDEX[h.sign] || 0) * 30 + (h.degree || 0),
-    planets: h.planets || []
-  }));
-
-  
-  // Planets with aspects and nakshatra info
+  // Planets with aspects and nakshatra info first
   const planets: Planet[] = apiData.planets.map(p => {
-
     const key = p.planet.toUpperCase();
     const info = PLANET_MAP[key] || {};
     
@@ -394,6 +383,18 @@ function convertApiResponseToChartData(apiData: VedicChartResponse): VedicChartD
       }))
     };
   });
+
+  // Houses with planets - convert planet names to IDs
+  const houses: House[] = apiData.houses.map(h => ({
+    number: h.number,
+    sign: SIGN_TO_INDEX[h.sign] || 0,
+    longitude: (SIGN_TO_INDEX[h.sign] || 0) * 30 + (h.degree || 0),
+    planets: (h.planets || []).map(planetName => {
+      const key = planetName.toUpperCase();
+      const info = PLANET_MAP[key] || {};
+      return info.id || key.toLowerCase();
+    })
+  }));
 
   // Find Moon's nakshatra
   const moon = planets.find(p => p.id === 'mo');
