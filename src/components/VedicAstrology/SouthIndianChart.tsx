@@ -17,6 +17,20 @@ interface House {
 
 interface VedicChartData {
   ascendant: number;
+  ascendantDetails?: {
+    longitude: number;
+    nakshatra: {
+      name: string;
+      lord: string;
+      pada: number;
+      startDegree: number;
+      endDegree: number;
+    };
+    sign: {
+      name: string;
+      degree: number;
+    };
+  };
   planets: Planet[];
   houses: House[];
   moonNakshatra: string;
@@ -94,6 +108,14 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({
     return `${degrees}°${minutes.toString().padStart(2, '0')}'`;
   };
 
+  // Format ascendant coordinates
+  const formatAscendantCoord = () => {
+    if (chartData.ascendantDetails?.longitude) {
+      return getDegreesInSign(chartData.ascendantDetails.longitude);
+    }
+    return getDegreesInSign(chartData.ascendant);
+  };
+
   return (
     <div className="relative w-full h-full">
       <svg
@@ -155,7 +177,7 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({
                   fontWeight="bold"
                 >
                   {shortSignAbbr[signIndex]} {houseNumber}
-                  {houseNumber === 1 && " ⬆"} {/* Special symbol for ascendant */}
+                  {houseNumber === 1 && ` ASC ${formatAscendantCoord()}`}
                 </text>
                 
                 {/* Display planets in this house */}
