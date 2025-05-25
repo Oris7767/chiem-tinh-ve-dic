@@ -107,24 +107,41 @@ export const birthChartService = {
       validateChartData(chartData);
       validateFormData(formData);
 
+      // Safely convert data to JSON
+      const safeJsonStringify = (data: any) => {
+        try {
+          return JSON.stringify(data);
+        } catch (error) {
+          console.error("Error stringifying data:", error);
+          throw new BirthChartError(
+            'Failed to convert data to JSON format',
+            'VALIDATION',
+            error
+          );
+        }
+      };
+
+      // Prepare chart data with safe JSON conversion
       const chartDataToSave = {
         user_id: userId,
-        planets: chartData.planets as unknown as Json,
-        houses: chartData.houses as unknown as Json,
-        nakshatras: {
+        planets: safeJsonStringify(chartData.planets),
+        houses: safeJsonStringify(chartData.houses),
+        nakshatras: safeJsonStringify({
           moonNakshatra: chartData.moonNakshatra,
           ascendantNakshatra: chartData.ascendantNakshatra
-        } as unknown as Json,
+        }),
         ascendant: chartData.ascendant,
         lunarDay: chartData.lunarDay,
-        metadata: {
+        metadata: safeJsonStringify({
           ...chartData.metadata,
           name: formData.name,
           location: formData.location
-        } as unknown as Json,
-        dashas: chartData.dashas as unknown as Json,
+        }),
+        dashas: safeJsonStringify(chartData.dashas),
         created_at: new Date().toISOString()
       };
+
+      console.log("Attempting to save chart data:", chartDataToSave);
 
       // Check for existing chart with retry mechanism
       let retries = 3;
@@ -145,11 +162,13 @@ export const birthChartService = {
         error = queryError;
         retries--;
         if (retries > 0) {
+          console.log(`Retrying query... ${retries} attempts remaining`);
           await new Promise(resolve => setTimeout(resolve, 1000));
         }
       }
 
       if (error) {
+        console.error("Failed to check for existing charts:", error);
         throw new BirthChartError(
           'Failed to check for existing charts',
           'DATABASE',
@@ -157,35 +176,32 @@ export const birthChartService = {
         );
       }
 
+      let result;
       if (existingCharts && existingCharts.length > 0) {
         // Update existing chart
-        const { error: updateError } = await supabase
+        console.log("Updating existing chart for user:", userId);
+        result = await supabase
           .from('birth_charts')
           .update(chartDataToSave)
           .eq('user_id', userId);
-
-        if (updateError) {
-          throw new BirthChartError(
-            'Failed to update existing chart',
-            'DATABASE',
-            updateError
-          );
-        }
       } else {
         // Insert new chart
-        const { error: insertError } = await supabase
+        console.log("Inserting new chart for user:", userId);
+        result = await supabase
           .from('birth_charts')
           .insert([chartDataToSave]);
-
-        if (insertError) {
-          throw new BirthChartError(
-            'Failed to insert new chart',
-            'DATABASE',
-            insertError
-          );
-        }
       }
 
+      if (result.error) {
+        console.error("Database operation failed:", result.error);
+        throw new BirthChartError(
+          'Failed to save chart to database',
+          'DATABASE',
+          result.error
+        );
+      }
+
+      console.log("Chart saved successfully");
       return { success: true };
     } catch (error) {
       console.error("Error in saveChart:", error);
@@ -196,7 +212,7 @@ export const birthChartService = {
 
       return {
         error: new BirthChartError(
-          'An unexpected error occurred',
+          'An unexpected error occurred while saving the chart',
           'UNKNOWN',
           error
         )

@@ -286,11 +286,31 @@ export async function calculateVedicChart(formData: {
       email: formData.email
     });
 
+    // Validate input data
+    if (!formData.birthDate || !formData.birthTime) {
+      throw new Error('Ngày giờ sinh không hợp lệ');
+    }
+
+    if (!formData.latitude || !formData.longitude) {
+      throw new Error('Vị trí địa lý không hợp lệ');
+    }
+
+    if (!formData.timezone) {
+      throw new Error('Múi giờ không hợp lệ');
+    }
+
     // Check if user is logged in and has a saved chart
     if (formData.email) {
-      const savedChart = await fetchSavedChart(formData.email);
-      if (savedChart) {
-        return savedChart;
+      try {
+        console.log('Checking for saved chart...');
+        const savedChart = await fetchSavedChart(formData.email);
+        if (savedChart) {
+          console.log('Found saved chart, returning it');
+          return savedChart;
+        }
+      } catch (error) {
+        console.error('Error fetching saved chart:', error);
+        // Continue with calculation if fetching saved chart fails
       }
     }
 
@@ -303,72 +323,69 @@ export async function calculateVedicChart(formData: {
       timezone: formData.timezone
     };
 
-    // Log the API payload
     console.log('Sending API payload:', apiPayload);
 
+    // Call the Vedic API with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 180000); // 3 minutes timeout
+
     try {
-      // Use fetchWithTimeoutAndRetry to handle retries and timeouts
-      const response = await fetchWithTimeoutAndRetry(
-        VEDIC_ASTRO_API_CONFIG.API_URL, 
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify(apiPayload)
+      const response = await fetch(`${import.meta.env.VITE_VEDIC_API_URL}/calculate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_VEDIC_API_KEY}`
         },
-        VEDIC_ASTRO_API_CONFIG.API_TIMEOUT,
-        VEDIC_ASTRO_API_CONFIG.MAX_RETRIES,
-        VEDIC_ASTRO_API_CONFIG.RETRY_DELAY
-      );
+        body: JSON.stringify(apiPayload),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API Error Response:', errorText);
-        
-        // Provide more specific error messages based on status code
-        switch (response.status) {
-          case 400:
-            throw new Error('Dữ liệu không hợp lệ. Vui lòng kiểm tra lại thông tin nhập vào.');
-          case 401:
-            throw new Error('Không có quyền truy cập. Vui lòng đăng nhập lại.');
-          case 403:
-            throw new Error('Không có quyền thực hiện thao tác này.');
-          case 404:
-            throw new Error('Không tìm thấy dịch vụ. Vui lòng thử lại sau.');
-          case 429:
-            throw new Error('Quá nhiều yêu cầu. Vui lòng thử lại sau ít phút.');
-          case 500:
-            throw new Error('Lỗi máy chủ. Vui lòng thử lại sau.');
-          default:
-            throw new Error(`Lỗi không xác định (${response.status}): ${errorText || 'Không có thông tin chi tiết'}`);
-        }
+        const errorData = await response.json().catch(() => null);
+        console.error('API error response:', errorData);
+        throw new Error(
+          errorData?.message || 
+          `Lỗi từ máy chủ: ${response.status} ${response.statusText}`
+        );
       }
 
-      const apiData: VedicChartResponse = await response.json();
+      const data = await response.json();
+      console.log('Received API response:', data);
 
-      // Log the API response
-      console.log('API Response:', apiData);
-
-      // Convert API response to VedicChartData format
-      const data = convertApiResponseToChartData(apiData);
-
-      // Save the chart data for logged in users
+      // Save chart data if user is logged in
       const { data: { user } } = await supabase.auth.getUser();
       if (user && formData.email) {
-        await supabase.from('birth_charts').insert([{
-          user_id: user.id,
-          planets: JSON.stringify(data.planets),
-          houses: JSON.stringify(data.houses),
-          nakshatras: JSON.stringify({ moonNakshatra: data.moonNakshatra }),
-          metadata: JSON.stringify(data.metadata),
-          dashas: JSON.stringify(data.dashas)
-        }]);
+        try {
+          console.log('Saving chart data for user:', user.id);
+          const { error } = await supabase.from('birth_charts').insert([{
+            user_id: user.id,
+            planets: JSON.stringify(data.planets),
+            houses: JSON.stringify(data.houses),
+            nakshatras: JSON.stringify({ moonNakshatra: data.moonNakshatra }),
+            metadata: JSON.stringify({
+              ...data.metadata,
+              name: formData.name,
+              location: formData.location
+            }),
+            dashas: JSON.stringify(data.dashas)
+          }]);
+
+          if (error) {
+            console.error('Error saving chart:', error);
+            // Don't throw error here, just log it
+          }
+        } catch (saveError) {
+          console.error('Error in save process:', saveError);
+          // Don't throw error here, just log it
+        }
       }
 
       return data;
     } catch (fetchError) {
+      clearTimeout(timeoutId);
+
       // Check if it was a timeout error
       if (fetchError.name === 'AbortError') {
         throw new Error('Quá thời gian chờ phản hồi từ máy chủ (3 phút). Vui lòng thử lại sau.');
@@ -383,6 +400,7 @@ export async function calculateVedicChart(formData: {
       throw new Error(`Lỗi khi tính toán bản đồ sao: ${fetchError.message}`);
     }
   } catch (error) {
+    console.error('Error in calculateVedicChart:', error);
     throw error;
   }
 }
