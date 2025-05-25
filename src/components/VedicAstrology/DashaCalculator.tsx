@@ -26,7 +26,7 @@ const DashaCalculator: React.FC<DashaCalculatorProps> = ({ chartData }) => {
 
       setIsLoading(true);
       try {
-        // Tìm dasha period tương ứng từ sequence
+        // Find the selected mahadasha period from sequence
         const selectedPeriod = chartData.dashas.sequence.find(
           dasha => dasha.planet === selectedMahadasha
         );
@@ -35,7 +35,7 @@ const DashaCalculator: React.FC<DashaCalculatorProps> = ({ chartData }) => {
           throw new Error('Không tìm thấy dữ liệu cho chu kỳ này');
         }
 
-        // Fetch antardasha data từ database
+        // Fetch antardasha data from database
         const { data: dashaRef, error: refError } = await supabase
           .from('dasha_reference')
           .select('antardasha_percentages')
@@ -47,17 +47,18 @@ const DashaCalculator: React.FC<DashaCalculatorProps> = ({ chartData }) => {
           throw new Error('Không có dữ liệu antardasha');
         }
 
-        // Tính toán thời gian cho mỗi antardasha
+        // Calculate time periods for each antardasha
         const startDate = DateTime.fromISO(selectedPeriod.startDate);
         const endDate = DateTime.fromISO(selectedPeriod.endDate);
         const totalDuration = endDate.diff(startDate);
-        
+
+        // Calculate antardasha sequence
         const antardasha = {
           sequence: Object.entries(dashaRef.antardasha_percentages).map(([planet, percentage]) => {
             const duration = totalDuration.multiply(percentage / 100);
             const subStartDate = startDate.plus({ milliseconds: totalDuration.multiply(percentage / 100).milliseconds });
             const subEndDate = subStartDate.plus(duration);
-            
+
             return {
               planet,
               startDate: subStartDate.toISO(),
@@ -65,6 +66,37 @@ const DashaCalculator: React.FC<DashaCalculatorProps> = ({ chartData }) => {
             };
           })
         };
+
+        // Find current antardasha if this is the current mahadasha
+        if (selectedMahadasha === chartData.dashas.current.planet) {
+          const now = DateTime.now();
+          const currentAntardasha = antardasha.sequence.find(ad => {
+            const adStart = DateTime.fromISO(ad.startDate);
+            const adEnd = DateTime.fromISO(ad.endDate);
+            return now >= adStart && now <= adEnd;
+          });
+
+          if (currentAntardasha) {
+            const adStart = DateTime.fromISO(currentAntardasha.startDate);
+            const adEnd = DateTime.fromISO(currentAntardasha.endDate);
+            const elapsed = now.diff(adStart, ['years', 'months', 'days']);
+            const remaining = adEnd.diff(now, ['years', 'months', 'days']);
+
+            antardasha.current = {
+              ...currentAntardasha,
+              elapsed: {
+                years: Math.floor(elapsed.years),
+                months: Math.floor(elapsed.months),
+                days: Math.floor(elapsed.days)
+              },
+              remaining: {
+                years: Math.floor(remaining.years),
+                months: Math.floor(remaining.months),
+                days: Math.floor(remaining.days)
+              }
+            };
+          }
+        }
 
         // Update selected dasha data with antardasha information
         setSelectedDashaData({
@@ -147,23 +179,34 @@ const DashaCalculator: React.FC<DashaCalculatorProps> = ({ chartData }) => {
                 </div>
               </div>
             </div>
+            {currentDasha.antardasha?.current && (
+              <div className="mt-2">
+                <div className="text-sm font-medium">Antardasha hiện tại:</div>
+                <div className="text-sm">
+                  {currentDasha.antardasha.current.planet} ({getPlanetAbbr(currentDasha.antardasha.current.planet)})
+                  <div className="text-xs text-gray-600">
+                    {formatDate(currentDasha.antardasha.current.startDate)} - {formatDate(currentDasha.antardasha.current.endDate)}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
-      
+
         <Tabs defaultValue="mahadasha">
           <TabsList className="mb-4 grid w-full grid-cols-2">
             <TabsTrigger value="mahadasha">Mahadasha</TabsTrigger>
             <TabsTrigger value="antardasha">Antardasha</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="mahadasha">
             <div className="space-y-4">
               {dashaSequence.length > 0 ? (
                 dashaSequence.map((dasha, index) => (
-                  <div 
-                    key={index} 
+                  <div
+                    key={index}
                     className={`p-3 border rounded-md cursor-pointer transition-colors ${
-                      dasha.planet === currentDasha.planet ? 'bg-amber-50 border-amber-300' : 
+                      dasha.planet === currentDasha.planet ? 'bg-amber-50 border-amber-300' :
                       selectedMahadasha === dasha.planet ? 'bg-blue-50 border-blue-300' : ''
                     }`}
                     onClick={() => setSelectedMahadasha(dasha.planet)}
@@ -193,9 +236,11 @@ const DashaCalculator: React.FC<DashaCalculatorProps> = ({ chartData }) => {
               ) : selectedMahadasha && selectedDashaData?.antardasha ? (
                 <div className="space-y-3">
                   {selectedDashaData.antardasha.sequence.map((antardasha, index) => (
-                    <div 
+                    <div
                       key={index}
-                      className="p-3 border rounded-md"
+                      className={`p-3 border rounded-md ${
+                        selectedDashaData.antardasha?.current?.planet === antardasha.planet ? 'bg-amber-50 border-amber-300' : ''
+                      }`}
                     >
                       <div className="flex justify-between">
                         <div className="font-medium">
@@ -205,6 +250,26 @@ const DashaCalculator: React.FC<DashaCalculatorProps> = ({ chartData }) => {
                           {formatDate(antardasha.startDate)} - {formatDate(antardasha.endDate)}
                         </div>
                       </div>
+                      {selectedDashaData.antardasha?.current?.planet === antardasha.planet && (
+                        <div className="mt-2 grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <div className="font-medium">Đã qua:</div>
+                            <div>
+                              {selectedDashaData.antardasha.current.elapsed.years} năm,{' '}
+                              {selectedDashaData.antardasha.current.elapsed.months} tháng,{' '}
+                              {selectedDashaData.antardasha.current.elapsed.days} ngày
+                            </div>
+                          </div>
+                          <div>
+                            <div className="font-medium">Còn lại:</div>
+                            <div>
+                              {selectedDashaData.antardasha.current.remaining.years} năm,{' '}
+                              {selectedDashaData.antardasha.current.remaining.months} tháng,{' '}
+                              {selectedDashaData.antardasha.current.remaining.days} ngày
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -225,4 +290,4 @@ const DashaCalculator: React.FC<DashaCalculatorProps> = ({ chartData }) => {
   );
 };
 
-export default DashaCalculator;
+export default DashaCalculator; 
