@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { cn } from '../lib/utils';
 import { useLanguage } from '../context/LanguageContext';
@@ -84,10 +83,10 @@ const NavBar = () => {
                     {t('nav.blog')}
                   </Link>
                 </li>
-                {/* Add the Vedic Chart menu item */}
+                {/* Vedic Chart menu item */}
                 <li>
                   <Link to="/vedic-chart" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
-                    {t('Chiêm tinh vệ đà') || 'Vedic Chart'}
+                    {language === 'vi' ? 'Chiêm Tinh Vệ Đà' : 'Vedic Astrology'}
                   </Link>
                 </li>
               </>
@@ -103,10 +102,10 @@ const NavBar = () => {
                     {t('nav.blog') || 'Blog'}
                   </Link>
                 </li>
-                {/* Add the Vedic Chart menu item */}
+                {/* Vedic Chart menu item */}
                 <li>
                   <Link to="/vedic-chart" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
-                    {t('Chiêm tinh vệ đà') || 'Vedic Chart'}
+                    {language === 'vi' ? 'Chiêm Tinh Vệ Đà' : 'Vedic Astrology'}
                   </Link>
                 </li>
               </>
