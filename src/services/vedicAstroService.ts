@@ -72,6 +72,43 @@ interface DbBirthChart {
   dashas?: Json;
 }
 
+interface AntarDasha {
+  planet: string;
+  startDate: string;
+  endDate: string;
+  duration: number;
+}
+
+interface DashaData {
+  current: {
+    planet: string;
+    startDate: string;
+    endDate: string;
+    elapsed: { years: number; months: number; days: number; };
+    remaining: { years: number; months: number; days: number; };
+    antardasha: {
+      current: {
+        planet: string;
+        startDate: string;
+        endDate: string;
+        elapsed: { years: number; months: number; days: number; };
+        remaining: { years: number; months: number; days: number; };
+      };
+      sequence: Array<{
+        planet: string;
+        startDate: string;
+        endDate: string;
+        pratyantardasha?: Array<{
+          planet: string;
+          startDate: string;
+          endDate: string;
+        }>;
+      }>;
+    };
+  };
+  sequence: Array<{ planet: string; startDate: string; endDate: string; }>;
+}
+
 /**
  * Safely parse stored JSON data into the expected format
  */
@@ -143,22 +180,23 @@ async function fetchSavedChart(email: string): Promise<VedicChartData | null> {
       timezone: 'UTC',
       houseSystem: 'W'
     });
-    const dashas = safeParseJson<{
-      current: {
-        planet: string;
-        startDate: string;
-        endDate: string;
-        elapsed: { years: number; months: number; days: number; };
-        remaining: { years: number; months: number; days: number; };
-      };
-      sequence: Array<{ planet: string; startDate: string; endDate: string; }>;
-    }>(chartData.dashas || null, {
+    const dashas = safeParseJson<DashaData>(chartData.dashas || null, {
       current: {
         planet: '',
         startDate: '',
         endDate: '',
         elapsed: { years: 0, months: 0, days: 0 },
-        remaining: { years: 0, months: 0, days: 0 }
+        remaining: { years: 0, months: 0, days: 0 },
+        antardasha: {
+          current: {
+            planet: '',
+            startDate: '',
+            endDate: '',
+            elapsed: { years: 0, months: 0, days: 0 },
+            remaining: { years: 0, months: 0, days: 0 }
+          },
+          sequence: []
+        }
       },
       sequence: []
     });
@@ -407,7 +445,17 @@ function convertApiResponseToChartData(apiData: VedicChartResponse): VedicChartD
     startDate: currentDasha.startDate,
     endDate: currentDasha.endDate,
     elapsed: currentDasha.elapsed || { years: 0, months: 0, days: 0 },
-    remaining: currentDasha.remaining || { years: 0, months: 0, days: 0 }
+    remaining: currentDasha.remaining || { years: 0, months: 0, days: 0 },
+    antardasha: {
+      current: currentDasha.antardasha?.current || {
+        planet: '',
+        startDate: '',
+        endDate: '',
+        elapsed: { years: 0, months: 0, days: 0 },
+        remaining: { years: 0, months: 0, days: 0 }
+      },
+      sequence: currentDasha.antardasha?.sequence || []
+    }
   };
 
   return {

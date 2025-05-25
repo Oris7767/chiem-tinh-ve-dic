@@ -48,7 +48,7 @@ const HouseDetailsTable: React.FC<HouseDetailsTableProps> = ({ houses, planets }
           key={planet.id}
           title={planet.name}
           style={{ color: planet.color }}
-          className="mr-1"
+          className="mr-1 text-2xl"
         >
           {planet.symbol}
         </span>
