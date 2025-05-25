@@ -143,4 +143,27 @@ function convertApiResponseToChartData(apiData: VedicChartResponse): VedicChartD
   };
 }
 
-export { convertApiResponseToChartData, calculateLunarDay }; 
+async function calculateVedicChart(data: VedicChartRequest): Promise<VedicChartData> {
+  try {
+    const response = await fetch(VEDIC_ASTRO_API_CONFIG.API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${VEDIC_ASTRO_API_CONFIG.GEOAPIFY_API_KEY}`
+      },
+      body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+      throw new Error(`API request failed with status ${response.status}`);
+    }
+
+    const apiData: VedicChartResponse = await response.json();
+    return convertApiResponseToChartData(apiData);
+  } catch (error) {
+    console.error('Error calculating Vedic chart:', error);
+    throw error;
+  }
+}
+
+export { convertApiResponseToChartData, calculateLunarDay, calculateVedicChart }; 
