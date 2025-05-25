@@ -58,10 +58,10 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({
     return acc;
   }, {} as Record<number, Planet[]>);
 
-  // Shortened sign abbreviations (3 characters)
+  // Shortened sign abbreviations (2 characters)
   const shortSignAbbr = [
-    "Ari", "Tau", "Gem", "Can", "Leo", "Vir",
-    "Lib", "Sco", "Sag", "Cap", "Aqu", "Pis"
+    "Ar", "Ta", "Ge", "Ca", "Le", "Vi",
+    "Li", "Sc", "Sg", "Cp", "Aq", "Pi"
   ];
 
   // Planet abbreviations
@@ -177,8 +177,18 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({
                   fontWeight="bold"
                 >
                   {shortSignAbbr[signIndex]} {houseNumber}
-                  {houseNumber === 1 && ` ASC ${formatAscendantCoord()}`}
                 </text>
+                {/* Show ASC coordinates separately with smaller font */}
+                {houseNumber === 1 && (
+                  <text
+                    x={x + 5}
+                    y={y + 28}
+                    fontSize="8"
+                    fill="#B45309"
+                  >
+                    ASC {formatAscendantCoord()}
+                  </text>
+                )}
                 
                 {/* Display planets in this house */}
                 <g>
@@ -186,7 +196,7 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({
                     <text
                       key={planet.id}
                       x={x + 5}
-                      y={y + 30 + idx * 14}
+                      y={y + 42 + idx * 14}
                       fontSize="10"
                       fill="#000000"
                     >
