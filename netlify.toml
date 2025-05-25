@@ -1,6 +1,6 @@
 [build]
   command = "npm run build"
-  publish = ".next"
+  publish = "dist"
 
 [build.environment]
   NEXT_PUBLIC_VEDIC_API_URL = "https://vedicvn-api.onrender.com/api/chart"
@@ -20,8 +20,15 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Content-Security-Policy = "default-src 'self' https: data: 'unsafe-inline' 'unsafe-eval';"
 
-# Redirect all requests to index.html for SPA
+# Handle client-side routing
 [[redirects]]
   from = "/*"
   to = "/index.html"
-  status = 200 
+  status = 200
+
+# Force HTTPS
+[[redirects]]
+  from = "http://*"
+  to = "https://:splat"
+  status = 301
+  force = true 
