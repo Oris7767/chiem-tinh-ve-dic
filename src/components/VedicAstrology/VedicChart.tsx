@@ -17,6 +17,7 @@ import { Progress } from "@/components/ui/progress";
 import PlanetAspectsTable from './PlanetAspectsTable';
 import PlanetDetailsTable from './PlanetDetailsTable';
 import HouseDetailsTable from './HouseDetailsTable';
+import { birthChartService } from '@/services/birthChartService';
 
 // Types
 export interface Aspect {
@@ -148,11 +149,7 @@ const VedicChart = () => {
   // Fetch saved charts when user logs in
   const fetchSavedCharts = async (userId: string) => {
     try {
-      const { data: charts, error } = await supabase
-        .from('birth_charts')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
+      const { charts, error } = await birthChartService.getUserCharts(userId);
 
       if (error) {
         console.error("Error fetching saved charts:", error);
@@ -163,23 +160,26 @@ const VedicChart = () => {
         setSavedCharts(charts);
         // Automatically load the most recent chart
         const latestChart = charts[0];
-        setChartData({
-          ascendant: 0, // This will need to be calculated or stored
-          ascendantNakshatra: latestChart.nakshatras.ascendantNakshatra,
-          planets: latestChart.planets,
-          houses: latestChart.houses,
-          moonNakshatra: latestChart.nakshatras.moonNakshatra,
-          lunarDay: 0, // This will need to be calculated or stored
-          metadata: latestChart.metadata || {},
-          dashas: latestChart.dashas || { current: {}, sequence: [] }
-        });
+        
+        // Reconstruct form data from saved metadata
+        setFormData(birthChartService.reconstructFormData(latestChart, user?.email));
+
+        // Reconstruct chart data with all necessary fields
+        const reconstructedChartData = birthChartService.reconstructChartData(latestChart);
+        setChartData(reconstructedChartData);
+        
         toast({
           title: "Bản đồ sao đã được tải",
-          description: "Đã tải bản đồ sao gần nhất của bạn.",
+          description: `Đã tải bản đồ của ${reconstructedChartData.metadata.date} ${reconstructedChartData.metadata.time}`,
         });
       }
     } catch (error) {
       console.error("Error in fetchSavedCharts:", error);
+      toast({
+        title: "Lỗi khi tải bản đồ",
+        description: "Không thể tải bản đồ sao đã lưu. Vui lòng thử lại sau.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -272,39 +272,7 @@ const VedicChart = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         try {
-          // Prepare the data according to the database schema
-          const chartDataToSave = {
-            user_id: user.id,
-            planets: data.planets,
-            houses: data.houses,
-            nakshatras: {
-              moonNakshatra: data.moonNakshatra,
-              ascendantNakshatra: data.ascendantNakshatra
-            },
-            created_at: new Date().toISOString()
-          };
-
-          // First, try to find if user already has a chart
-          const { data: existingCharts } = await supabase
-            .from('birth_charts')
-            .select('id')
-            .eq('user_id', user.id);
-
-          let saveError;
-          if (existingCharts && existingCharts.length > 0) {
-            // Update existing chart
-            const { error } = await supabase
-              .from('birth_charts')
-              .update(chartDataToSave)
-              .eq('user_id', user.id);
-            saveError = error;
-          } else {
-            // Insert new chart
-            const { error } = await supabase
-              .from('birth_charts')
-              .insert([chartDataToSave]);
-            saveError = error;
-          }
+          const { error: saveError } = await birthChartService.saveChart(user.id, data, formData);
 
           if (saveError) {
             console.error("Error saving chart:", saveError);

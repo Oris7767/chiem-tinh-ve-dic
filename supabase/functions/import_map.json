@@ -1,0 +1,12 @@
+{
+  "imports": {
+    "std/": "https://deno.land/std@0.168.0/",
+    "http/": "https://deno.land/std@0.168.0/http/",
+    "denomailer": "https://deno.land/x/denomailer@0.12.0/mod.ts",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.7.1",
+    "rate_limiter": "https://deno.land/x/rate_limiter@v0.1.0/mod.ts",
+    "types/": "https://deno.land/x/types/",
+    "deno_types": "https://deno.land/x/types/index.d.ts"
+  },
+  "scopes": {}
+} 

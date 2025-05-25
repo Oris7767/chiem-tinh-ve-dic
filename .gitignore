@@ -7,10 +7,21 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
 dist
 dist-ssr
 *.local
+
+# Environment files
+.env
+.env.*
+!.env.example
+.env.local
+.env.*.local
+.env.development
+.env.test
+.env.production
 
 # Editor directories and files
 .vscode/*
@@ -25,3 +36,24 @@ dist-ssr
 
 # Local Netlify folder
 .netlify
+
+# Debug & Cache
+.debug/
+*.cache
+.cache/
+.temp/
+
+# Build output
+build/
+out/
+.next/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Misc
+*.pem
+.DS_Store*
+._*
+Thumbs.db

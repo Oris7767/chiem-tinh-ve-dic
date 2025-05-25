@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "strict": true,
+    "lib": ["deno.window", "deno.ns", "esnext"],
+    "noImplicitAny": false
+  },
+  "importMap": "./import_map.json",
+  "tasks": {
+    "start": "deno run --allow-net --allow-env index.ts"
+  },
+  "lint": {
+    "files": {
+      "include": ["auth-email-handler/"]
+    }
+  },
+  "fmt": {
+    "files": {
+      "include": ["auth-email-handler/"]
+    },
+    "options": {
+      "useTabs": false,
+      "lineWidth": 100,
+      "indentWidth": 2,
+      "singleQuote": true
+    }
+  }
+} 
