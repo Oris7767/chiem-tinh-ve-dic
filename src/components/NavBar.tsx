@@ -64,21 +64,6 @@ const NavBar = () => {
             {isHomePage ? (
               <>
                 <li>
-                  <a href="#calculator" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in">
-                    {t('nav.calculate')}
-                  </a>
-                </li>
-                <li>
-                  <a href="#about" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
-                    {t('nav.about')}
-                  </a>
-                </li>
-                <li>
-                  <a href="#meanings" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
-                    {t('nav.meanings')}
-                  </a>
-                </li>
-                <li>
                   <Link to="/blog" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
                     {t('nav.blog')}
                   </Link>

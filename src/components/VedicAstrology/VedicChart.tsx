@@ -143,6 +143,73 @@ const VedicChart = () => {
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [formData, setFormData] = useState<BirthDataFormValues | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [savedCharts, setSavedCharts] = useState<any[]>([]);
+
+  // Fetch saved charts when user logs in
+  const fetchSavedCharts = async (userId: string) => {
+    try {
+      const { data: charts, error } = await supabase
+        .from('birth_charts')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error("Error fetching saved charts:", error);
+        return;
+      }
+
+      if (charts && charts.length > 0) {
+        setSavedCharts(charts);
+        // Automatically load the most recent chart
+        const latestChart = charts[0];
+        setChartData({
+          ascendant: 0, // This will need to be calculated or stored
+          ascendantNakshatra: latestChart.nakshatras.ascendantNakshatra,
+          planets: latestChart.planets,
+          houses: latestChart.houses,
+          moonNakshatra: latestChart.nakshatras.moonNakshatra,
+          lunarDay: 0, // This will need to be calculated or stored
+          metadata: latestChart.metadata || {},
+          dashas: latestChart.dashas || { current: {}, sequence: [] }
+        });
+        toast({
+          title: "Bản đồ sao đã được tải",
+          description: "Đã tải bản đồ sao gần nhất của bạn.",
+        });
+      }
+    } catch (error) {
+      console.error("Error in fetchSavedCharts:", error);
+    }
+  };
+
+  // Check for user session and load saved charts
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      if (user) {
+        await fetchSavedCharts(user.id);
+      }
+    };
+
+    checkSession();
+
+    // Listen for authentication state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        await fetchSavedCharts(session.user.id);
+      } else {
+        setSavedCharts([]);
+        setChartData(null);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   // Xử lý loading progress và hủy interval khi component unmount
   useEffect(() => {
@@ -152,25 +219,6 @@ const VedicChart = () => {
       }
     };
   }, [loadingIntervalId]);
-
-  // Check for user session on component mount
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-    };
-
-    checkSession();
-
-    // Listen for authentication state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
 
   const handleSubmit = async (formData: BirthDataFormValues) => {
     setIsLoading(true);
@@ -220,13 +268,69 @@ const VedicChart = () => {
       console.log("Chart data received:", data);
       setChartData(data);
 
+      // Save chart data if user is logged in
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        try {
+          // Prepare the data according to the database schema
+          const chartDataToSave = {
+            user_id: user.id,
+            planets: data.planets,
+            houses: data.houses,
+            nakshatras: {
+              moonNakshatra: data.moonNakshatra,
+              ascendantNakshatra: data.ascendantNakshatra
+            },
+            created_at: new Date().toISOString()
+          };
+
+          // First, try to find if user already has a chart
+          const { data: existingCharts } = await supabase
+            .from('birth_charts')
+            .select('id')
+            .eq('user_id', user.id);
+
+          let saveError;
+          if (existingCharts && existingCharts.length > 0) {
+            // Update existing chart
+            const { error } = await supabase
+              .from('birth_charts')
+              .update(chartDataToSave)
+              .eq('user_id', user.id);
+            saveError = error;
+          } else {
+            // Insert new chart
+            const { error } = await supabase
+              .from('birth_charts')
+              .insert([chartDataToSave]);
+            saveError = error;
+          }
+
+          if (saveError) {
+            console.error("Error saving chart:", saveError);
+            toast({
+              title: "Lưu ý",
+              description: "Bản đồ sao đã được tính toán nhưng không thể lưu. Chi tiết lỗi: " + saveError.message,
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Thành công!",
+              description: "Bản đồ sao đã được tính toán và lưu vào tài khoản của bạn.",
+            });
+          }
+        } catch (error) {
+          console.error("Error in save process:", error);
+          toast({
+            title: "Lỗi khi lưu",
+            description: "Đã xảy ra lỗi trong quá trình lưu bản đồ sao. Vui lòng thử lại sau.",
+            variant: "destructive",
+          });
+        }
+      }
+
       // Set progress to 100% when completed
       setLoadingProgress(100);
-
-      toast({
-        title: "Bản đồ sao đã được tính toán thành công!",
-        description: `${formData.birthDate} ${formData.birthTime} tại ${formData.location}`,
-      });
     } catch (error) {
       console.error("Error calculating chart:", error);
       setError(error instanceof Error ? error.message : "Đã xảy ra lỗi không xác định");
@@ -306,14 +410,51 @@ const VedicChart = () => {
   return (
     <div className="space-y-8">
       {user ? (
-        <div className="flex justify-between items-center">
-          <div>
-            <p className="text-amber-100">Xin chào, {user.user_metadata?.name || user.email}</p>
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <p className="text-amber-100">Xin chào, {user.user_metadata?.name || user.email}</p>
+            </div>
+            <Button variant="outline" onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Đăng xuất
+            </Button>
           </div>
-          <Button variant="outline" onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Đăng xuất
-          </Button>
+          
+          {savedCharts.length > 0 && !chartData && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Bản đồ sao đã lưu</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {savedCharts.map((chart, index) => (
+                    <Button
+                      key={chart.id}
+                      variant="outline"
+                      className="w-full justify-start"
+                      onClick={() => {
+                        setChartData({
+                          ascendant: 0,
+                          ascendantNakshatra: chart.nakshatras.ascendantNakshatra,
+                          planets: chart.planets,
+                          houses: chart.houses,
+                          moonNakshatra: chart.nakshatras.moonNakshatra,
+                          lunarDay: 0,
+                          metadata: chart.metadata || {},
+                          dashas: chart.dashas || { current: {}, sequence: [] }
+                        });
+                      }}
+                    >
+                      <span>
+                        Bản đồ {index + 1} - {new Date(chart.created_at).toLocaleDateString('vi-VN')}
+                      </span>
+                    </Button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       ) : (
         <Tabs defaultValue="login" value={authMode} onValueChange={(value) => setAuthMode(value as 'login' | 'register')}>

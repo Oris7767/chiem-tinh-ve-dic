@@ -168,7 +168,7 @@ const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email (không bắt buộc)</FormLabel>
+                <FormLabel>Email </FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Mail className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />

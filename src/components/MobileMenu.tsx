@@ -23,7 +23,6 @@ const MobileMenu = () => {
   
   const menuItems = [
     { to: '/', label: 'nav.home', icon: null },
-    { to: '/numerology', label: 'nav.numerology', icon: null },
     { 
       to: '/vedic-chart', 
       label: language === 'vi' ? 'Chiêm Tinh Vệ Đà' : 'Vedic Astrology', 

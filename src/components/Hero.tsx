@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '../context/LanguageContext';
+import { Link } from 'react-router-dom';
 
 const Hero = () => {
   const numberRef = useRef<HTMLDivElement>(null);
@@ -102,20 +103,20 @@ const Hero = () => {
         Khám phá ý nghĩa sâu sắc đằng sau những con số trong cuộc sống của bạn dựa trên nguyên lý cổ đại của số học Vệ Đà.
       </p>
       <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-delay">
-        <a 
-          href="#calculator" 
+        <Link 
+          to="/numerology" 
           className="btn-primary w-full sm:w-auto"
-          aria-label="Tính toán số học ngay"
+          aria-label="Số Học Vệ Đà"
         >
-          Tính toán ngay
-        </a>
-        <a 
-          href="#about" 
-          className="px-6 py-3 text-gray-700 hover:text-primary transition-colors w-full sm:w-auto"
-          aria-label="Tìm hiểu thêm về số học Vệ Đà"
+          Số Học Vệ Đà
+        </Link>
+        <Link 
+          to="/vedic-chart" 
+          className="btn-primary w-full sm:w-auto"
+          aria-label="Chiêm Tinh Vệ Đà"
         >
-          Tìm hiểu thêm
-        </a>
+          Chiêm Tinh Vệ Đà
+        </Link>
       </div>
     </motion.div>,
 
