@@ -12,8 +12,10 @@ import { CalendarIcon, Tag, User, LogIn, Loader2 } from 'lucide-react';
 import NewsletterSignup from '../components/NewsletterSignup';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { SEO } from '../utils/seo';
+import SEO from '../components/SEO';
+import { blogSchema } from '../lib/schemas';
 import { Helmet } from 'react-helmet-async';
+import Breadcrumbs from '../components/Breadcrumbs';
 
 const BlogPage = () => {
   const { t, language } = useLanguage();
@@ -27,6 +29,23 @@ const BlogPage = () => {
     // Scroll to top when page loads
     window.scrollTo(0, 0);
   }, [fetchPosts]);
+
+  // Create dynamic blog schema with posts
+  const dynamicBlogSchema = {
+    ...blogSchema,
+    blogPost: posts.map(post => ({
+      "@type": "BlogPosting",
+      "headline": post.title,
+      "description": post.excerpt,
+      "author": {
+        "@type": "Person",
+        "name": post.author
+      },
+      "datePublished": new Date(post.date).toISOString(),
+      "image": post.imageUrl,
+      "url": `https://vedicvn.com/#/blog/${post.slug}`
+    }))
+  };
 
   // Extract all unique tags from posts
   const allTags = Array.from(new Set(posts.flatMap(post => post.tags)));
@@ -56,8 +75,7 @@ const BlogPage = () => {
       <SEO 
         title={language === 'vi' ? 'Blog Chiêm Tinh Vệ Đà' : 'Vedic Astrology Blog'}
         description={language === 'vi' ? 'Khám phá tri thức cổ đại về chiêm tinh và số học Vệ Đà qua các bài viết chuyên sâu' : 'Explore ancient wisdom of Vedic astrology and numerology through our articles'}
-        keywords="vedic astrology, numerology, blog, spiritual wisdom, vedic wisdom"
-        canonicalUrl="/blog"
+        schema={dynamicBlogSchema}
       />
       
       <Helmet>

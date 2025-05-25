@@ -1,4 +1,3 @@
-
 import NavBar from '../components/NavBar';
 import Hero from '../components/Hero';
 import Calculator from '../components/Calculator';
@@ -8,34 +7,19 @@ import { numberMeanings } from '../utils/data';
 import { useLanguage } from '../context/LanguageContext';
 import { Helmet } from 'react-helmet-async';
 import AboutSlider from '../components/AboutSlider';
+import SEO from '../components/SEO';
+import { calculatorSchema } from '../lib/schemas';
 
 const Index = () => {
   const { t, language } = useLanguage();
   
   return (
     <div className="min-h-screen flex flex-col">
-      <Helmet>
-        <title>Số học Vệ Đà - Khám phá ý nghĩa sâu sắc | chiemtinhvedavn</title>
-        <meta name="description" content="Khám phá ý nghĩa sâu sắc đằng sau những con số trong cuộc sống của bạn dựa trên nguyên lý cổ đại của số học Vệ Đà từ chiemtinhvedavn." />
-        <meta name="keywords" content="số học Vệ Đà, chiemtinhvedavn, số học, numerology, vedic astrology, Vệ Đà, thần số học" />
-        <link rel="canonical" href="https://vedicvn.com/" />
-        
-        {/* Structured data for website */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "WebSite",
-            "url": "https://vedicvn.com/",
-            "name": "Số học Vệ Đà - chiemtinhvedavn",
-            "description": "Khám phá ý nghĩa sâu sắc đằng sau những con số trong cuộc sống của bạn dựa trên nguyên lý cổ đại của số học Vệ Đà.",
-            "potentialAction": {
-              "@type": "SearchAction",
-              "target": "https://vedicvn.com/search?q={search_term_string}",
-              "query-input": "required name=search_term_string"
-            }
-          })}
-        </script>
-      </Helmet>
+      <SEO 
+        title="Số học Vệ Đà - Khám phá ý nghĩa sâu sắc | chiemtinhvedavn"
+        description="Khám phá ý nghĩa sâu sắc đằng sau những con số trong cuộc sống của bạn dựa trên nguyên lý cổ đại của số học Vệ Đà từ chiemtinhvedavn."
+        schema={calculatorSchema}
+      />
       
       <NavBar />
       <main className="flex-grow">

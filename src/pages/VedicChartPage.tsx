@@ -1,23 +1,30 @@
 import React from 'react';
-import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '../context/LanguageContext';
 import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
 import VedicChart from '../components/VedicAstrology/VedicChart';
+import SEO from '../components/SEO';
+import { vedicChartSchema } from '../lib/schemas';
+import Breadcrumbs from '../components/Breadcrumbs';
 
 const VedicChartPage = () => {
   const { t } = useLanguage();
   
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-stone-900 via-amber-950 to-amber-900">
-      <Helmet>
-        <title>Bản đồ sao Chiêm Tinh Vệ Đà | Vedic Astrology</title>
-        <meta name="description" content="Khám phá bản đồ sao cá nhân theo chiêm tinh Vệ Đà dựa trên thông tin ngày giờ sinh của bạn." />
-      </Helmet>
+      <SEO 
+        title="Bản đồ sao Chiêm Tinh Vệ Đà | Vedic Astrology"
+        description="Khám phá bản đồ sao cá nhân theo chiêm tinh Vệ Đà dựa trên thông tin ngày giờ sinh của bạn."
+        schema={vedicChartSchema}
+      />
       
       <NavBar />
       
       <main className="flex-grow pt-28 pb-20 px-4 sm:px-6 md:px-8 max-w-7xl mx-auto w-full">
+        <div className="mb-6">
+          <Breadcrumbs />
+        </div>
+        
         <div className="mb-12 text-center">
           <h1 className="text-3xl md:text-4xl font-bold text-amber-50 mb-4">
             {t('Bản Đồ Sao Chiêm Tinh Vệ Đà')}

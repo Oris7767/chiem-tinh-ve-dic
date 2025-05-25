@@ -1,6 +1,10 @@
-
 User-agent: *
 Allow: /
+Allow: /blog/
+Allow: /vedic-chart/
+Disallow: /blog/admin
+Disallow: /subscribers
+Disallow: /numerology/admin
 
 # Sitemaps
 Sitemap: https://vedicvn.com/sitemap.xml
@@ -19,4 +23,4 @@ User-agent: Bingbot
 Allow: /
 
 # Rate limiting
-Crawl-delay: 1
+Crawl-delay: 10

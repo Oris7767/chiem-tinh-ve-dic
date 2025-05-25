@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
@@ -11,7 +10,8 @@ import NewsletterSignup from '../components/NewsletterSignup';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import PostHeader from '@/components/blog/PostHeader';
-import { SEO } from '../utils/seo';
+import SEO from '../components/SEO';
+import { createBlogPostSchema } from '../lib/schemas';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -23,6 +23,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import Breadcrumbs from '../components/Breadcrumbs';
 
 const BlogPostPage = () => {
   const { t, language } = useLanguage();
@@ -53,10 +54,7 @@ const BlogPostPage = () => {
           <div className="container mx-auto px-4 py-8">
             <div className="max-w-4xl mx-auto">
               <div className="mb-6">
-                <Link to="/blog" className="inline-flex items-center text-amber-700 hover:text-amber-900 transition-colors">
-                  <ArrowLeft size={16} className="mr-2" />
-                  {t('blog.backToBlog') || 'Back to Blog'}
-                </Link>
+                <Breadcrumbs />
               </div>
               
               <div className="mb-8 rounded-lg overflow-hidden shadow-md">
@@ -99,42 +97,21 @@ const BlogPostPage = () => {
   };
 
   const postDate = new Date(post.date);
+  const postSchema = createBlogPostSchema({
+    title: post.title,
+    description: post.excerpt,
+    datePublished: postDate.toISOString(),
+    image: post.imageUrl,
+    author: post.author
+  });
 
   return (
     <>
       <SEO 
         title={post.title}
         description={post.excerpt}
-        keywords={post.tags.join(', ')}
-        canonicalUrl={`/blog/${post.slug}`}
-        ogImageUrl={post.imageUrl}
-        article={{
-          publishedTime: postDate.toISOString(),
-          author: post.author,
-          tags: post.tags
-        }}
-        jsonLd={{
-          "@context": "https://schema.org",
-          "@type": "BlogPosting",
-          "headline": post.title,
-          "description": post.excerpt,
-          "image": post.imageUrl,
-          "datePublished": postDate.toISOString(),
-          "author": {
-            "@type": "Person",
-            "name": post.author
-          },
-          "publisher": {
-            "@type": "Organization",
-            "name": "vedicvn.com",
-            "logo": {
-              "@type": "ImageObject",
-              "url": "https://vedicvn.com/lovable-uploads/97fa6e16-3fd9-42cd-887d-d6d1d4d3ee6b.png"
-            }
-          },
-          "keywords": post.tags.join(','),
-          "articleBody": post.content.replace(/<[^>]*>/g, ' ')
-        }}
+        image={post.imageUrl}
+        schema={postSchema}
       />
       
       <div className="min-h-screen flex flex-col bg-gradient-to-b from-amber-50 to-amber-100">
@@ -142,6 +119,10 @@ const BlogPostPage = () => {
         <main className="flex-grow pt-16">
           <div className="container mx-auto px-4 py-8">
             <div className="max-w-4xl mx-auto">
+              <div className="mb-6">
+                <Breadcrumbs />
+              </div>
+              
               <div className="mb-6">
                 <Link to="/blog" className="inline-flex items-center text-amber-700 hover:text-amber-900 transition-colors">
                   <ArrowLeft size={16} className="mr-2" />
