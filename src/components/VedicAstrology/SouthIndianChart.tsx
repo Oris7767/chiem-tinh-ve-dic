@@ -105,7 +105,8 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({
     const totalDegrees = longitude % 30;
     const degrees = Math.floor(totalDegrees);
     const minutes = Math.floor((totalDegrees - degrees) * 60);
-    return `${degrees}°${minutes.toString().padStart(2, '0')}'`;
+    // Removed degree and minute symbols, just return numbers
+    return `${degrees}.${minutes.toString().padStart(2, '0')}`;
   };
 
   // Format ascendant coordinates
@@ -196,11 +197,11 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({
                     <text
                       key={planet.id}
                       x={x + 5}
-                      y={y + 42 + idx * 14}
-                      fontSize="10"
+                      y={y + 42 + idx * 12}  // Reduced vertical spacing between planets
+                      fontSize="8"  // Reduced font size for planets
                       fill="#000000"
                     >
-                      {getPlanetAbbr(planet.name)} {getDegreesInSign(planet.longitude)}°
+                      {getPlanetAbbr(planet.name)} {getDegreesInSign(planet.longitude)}
                       {planet.retrograde ? 'ᴿ' : ''}
                     </text>
                   ))}
