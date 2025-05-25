@@ -50,18 +50,303 @@ const PLANET_MAP: Record<string, any> = {
   "KETU": { id: "ke", name: "Ketu", symbol: "☋", color: "#CD7F32" }
 };
 
+// List of 27 Nakshatras
+const NAKSHATRAS = [
+  "Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira", "Ardra", 
+  "Punarvasu", "Pushya", "Ashlesha", "Magha", "Purva Phalguni", 
+  "Uttara Phalguni", "Hasta", "Chitra", "Swati", "Vishakha", 
+  "Anuradha", "Jyeshtha", "Mula", "Purva Ashadha", "Uttara Ashadha", 
+  "Shravana", "Dhanishta", "Shatabhisha", "Purva Bhadrapada", 
+  "Uttara Bhadrapada", "Revati"
+];
+
+// Add type definition for database chart
+interface DbBirthChart {
+  created_at: string;
+  houses: Json;
+  id: string;
+  nakshatras: Json;
+  planets: Json;
+  user_id: string;
+  metadata?: Json;
+  dashas?: Json;
+}
+
 /**
- * Calculate Lunar Day (Tithi) based on Sun and Moon positions
+ * Safely parse stored JSON data into the expected format
  */
-function calculateLunarDay(planets: PlanetaryPosition[]): number {
-  const sun = planets.find(p => p.planet === 'SUN');
-  const moon = planets.find(p => p.planet === 'MOON');
+function safeParseJson<T>(jsonData: Json | null, defaultValue: T): T {
+  if (!jsonData) return defaultValue;
+
+  try {
+    if (typeof jsonData === 'string') {
+      return JSON.parse(jsonData) as T;
+    } else if (Array.isArray(jsonData)) {
+      return jsonData as unknown as T;
+    } else if (typeof jsonData === 'object') {
+      return jsonData as unknown as T;
+    } 
+    return defaultValue;
+  } catch (error) {
+    console.error("Error parsing JSON data:", error);
+    return defaultValue;
+  }
+}
+
+/**
+ * Fetch a saved chart for the current user if available
+ */
+async function fetchSavedChart(email: string): Promise<VedicChartData | null> {
+  try {
+    // First get the user id by email
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) return null;
+
+    // Fetch the latest chart for this user
+    const { data: charts, error } = await supabase
+      .from('birth_charts')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (error || !charts || charts.length === 0) {
+      return null;
+    }
+
+    // Convert the stored chart data to the expected format
+    const chartData = charts[0] as DbBirthChart;
+
+    // Parse the stored JSON data properly
+    const planets = safeParseJson<Planet[]>(chartData.planets, []);
+    const houses = safeParseJson<House[]>(chartData.houses, []);
+    const nakshatras = safeParseJson<{
+      moonNakshatra: string;
+      ascendantNakshatra: NakshatraInfo;
+    }>(chartData.nakshatras, {
+      moonNakshatra: '',
+      ascendantNakshatra: {
+        name: '',
+        lord: '',
+        startDegree: 0,
+        endDegree: 0,
+        pada: 1
+      }
+    });
+    const metadata = safeParseJson<ChartMetadata>(chartData.metadata || null, {
+      ayanamsa: 24,
+      date: '',
+      time: '',
+      latitude: 0,
+      longitude: 0,
+      timezone: 'UTC',
+      houseSystem: 'W'
+    });
+    const dashas = safeParseJson<{
+      current: {
+        planet: string;
+        startDate: string;
+        endDate: string;
+        elapsed: { years: number; months: number; days: number; };
+        remaining: { years: number; months: number; days: number; };
+      };
+      sequence: Array<{ planet: string; startDate: string; endDate: string; }>;
+    }>(chartData.dashas || null, {
+      current: {
+        planet: '',
+        startDate: '',
+        endDate: '',
+        elapsed: { years: 0, months: 0, days: 0 },
+        remaining: { years: 0, months: 0, days: 0 }
+      },
+      sequence: []
+    });
+
+    return {
+      ascendant: houses[0]?.longitude || 0,
+      ascendantNakshatra: nakshatras.ascendantNakshatra,
+      planets,
+      houses,
+      moonNakshatra: nakshatras.moonNakshatra,
+      lunarDay: 1,
+      metadata,
+      dashas
+    };
+  } catch (error) {
+    console.error("Error fetching saved chart:", error);
+    return null;
+  }
+}
+
+/**
+ * Handle API request with timeout and retry logic
+ */
+async function fetchWithTimeoutAndRetry(url: string, options: RequestInit, timeout: number, maxRetries: number, retryDelay: number): Promise<Response> {
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), timeout);
+      
+      try {
+        const response = await fetch(url, {
+          ...options,
+          signal: controller.signal
+        });
+        clearTimeout(id);
+        
+        // If response is not ok but it's a 500 error, we can retry
+        if (!response.ok && response.status >= 500) {
+          throw new Error(`Server error: ${response.status}`);
+        }
+        
+        return response;
+      } catch (error) {
+        clearTimeout(id);
+        throw error;
+      }
+    } catch (error) {
+      lastError = error as Error;
+      
+      // Don't wait on the last attempt
+      if (attempt < maxRetries - 1) {
+        // Add some jitter to the retry delay to prevent all retries happening at exactly the same time
+        const jitter = Math.random() * 1000;
+        await new Promise(resolve => setTimeout(resolve, retryDelay + jitter));
+      }
+    }
+  }
   
-  if (!sun || !moon) return 1;
-  
-  const sunLongitude = sun.longitude;
-  const moonLongitude = moon.longitude;
-  return Math.floor(((moonLongitude - sunLongitude + 360) % 360) / 12) + 1;
+  throw lastError || new Error('Maximum retries exceeded');
+}
+
+/**
+ * Calculate Vedic chart based on birth information
+ */
+export async function calculateVedicChart(formData: {
+  birthDate: string;
+  birthTime: string;
+  latitude: number;
+  longitude: number;
+  timezone: string;
+  location: string;
+  name?: string;
+  email?: string;
+}): Promise<VedicChartData> {
+  try {
+    // Log the incoming form data
+    console.log('Received form data:', {
+      birthDate: formData.birthDate,
+      birthTime: formData.birthTime,
+      latitude: formData.latitude,
+      longitude: formData.longitude,
+      timezone: formData.timezone,
+      location: formData.location,
+      name: formData.name,
+      email: formData.email
+    });
+
+    // Check if user is logged in and has a saved chart
+    if (formData.email) {
+      const savedChart = await fetchSavedChart(formData.email);
+      if (savedChart) {
+        return savedChart;
+      }
+    }
+
+    // Format the payload according to the specified format
+    const apiPayload = {
+      date: formData.birthDate,
+      time: formData.birthTime,
+      latitude: formData.latitude,
+      longitude: formData.longitude,
+      timezone: formData.timezone
+    };
+
+    // Log the API payload
+    console.log('Sending API payload:', apiPayload);
+
+    try {
+      // Use fetchWithTimeoutAndRetry to handle retries and timeouts
+      const response = await fetchWithTimeoutAndRetry(
+        VEDIC_ASTRO_API_CONFIG.API_URL, 
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(apiPayload)
+        },
+        VEDIC_ASTRO_API_CONFIG.API_TIMEOUT,
+        VEDIC_ASTRO_API_CONFIG.MAX_RETRIES,
+        VEDIC_ASTRO_API_CONFIG.RETRY_DELAY
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API Error Response:', errorText);
+        
+        // Provide more specific error messages based on status code
+        switch (response.status) {
+          case 400:
+            throw new Error('Dữ liệu không hợp lệ. Vui lòng kiểm tra lại thông tin nhập vào.');
+          case 401:
+            throw new Error('Không có quyền truy cập. Vui lòng đăng nhập lại.');
+          case 403:
+            throw new Error('Không có quyền thực hiện thao tác này.');
+          case 404:
+            throw new Error('Không tìm thấy dịch vụ. Vui lòng thử lại sau.');
+          case 429:
+            throw new Error('Quá nhiều yêu cầu. Vui lòng thử lại sau ít phút.');
+          case 500:
+            throw new Error('Lỗi máy chủ. Vui lòng thử lại sau.');
+          default:
+            throw new Error(`Lỗi không xác định (${response.status}): ${errorText || 'Không có thông tin chi tiết'}`);
+        }
+      }
+
+      const apiData: VedicChartResponse = await response.json();
+
+      // Log the API response
+      console.log('API Response:', apiData);
+
+      // Convert API response to VedicChartData format
+      const data = convertApiResponseToChartData(apiData);
+
+      // Save the chart data for logged in users
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user && formData.email) {
+        await supabase.from('birth_charts').insert([{
+          user_id: user.id,
+          planets: JSON.stringify(data.planets),
+          houses: JSON.stringify(data.houses),
+          nakshatras: JSON.stringify({ moonNakshatra: data.moonNakshatra }),
+          metadata: JSON.stringify(data.metadata),
+          dashas: JSON.stringify(data.dashas)
+        }]);
+      }
+
+      return data;
+    } catch (fetchError) {
+      // Check if it was a timeout error
+      if (fetchError.name === 'AbortError') {
+        throw new Error('Quá thời gian chờ phản hồi từ máy chủ (3 phút). Vui lòng thử lại sau.');
+      }
+      
+      // Network error
+      if (fetchError instanceof TypeError && fetchError.message === 'Failed to fetch') {
+        throw new Error('Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại.');
+      }
+
+      // Any other fetch error
+      throw new Error(`Lỗi khi tính toán bản đồ sao: ${fetchError.message}`);
+    }
+  } catch (error) {
+    throw error;
+  }
 }
 
 /**
@@ -73,6 +358,7 @@ function convertApiResponseToChartData(apiData: VedicChartResponse): VedicChartD
   const ascDeg = apiData.ascendant.sign.degree || 0;
   const ascLongitude = ascSignIdx * 30 + ascDeg;
 
+  
   // Houses with planets
   const houses: House[] = apiData.houses.map(h => ({
     number: h.number,
@@ -81,8 +367,10 @@ function convertApiResponseToChartData(apiData: VedicChartResponse): VedicChartD
     planets: h.planets || []
   }));
 
+  
   // Planets with aspects and nakshatra info
   const planets: Planet[] = apiData.planets.map(p => {
+
     const key = p.planet.toUpperCase();
     const info = PLANET_MAP[key] || {};
     
@@ -118,15 +406,8 @@ function convertApiResponseToChartData(apiData: VedicChartResponse): VedicChartD
     startDate: currentDasha.startDate,
     endDate: currentDasha.endDate,
     elapsed: currentDasha.elapsed || { years: 0, months: 0, days: 0 },
-    remaining: currentDasha.remaining || { years: 0, months: 0, days: 0 },
-    antardasha: currentDasha.antardasha || null
+    remaining: currentDasha.remaining || { years: 0, months: 0, days: 0 }
   };
-
-  // Normalize sequence data to include antardasha
-  const normalizedSequence = apiData.dashas.sequence.map(dasha => ({
-    ...dasha,
-    antardasha: dasha.antardasha || null
-  }));
 
   return {
     ascendant: ascLongitude,
@@ -138,32 +419,21 @@ function convertApiResponseToChartData(apiData: VedicChartResponse): VedicChartD
     metadata: apiData.metadata,
     dashas: {
       current: normalizedCurrentDasha,
-      sequence: normalizedSequence
+      sequence: apiData.dashas.sequence
     }
   };
 }
 
-async function calculateVedicChart(data: VedicChartRequest): Promise<VedicChartData> {
-  try {
-    const response = await fetch(VEDIC_ASTRO_API_CONFIG.API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${VEDIC_ASTRO_API_CONFIG.GEOAPIFY_API_KEY}`
-      },
-      body: JSON.stringify(data)
-    });
-
-    if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`);
-    }
-
-    const apiData: VedicChartResponse = await response.json();
-    return convertApiResponseToChartData(apiData);
-  } catch (error) {
-    console.error('Error calculating Vedic chart:', error);
-    throw error;
-  }
+/**
+ * Calculate Lunar Day (Tithi) based on Sun and Moon positions
+ */
+function calculateLunarDay(planets: PlanetaryPosition[]): number {
+  const sun = planets.find(p => p.planet === 'SUN');
+  const moon = planets.find(p => p.planet === 'MOON');
+  
+  if (!sun || !moon) return 1;
+  
+  const sunLongitude = sun.longitude;
+  const moonLongitude = moon.longitude;
+  return Math.floor(((moonLongitude - sunLongitude + 360) % 360) / 12) + 1;
 }
-
-export { convertApiResponseToChartData, calculateLunarDay, calculateVedicChart }; 

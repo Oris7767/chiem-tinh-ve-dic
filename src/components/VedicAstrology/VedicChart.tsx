@@ -143,7 +143,7 @@ const VedicChart = () => {
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [formData, setFormData] = useState<BirthDataFormValues | null>(null);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Xử lý loading progress và hủy interval khi component unmount
   useEffect(() => {
     return () => {
@@ -152,21 +152,21 @@ const VedicChart = () => {
       }
     };
   }, [loadingIntervalId]);
-  
+
   // Check for user session on component mount
   useEffect(() => {
     const checkSession = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
     };
-    
+
     checkSession();
-    
+
     // Listen for authentication state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
     });
-    
+
     return () => {
       subscription.unsubscribe();
     };
@@ -177,34 +177,34 @@ const VedicChart = () => {
     setFormData(formData);
     setLoadingProgress(0);
     setError(null);
-    
+
     // Initial progress update
     setLoadingProgress(5);
-    
+
     // Set up loading progress animation with more realistic stages
     const progressInterval = setInterval(() => {
       setLoadingProgress(prev => {
         // Find the next stage based on current progress
         const currentStage = PROGRESS_STAGES.findIndex(stage => prev < stage.threshold);
         if (currentStage === -1) return prev; // Keep at current progress if we're at the end
-        
+
         const nextStage = PROGRESS_STAGES[currentStage];
         const prevStage = currentStage > 0 ? PROGRESS_STAGES[currentStage - 1] : { threshold: 0 };
-        
+
         // Calculate progress increment
         const range = nextStage.threshold - prevStage.threshold;
         const increment = range * 0.1; // Move 10% of the way to next stage
         const newProgress = Math.min(prev + increment, nextStage.threshold);
-        
+
         return newProgress;
       });
     }, 2000); // Update every 2 seconds
-    
+
     setLoadingIntervalId(progressInterval);
-    
+
     try {
       console.log("Calculating chart with data:", formData);
-      
+
       // Call our service to calculate the chart
       const data = await calculateVedicChart({
         birthDate: formData.birthDate,
@@ -216,13 +216,13 @@ const VedicChart = () => {
         name: formData.name,
         email: formData.email
       });
-      
+
       console.log("Chart data received:", data);
       setChartData(data);
-      
+
       // Set progress to 100% when completed
       setLoadingProgress(100);
-      
+
       toast({
         title: "Bản đồ sao đã được tính toán thành công!",
         description: `${formData.birthDate} ${formData.birthTime} tại ${formData.location}`,
@@ -261,44 +261,44 @@ const VedicChart = () => {
 
   const downloadChartAsSVG = () => {
     if (!chartData) return;
-    
+
     const svgElement = document.getElementById('birth-chart-svg');
     if (!svgElement) return;
-    
+
     // Create a clone of the SVG element to modify
     const svgClone = svgElement.cloneNode(true) as SVGSVGElement;
-    
+
     // Set the width and height attributes
     svgClone.setAttribute('width', '800');
     svgClone.setAttribute('height', '800');
-    
+
     // Convert to string
     const serializer = new XMLSerializer();
     let source = serializer.serializeToString(svgClone);
-    
+
     // Add XML declaration
     if (!source.match(/^<\?xml/)) {
       source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
     }
-    
+
     // Convert to URL data
     const svgBlob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(svgBlob);
-    
+
     // Create a link and trigger download
     const downloadLink = document.createElement('a');
     downloadLink.href = url;
-    
+
     // Generate a filename based on birth data
     const fileName = formData 
       ? `vedic-chart-${formData.name.replace(/\s+/g, '-')}-${formData.birthDate}.svg`
       : 'vedic-birth-chart.svg';
-    
+
     downloadLink.download = fileName;
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
-    
+
     // Cleanup
     URL.revokeObjectURL(url);
   };
@@ -378,7 +378,7 @@ const VedicChart = () => {
             <TabsTrigger value="chart">Bản đồ sao</TabsTrigger>
             <TabsTrigger value="dasha">Vimshottari Dasha</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="chart">
             <ChartDisplay 
               chartData={chartData} 
@@ -386,7 +386,7 @@ const VedicChart = () => {
               onDownload={downloadChartAsSVG} 
             />
           </TabsContent>
-          
+
           <TabsContent value="dasha">
             {formData && (
               <DashaCalculator 
@@ -410,15 +410,15 @@ const ChartDisplay = ({ chartData, userData, onDownload }: ChartDisplayProps) =>
   // Format birth info for display in the chart
   const getBirthInfo = () => {
     if (!userData) return '';
-    
+
     const birthDate = userData.birthDate ? 
       DateTime.fromISO(userData.birthDate).toFormat('dd/MM/yyyy') : '';
-    
+
     const birthTime = userData.birthTime || '';
-    
+
     return `${birthDate} ${birthTime} - ${userData.location}`;
   };
-  
+
   return (
     <div className="space-y-6">
       <Card>
