@@ -41,17 +41,8 @@ const HouseDetailsTable: React.FC<HouseDetailsTableProps> = ({ houses, planets }
 
   const getPlanetSymbols = (planetIds: string[]): JSX.Element[] => {
     return planetIds.map(planetId => {
-      // Tìm hành tinh dựa trên tên (không phân biệt hoa thường)
-      const planet = planets.find(p => 
-        p.name.toUpperCase() === planetId ||
-        p.name.toUpperCase() === planetId.replace('_', ' ')
-      );
-      
-      if (!planet) {
-        console.log('Không tìm thấy hành tinh:', planetId);
-        return null;
-      }
-      
+      const planet = planets.find(p => p.id === planetId.toLowerCase());
+      if (!planet) return null;
       return (
         <span
           key={planet.id}
