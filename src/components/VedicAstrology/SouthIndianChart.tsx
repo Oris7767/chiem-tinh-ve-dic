@@ -88,7 +88,10 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({
 
   // Calculate degrees within sign (0-29.99)
   const getDegreesInSign = (longitude: number) => {
-    return (longitude % 30).toFixed(2);
+    const totalDegrees = longitude % 30;
+    const degrees = Math.floor(totalDegrees);
+    const minutes = Math.floor((totalDegrees - degrees) * 60);
+    return `${degrees}°${minutes.toString().padStart(2, '0')}'`;
   };
 
   return (

@@ -1,4 +1,4 @@
- // @ts-nocheck
+// @ts-nocheck
 import React from 'react';
 import {
   Table,
@@ -28,10 +28,10 @@ const ZODIAC_SIGNS = [
 
 const PlanetDetailsTable: React.FC<PlanetDetailsTableProps> = ({ planets }) => {
   const formatDegree = (longitude: number): string => {
-    const totalDegrees = longitude % 360;
+    const totalDegrees = longitude % 30;
     const degrees = Math.floor(totalDegrees);
     const minutes = Math.floor((totalDegrees - degrees) * 60);
-    return `${degrees}°${minutes}'`;
+    return `${degrees}°${minutes.toString().padStart(2, '0')}'`;
   };
 
   const getZodiacSign = (signIndex: number): string => {
@@ -60,8 +60,8 @@ const PlanetDetailsTable: React.FC<PlanetDetailsTableProps> = ({ planets }) => {
             {planets.map((planet) => (
               <TableRow key={planet.id}>
                 <TableCell className="font-medium">
-                  <span title={planet.name} style={{ color: planet.color }}>
-                    {planet.symbol}
+                  <span style={{ color: planet.color }}>
+                    {planet.name}
                   </span>
                 </TableCell>
                 <TableCell>{getZodiacSign(planet.sign)}</TableCell>

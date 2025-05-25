@@ -67,7 +67,6 @@ const HouseDetailsTable: React.FC<HouseDetailsTableProps> = ({ houses, planets }
             <TableRow>
               <TableHead>Nhà</TableHead>
               <TableHead>Cung</TableHead>
-              <TableHead>Vị trí</TableHead>
               <TableHead>Các hành tinh</TableHead>
             </TableRow>
           </TableHeader>
@@ -78,7 +77,6 @@ const HouseDetailsTable: React.FC<HouseDetailsTableProps> = ({ houses, planets }
                   {house.number}
                 </TableCell>
                 <TableCell>{getZodiacSign(house.sign)}</TableCell>
-                <TableCell>{formatDegree(house.longitude)}</TableCell>
                 <TableCell className="space-x-1">
                   {getPlanetSymbols(house.planets)}
                 </TableCell>

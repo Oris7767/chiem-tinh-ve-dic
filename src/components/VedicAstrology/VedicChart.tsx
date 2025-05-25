@@ -66,16 +66,22 @@ export interface ChartMetadata {
   houseSystem: string;
 }
 
-export interface VedicChartData {
-  ascendant: number;
-  ascendantNakshatra: NakshatraInfo;
-  planets: Planet[];
-  houses: House[];
-  moonNakshatra: string;
-  lunarDay: number;
-  metadata: ChartMetadata;
-  dashas: {
-    current: {
+export interface DashaPeriod {
+  planet: string;
+  startDate: string;
+  endDate: string;
+  elapsed?: {
+    years: number;
+    months: number;
+    days: number;
+  };
+  remaining?: {
+    years: number;
+    months: number;
+    days: number;
+  };
+  antardasha?: {
+    current?: {
       planet: string;
       startDate: string;
       endDate: string;
@@ -94,7 +100,26 @@ export interface VedicChartData {
       planet: string;
       startDate: string;
       endDate: string;
+      pratyantardasha?: Array<{
+        planet: string;
+        startDate: string;
+        endDate: string;
+      }>;
     }>;
+  };
+}
+
+export interface VedicChartData {
+  ascendant: number;
+  ascendantNakshatra: NakshatraInfo;
+  planets: Planet[];
+  houses: House[];
+  moonNakshatra: string;
+  lunarDay: number;
+  metadata: ChartMetadata;
+  dashas: {
+    current: DashaPeriod;
+    sequence: DashaPeriod[];
   };
 }
 
