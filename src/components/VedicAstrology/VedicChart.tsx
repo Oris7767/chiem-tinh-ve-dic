@@ -149,29 +149,49 @@ const VedicChart = () => {
   // Fetch saved charts when user logs in
   const fetchSavedCharts = async (userId: string) => {
     try {
+      console.log("Fetching saved charts for user:", userId);
       const { charts, error } = await birthChartService.getUserCharts(userId);
 
       if (error) {
         console.error("Error fetching saved charts:", error);
+        toast({
+          title: "Lỗi khi tải bản đồ",
+          description: error.message,
+          variant: "destructive"
+        });
         return;
       }
 
+      console.log("Fetched charts:", charts);
       if (charts && charts.length > 0) {
         setSavedCharts(charts);
         // Automatically load the most recent chart
         const latestChart = charts[0];
+        console.log("Loading latest chart:", latestChart);
         
-        // Reconstruct form data from saved metadata
-        setFormData(birthChartService.reconstructFormData(latestChart, user?.email));
+        try {
+          // Reconstruct form data from saved metadata
+          const formData = birthChartService.reconstructFormData(latestChart, user?.email);
+          console.log("Reconstructed form data:", formData);
+          setFormData(formData);
 
-        // Reconstruct chart data with all necessary fields
-        const reconstructedChartData = birthChartService.reconstructChartData(latestChart);
-        setChartData(reconstructedChartData);
-        
-        toast({
-          title: "Bản đồ sao đã được tải",
-          description: `Đã tải bản đồ của ${reconstructedChartData.metadata.date} ${reconstructedChartData.metadata.time}`,
-        });
+          // Reconstruct chart data with all necessary fields
+          const reconstructedChartData = birthChartService.reconstructChartData(latestChart);
+          console.log("Reconstructed chart data:", reconstructedChartData);
+          setChartData(reconstructedChartData);
+          
+          toast({
+            title: "Bản đồ sao đã được tải",
+            description: `Đã tải bản đồ của ${reconstructedChartData.metadata.date} ${reconstructedChartData.metadata.time}`,
+          });
+        } catch (reconstructError) {
+          console.error("Error reconstructing chart data:", reconstructError);
+          toast({
+            title: "Lỗi khi tải bản đồ",
+            description: "Dữ liệu bản đồ không hợp lệ hoặc bị hỏng",
+            variant: "destructive"
+          });
+        }
       }
     } catch (error) {
       console.error("Error in fetchSavedCharts:", error);
@@ -186,9 +206,19 @@ const VedicChart = () => {
   // Check for user session and load saved charts
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      console.log("Checking user session...");
+      const { data: { user }, error } = await supabase.auth.getUser();
+      
+      if (error) {
+        console.error("Error getting user:", error);
+        return;
+      }
+
+      console.log("Current user:", user);
       setUser(user);
-      if (user) {
+      
+      if (user?.id) {
+        console.log("User is logged in, fetching saved charts...");
         await fetchSavedCharts(user.id);
       }
     };
@@ -197,8 +227,10 @@ const VedicChart = () => {
 
     // Listen for authentication state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event, session?.user);
       setUser(session?.user ?? null);
-      if (session?.user) {
+      
+      if (session?.user?.id) {
         await fetchSavedCharts(session.user.id);
       } else {
         setSavedCharts([]);
