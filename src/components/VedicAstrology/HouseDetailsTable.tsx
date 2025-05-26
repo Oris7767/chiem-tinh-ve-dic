@@ -84,19 +84,16 @@ const HouseDetailsTable: React.FC<HouseDetailsTableProps> = ({ houses }) => {
   console.log('Houses data received:', houses);
 
   const getPlanetSymbols = (planetNames: string[]): JSX.Element[] => {
-    return planetNames.map(planetName => {
-      console.log('Processing planet:', planetName);
-      return (
-        <span
-          key={planetName}
-          title={planetName}
-          style={{ color: PLANET_COLORS[planetName] }}
-          className="mr-1 text-2xl"
-        >
-          {PLANET_SYMBOLS[planetName]}
-        </span>
-      );
-    });
+    return planetNames.map(planetName => (
+      <span
+        key={planetName}
+        title={planetName}
+        style={{ color: PLANET_COLORS[planetName] }}
+        className="mr-1 text-2xl"
+      >
+        {PLANET_SYMBOLS[planetName]}
+      </span>
+    ));
   };
 
   return (
@@ -108,11 +105,11 @@ const HouseDetailsTable: React.FC<HouseDetailsTableProps> = ({ houses }) => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nhà</TableHead>
-              <TableHead>Tên Sanskrit</TableHead>
-              <TableHead>Ý Nghĩa</TableHead>
-              <TableHead>Cung</TableHead>
-              <TableHead>Các hành tinh</TableHead>
+              <TableHead className="w-[80px]">Nhà</TableHead>
+              <TableHead className="w-[200px]">Tên Sanskrit</TableHead>
+              <TableHead className="w-[200px]">Ý Nghĩa</TableHead>
+              <TableHead className="w-[120px]">Cung</TableHead>
+              <TableHead className="w-[200px]">Các hành tinh</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -126,9 +123,11 @@ const HouseDetailsTable: React.FC<HouseDetailsTableProps> = ({ houses }) => {
                   </TableCell>
                   <TableCell>{houseInfo.sanskrit}</TableCell>
                   <TableCell>{houseInfo.meaning}</TableCell>
-                  <TableCell>{ZODIAC_SIGNS_VI[house.sign] || house.sign}</TableCell>
-                  <TableCell className="space-x-1">
-                    {getPlanetSymbols(house.planets)}
+                  <TableCell>{ZODIAC_SIGNS_VI[house.sign]}</TableCell>
+                  <TableCell>
+                    <div className="max-h-[60px] overflow-y-auto pr-2">
+                      {getPlanetSymbols(house.planets)}
+                    </div>
                   </TableCell>
                 </TableRow>
               );
