@@ -89,7 +89,6 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
         `&limit=5` +
         `&apiKey=${VEDIC_ASTRO_API_CONFIG.GEOAPIFY_API_KEY}`;
 
-      console.log('Geoapify URL:', url);
       const response = await fetch(url, requestOptions);
 
       if (!response.ok) {
