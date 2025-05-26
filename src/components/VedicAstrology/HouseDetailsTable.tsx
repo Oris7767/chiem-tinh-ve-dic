@@ -14,7 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { House, Planet, ZodiacSign } from './VedicChart';
+import { House, Planet } from './VedicChart';
 
 interface HouseDetailsTableProps {
   houses: House[];
@@ -50,9 +50,13 @@ const HouseDetailsTable: React.FC<HouseDetailsTableProps> = ({ houses, planets }
     return `${degrees}°${minutes}'`;
   };
 
-  const getZodiacSign = (sign: string): string => {
-    // Trả về trực tiếp tên cung từ API
-    return sign || 'Unknown';
+  const getZodiacSign = (sign: string | number): string => {
+    // Nếu sign là string (từ API), trả về trực tiếp
+    if (typeof sign === 'string') {
+      return sign;
+    }
+    // Nếu sign là number (từ VedicChart interface), lấy từ mảng
+    return ZODIAC_SIGNS[sign] || 'Unknown';
   };
 
   const getPlanetSymbols = (planetIds: string[]): JSX.Element[] => {
