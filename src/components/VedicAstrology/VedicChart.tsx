@@ -435,13 +435,27 @@ const VedicChart = () => {
                       className="w-full justify-start"
                       onClick={() => {
                         setChartData({
-                          ascendant: 0,
-                          ascendantNakshatra: chart.nakshatras.ascendantNakshatra,
-                          planets: chart.planets,
-                          houses: chart.houses,
-                          moonNakshatra: chart.nakshatras.moonNakshatra,
-                          lunarDay: 0,
-                          metadata: chart.metadata || {},
+                          ascendant: chart.ascendant || 0,
+                          ascendantNakshatra: chart.nakshatras?.ascendantNakshatra || {
+                            name: '',
+                            lord: '',
+                            startDegree: 0,
+                            endDegree: 0,
+                            pada: 1
+                          },
+                          planets: chart.planets || [],
+                          houses: chart.houses || [],
+                          moonNakshatra: chart.nakshatras?.moonNakshatra || '',
+                          lunarDay: chart.lunarDay || 0,
+                          metadata: chart.metadata || {
+                            ayanamsa: 24,
+                            date: '',
+                            time: '',
+                            latitude: 0,
+                            longitude: 0,
+                            timezone: 'UTC',
+                            houseSystem: 'W'
+                          },
                           dashas: chart.dashas || { current: {}, sequence: [] }
                         });
                       }}

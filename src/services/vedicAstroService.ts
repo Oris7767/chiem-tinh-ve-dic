@@ -361,9 +361,18 @@ export async function calculateVedicChart(formData: {
           user_id: user.id,
           planets: JSON.stringify(data.planets),
           houses: JSON.stringify(data.houses),
-          nakshatras: JSON.stringify({ moonNakshatra: data.moonNakshatra }),
-          metadata: JSON.stringify(data.metadata),
-          dashas: JSON.stringify(data.dashas)
+          nakshatras: JSON.stringify({ 
+            moonNakshatra: data.moonNakshatra,
+            ascendantNakshatra: data.ascendantNakshatra
+          }),
+          metadata: JSON.stringify({
+            ...data.metadata,
+            name: formData.name,
+            location: formData.location
+          }),
+          dashas: JSON.stringify(data.dashas),
+          ascendant: data.ascendant,
+          lunarDay: data.lunarDay
         }]);
       }
 

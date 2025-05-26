@@ -17,6 +17,10 @@ export type Database = {
           nakshatras: Json | null
           planets: Json | null
           user_id: string | null
+          metadata: Json | null
+          dashas: Json | null
+          ascendant: number | null
+          lunarDay: number | null
         }
         Insert: {
           created_at?: string | null
@@ -25,6 +29,10 @@ export type Database = {
           nakshatras?: Json | null
           planets?: Json | null
           user_id?: string | null
+          metadata?: Json | null
+          dashas?: Json | null
+          ascendant?: number | null
+          lunarDay?: number | null
         }
         Update: {
           created_at?: string | null
@@ -33,6 +41,10 @@ export type Database = {
           nakshatras?: Json | null
           planets?: Json | null
           user_id?: string | null
+          metadata?: Json | null
+          dashas?: Json | null
+          ascendant?: number | null
+          lunarDay?: number | null
         }
         Relationships: []
       }

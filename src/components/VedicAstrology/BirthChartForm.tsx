@@ -19,7 +19,10 @@ import { LocationSelector } from './LocationSelector';
 // Define the schema for the form data
 const formSchema = z.object({
   name: z.string().min(1, 'Vui lòng nhập tên của bạn'),
-  email: z.string().email('Vui lòng nhập email hợp lệ').optional().or(z.literal('')),
+  email: z.string()
+    .email('Vui lòng nhập email hợp lệ')
+    .or(z.literal(''))
+    .transform(e => e || ''), // Convert empty string to empty string (for consistency)
   birthDate: z.string().min(1, 'Vui lòng chọn ngày sinh'),
   birthTime: z.string().min(1, 'Vui lòng nhập giờ sinh'),
   location: z.string().min(1, 'Vui lòng nhập địa điểm sinh'),
@@ -131,15 +134,17 @@ const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
       return;
     }
     
-    // Call the parent component's onSubmit handler
-    onSubmit(values);
-    
-    // If user is logged in, save the birth chart data
+    // Get current user if logged in
     const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      // The actual chart data will be saved after calculation in the parent component
-      console.log('User is logged in, chart data will be saved after calculation');
-    }
+    
+    // If user is logged in, use their email, otherwise use the form email
+    const submissionData = {
+      ...values,
+      email: user ? user.email : values.email || ''
+    };
+    
+    // Call the parent component's onSubmit handler with the updated data
+    onSubmit(submissionData);
   };
 
   return (
