@@ -120,23 +120,23 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({
   return (
     <div className="relative w-full h-full">
       <svg
-        viewBox="0 0 400 400"
+        viewBox="0 0 500 500"
         className="w-full h-full border border-amber-200 rounded-lg"
         id="birth-chart-svg"
       >
         {/* Add a white background for better image saving */}
-        <rect x="0" y="0" width="400" height="400" fill="white" />
+        <rect x="0" y="0" width="500" height="500" fill="white" />
         
         {/* Chart Title and Birth Info */}
         {(userName || birthInfo) && (
           <g>
             {userName && (
-              <text x="200" y="30" fontSize="16" fontWeight="bold" textAnchor="middle" fill="#B45309">
+              <text x="250" y="30" fontSize="16" fontWeight="bold" textAnchor="middle" fill="#B45309">
                 Vedic Birth Chart for {userName}
               </text>
             )}
             {birthInfo && (
-              <text x="200" y="50" fontSize="12" textAnchor="middle" fill="#666">
+              <text x="250" y="50" fontSize="12" textAnchor="middle" fill="#666">
                 {birthInfo}
               </text>
             )}
@@ -154,16 +154,16 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({
             // Get planets in this house
             const planetsInHouse = planetsByHouse[houseNumber] || [];
             
-            const x = col * 75;
-            const y = row * 75;
+            const x = col * 100;
+            const y = row * 100;
             
             return (
               <g key={`cell-${row}-${col}`}>
                 <rect
                   x={x}
                   y={y}
-                  width={75}
-                  height={75}
+                  width={100}
+                  height={100}
                   fill="none"
                   stroke="#B45309"
                   strokeWidth="1"
@@ -197,8 +197,8 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({
                     <text
                       key={planet.id}
                       x={x + 5}
-                      y={y + 42 + idx * 12}  // Reduced vertical spacing between planets
-                      fontSize="8"  // Reduced font size for planets
+                      y={y + 42 + idx * 12}
+                      fontSize="8"
                       fill="#000000"
                     >
                       {getPlanetAbbr(planet.name)} {getDegreesInSign(planet.longitude)}
@@ -213,10 +213,10 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({
           {/* Logo in the center */}
           <image 
             href="/lovable-uploads/caad05e4-b4c3-4988-9357-3e27463a7041.png" 
-            x="112.5" 
-            y="112.5" 
-            width="75" 
-            height="75"
+            x="150" 
+            y="150" 
+            width="100" 
+            height="100"
           />
         </g>
       </svg>
