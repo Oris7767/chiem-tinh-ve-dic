@@ -14,7 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { House, Planet } from './VedicChart';
+import { House, Planet, ZodiacSign } from './VedicChart';
 
 interface HouseDetailsTableProps {
   houses: House[];
@@ -89,17 +89,6 @@ const HouseDetailsTable: React.FC<HouseDetailsTableProps> = ({ houses, planets }
             </TableRow>
           </TableHeader>
           <TableBody>
-            {houses.map((house) => (
-              <TableRow key={house.number}>
-                <TableCell className="font-medium">
-                  {house.number}
-                </TableCell>
-                <TableCell>{getZodiacSign(house.sign)}</TableCell>
-                <TableCell className="space-x-1">
-                  {getPlanetSymbols(house.planets)}
-                </TableCell>
-              </TableRow>
-            ))}
             {houses.map((house) => {
               const houseInfo = HOUSE_NAMES[house.number];
               return (
