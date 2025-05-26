@@ -1,16 +1,16 @@
 // Configuration for the VedAstro calculation service
 export const VEDIC_ASTRO_API_CONFIG = {
   // User's custom API endpoint
-  API_URL: process.env.NEXT_PUBLIC_VEDIC_API_URL || "https://vedicvn-api.onrender.com/api/chart",
+  API_URL: import.meta.env.VITE_VEDIC_API_URL || "https://vedicvn-api.onrender.com/api/chart",
   FALLBACK_MODE: false, // Set to false to use the API
   API_TIMEOUT: 180000, // 3 minutes timeout for API calls
   MAX_RETRIES: 3, // Maximum number of retry attempts
   RETRY_DELAY: 5000, // 5 seconds delay between retries
-  GEOAPIFY_API_KEY: process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY, // Geoapify API key from environment variables
+  GEOAPIFY_API_KEY: import.meta.env.VITE_GEOAPIFY_API_KEY, // Geoapify API key from environment variables
   EMAIL_SERVICE: {
     USE_GMAIL: true, // Set to true to use Gmail instead of Supabase
-    SENDER_EMAIL: process.env.NEXT_PUBLIC_GMAIL_SENDER_EMAIL, // Gmail address from environment variables
-    APP_PASSWORD: process.env.GMAIL_APP_PASSWORD // Gmail app password from environment variables
+    SENDER_EMAIL: import.meta.env.VITE_GMAIL_SENDER_EMAIL, // Gmail address from environment variables
+    APP_PASSWORD: import.meta.env.VITE_GMAIL_APP_PASSWORD // Gmail app password from environment variables
   }
 };
 
