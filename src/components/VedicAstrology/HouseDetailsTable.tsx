@@ -41,6 +41,12 @@ const HOUSE_NAMES = {
   12: { sanskrit: "Vyaya Bhava", meaning: "Tổn thất / Giải thoát / Tiềm thức" }
 };
 
+const ZODIAC_SIGNS = [
+  "Aries", "Taurus", "Gemini", "Cancer",
+  "Leo", "Virgo", "Libra", "Scorpio",
+  "Sagittarius", "Capricorn", "Aquarius", "Pisces"
+];
+
 const PLANET_SYMBOLS: { [key: string]: string } = {
   SUN: "☉",
   MOON: "☽",
@@ -63,21 +69,6 @@ const PLANET_COLORS: { [key: string]: string } = {
   SATURN: "#4B0082",
   RAHU: "#000080",
   KETU: "#800000"
-};
-
-const ZODIAC_SIGNS_VI = {
-  "Aries": "Bạch Dương",
-  "Taurus": "Kim Ngưu",
-  "Gemini": "Song Tử",
-  "Cancer": "Cự Giải",
-  "Leo": "Sư Tử",
-  "Virgo": "Xử Nữ",
-  "Libra": "Thiên Bình",
-  "Scorpio": "Bọ Cạp",
-  "Sagittarius": "Nhân Mã",
-  "Capricorn": "Ma Kết",
-  "Aquarius": "Bảo Bình",
-  "Pisces": "Song Ngư"
 };
 
 const HouseDetailsTable: React.FC<HouseDetailsTableProps> = ({ houses }) => {
@@ -118,6 +109,8 @@ const HouseDetailsTable: React.FC<HouseDetailsTableProps> = ({ houses }) => {
             {houses && houses.map((house) => {
               console.log('Rendering house:', house);
               const houseInfo = HOUSE_NAMES[house.number];
+              const signIndex = ZODIAC_SIGNS.indexOf(house.sign);
+              
               return (
                 <TableRow key={house.number}>
                   <TableCell className="font-medium">
@@ -125,7 +118,7 @@ const HouseDetailsTable: React.FC<HouseDetailsTableProps> = ({ houses }) => {
                   </TableCell>
                   <TableCell>{houseInfo?.sanskrit || ''}</TableCell>
                   <TableCell>{houseInfo?.meaning || ''}</TableCell>
-                  <TableCell>{house.sign ? ZODIAC_SIGNS_VI[house.sign] : ''}</TableCell>
+                  <TableCell>{house.sign || ''}</TableCell>
                   <TableCell>
                     <div className="max-h-[60px] overflow-y-auto pr-2">
                       {getPlanetSymbols(house.planets || [])}
