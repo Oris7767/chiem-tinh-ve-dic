@@ -227,19 +227,19 @@ async function fetchWithTimeoutAndRetry(url: string, options: RequestInit, timeo
     try {
       const controller = new AbortController();
       const id = setTimeout(() => controller.abort(), timeout);
-      
+
       try {
         const response = await fetch(url, {
           ...options,
           signal: controller.signal
         });
         clearTimeout(id);
-        
+
         // If response is not ok but it's a 500 error, we can retry
         if (!response.ok && response.status >= 500) {
           throw new Error(`Server error: ${response.status}`);
         }
-        
+
         return response;
       } catch (error) {
         clearTimeout(id);
@@ -247,7 +247,7 @@ async function fetchWithTimeoutAndRetry(url: string, options: RequestInit, timeo
       }
     } catch (error) {
       lastError = error as Error;
-      
+
       // Don't wait on the last attempt
       if (attempt < maxRetries - 1) {
         // Add some jitter to the retry delay to prevent all retries happening at exactly the same time
@@ -256,7 +256,7 @@ async function fetchWithTimeoutAndRetry(url: string, options: RequestInit, timeo
       }
     }
   }
-  
+
   throw lastError || new Error('Maximum retries exceeded');
 }
 
@@ -286,31 +286,11 @@ export async function calculateVedicChart(formData: {
       email: formData.email
     });
 
-    // Validate input data
-    if (!formData.birthDate || !formData.birthTime) {
-      throw new Error('Ngày giờ sinh không hợp lệ');
-    }
-
-    if (!formData.latitude || !formData.longitude) {
-      throw new Error('Vị trí địa lý không hợp lệ');
-    }
-
-    if (!formData.timezone) {
-      throw new Error('Múi giờ không hợp lệ');
-    }
-
     // Check if user is logged in and has a saved chart
     if (formData.email) {
-      try {
-        console.log('Checking for saved chart...');
-        const savedChart = await fetchSavedChart(formData.email);
-        if (savedChart) {
-          console.log('Found saved chart, returning it');
-          return savedChart;
-        }
-      } catch (error) {
-        console.error('Error fetching saved chart:', error);
-        // Continue with calculation if fetching saved chart fails
+      const savedChart = await fetchSavedChart(formData.email);
+      if (savedChart) {
+        return savedChart;
       }
     }
 
@@ -323,74 +303,77 @@ export async function calculateVedicChart(formData: {
       timezone: formData.timezone
     };
 
+    // Log the API payload
     console.log('Sending API payload:', apiPayload);
 
-    // Call the Vedic API with timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 180000); // 3 minutes timeout
-
     try {
-      const response = await fetch(`${import.meta.env.VITE_VEDIC_API_URL}/calculate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_VEDIC_API_KEY}`
+      // Use fetchWithTimeoutAndRetry to handle retries and timeouts
+      const response = await fetchWithTimeoutAndRetry(
+        VEDIC_ASTRO_API_CONFIG.API_URL, 
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(apiPayload)
         },
-        body: JSON.stringify(apiPayload),
-        signal: controller.signal
-      });
-
-      clearTimeout(timeoutId);
+        VEDIC_ASTRO_API_CONFIG.API_TIMEOUT,
+        VEDIC_ASTRO_API_CONFIG.MAX_RETRIES,
+        VEDIC_ASTRO_API_CONFIG.RETRY_DELAY
+      );
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        console.error('API error response:', errorData);
-        throw new Error(
-          errorData?.message || 
-          `Lỗi từ máy chủ: ${response.status} ${response.statusText}`
-        );
+        const errorText = await response.text();
+        console.error('API Error Response:', errorText);
+
+        // Provide more specific error messages based on status code
+        switch (response.status) {
+          case 400:
+            throw new Error('Dữ liệu không hợp lệ. Vui lòng kiểm tra lại thông tin nhập vào.');
+          case 401:
+            throw new Error('Không có quyền truy cập. Vui lòng đăng nhập lại.');
+          case 403:
+            throw new Error('Không có quyền thực hiện thao tác này.');
+          case 404:
+            throw new Error('Không tìm thấy dịch vụ. Vui lòng thử lại sau.');
+          case 429:
+            throw new Error('Quá nhiều yêu cầu. Vui lòng thử lại sau ít phút.');
+          case 500:
+            throw new Error('Lỗi máy chủ. Vui lòng thử lại sau.');
+          default:
+            throw new Error(`Lỗi không xác định (${response.status}): ${errorText || 'Không có thông tin chi tiết'}`);
+        }
       }
 
-      const data = await response.json();
-      console.log('Received API response:', data);
+      const apiData: VedicChartResponse = await response.json();
 
-      // Save chart data if user is logged in
+      // Log the API response
+      console.log('API Response:', apiData);
+
+      // Convert API response to VedicChartData format
+      const data = convertApiResponseToChartData(apiData);
+
+      // Save the chart data for logged in users
       const { data: { user } } = await supabase.auth.getUser();
       if (user && formData.email) {
-        try {
-          console.log('Saving chart data for user:', user.id);
-          const { error } = await supabase.from('birth_charts').insert([{
-            user_id: user.id,
-            planets: JSON.stringify(data.planets),
-            houses: JSON.stringify(data.houses),
-            nakshatras: JSON.stringify({ moonNakshatra: data.moonNakshatra }),
-            metadata: JSON.stringify({
-              ...data.metadata,
-              name: formData.name,
-              location: formData.location
-            }),
-            dashas: JSON.stringify(data.dashas)
-          }]);
-
-          if (error) {
-            console.error('Error saving chart:', error);
-            // Don't throw error here, just log it
-          }
-        } catch (saveError) {
-          console.error('Error in save process:', saveError);
-          // Don't throw error here, just log it
-        }
+        await supabase.from('birth_charts').insert([{
+          user_id: user.id,
+          planets: JSON.stringify(data.planets),
+          houses: JSON.stringify(data.houses),
+          nakshatras: JSON.stringify({ moonNakshatra: data.moonNakshatra }),
+          metadata: JSON.stringify(data.metadata),
+          dashas: JSON.stringify(data.dashas)
+        }]);
       }
 
       return data;
     } catch (fetchError) {
-      clearTimeout(timeoutId);
-
       // Check if it was a timeout error
       if (fetchError.name === 'AbortError') {
         throw new Error('Quá thời gian chờ phản hồi từ máy chủ (3 phút). Vui lòng thử lại sau.');
       }
-      
+
       // Network error
       if (fetchError instanceof TypeError && fetchError.message === 'Failed to fetch') {
         throw new Error('Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại.');
@@ -400,7 +383,6 @@ export async function calculateVedicChart(formData: {
       throw new Error(`Lỗi khi tính toán bản đồ sao: ${fetchError.message}`);
     }
   } catch (error) {
-    console.error('Error in calculateVedicChart:', error);
     throw error;
   }
 }
@@ -418,7 +400,7 @@ function convertApiResponseToChartData(apiData: VedicChartResponse): VedicChartD
   const planets: Planet[] = apiData.planets.map(p => {
     const key = p.planet.toUpperCase();
     const info = PLANET_MAP[key] || {};
-    
+
     return {
       id: info.id || key.toLowerCase(),
       name: info.name || p.planet,
@@ -497,10 +479,9 @@ function convertApiResponseToChartData(apiData: VedicChartResponse): VedicChartD
 function calculateLunarDay(planets: PlanetaryPosition[]): number {
   const sun = planets.find(p => p.planet === 'SUN');
   const moon = planets.find(p => p.planet === 'MOON');
-  
+
   if (!sun || !moon) return 1;
-  
+
   const sunLongitude = sun.longitude;
   const moonLongitude = moon.longitude;
   return Math.floor(((moonLongitude - sunLongitude + 360) % 360) / 12) + 1;
-}
