@@ -84,9 +84,11 @@ const HouseDetailsTable: React.FC<HouseDetailsTableProps> = ({ houses }) => {
   console.log('Houses data received:', houses);
 
   const getPlanetSymbols = (planetNames: string[]): JSX.Element[] => {
-    return planetNames.map(planetName => (
+    if (!planetNames || planetNames.length === 0) return [];
+    
+    return planetNames.map((planetName, index) => (
       <span
-        key={planetName}
+        key={`${planetName}-${index}`}
         title={planetName}
         style={{ color: PLANET_COLORS[planetName] }}
         className="mr-1 text-2xl"
@@ -113,7 +115,7 @@ const HouseDetailsTable: React.FC<HouseDetailsTableProps> = ({ houses }) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {houses.map((house) => {
+            {houses && houses.map((house) => {
               console.log('Rendering house:', house);
               const houseInfo = HOUSE_NAMES[house.number];
               return (
@@ -121,12 +123,12 @@ const HouseDetailsTable: React.FC<HouseDetailsTableProps> = ({ houses }) => {
                   <TableCell className="font-medium">
                     {house.number}
                   </TableCell>
-                  <TableCell>{houseInfo.sanskrit}</TableCell>
-                  <TableCell>{houseInfo.meaning}</TableCell>
-                  <TableCell>{ZODIAC_SIGNS_VI[house.sign]}</TableCell>
+                  <TableCell>{houseInfo?.sanskrit || ''}</TableCell>
+                  <TableCell>{houseInfo?.meaning || ''}</TableCell>
+                  <TableCell>{house.sign ? ZODIAC_SIGNS_VI[house.sign] : ''}</TableCell>
                   <TableCell>
                     <div className="max-h-[60px] overflow-y-auto pr-2">
-                      {getPlanetSymbols(house.planets)}
+                      {getPlanetSymbols(house.planets || [])}
                     </div>
                   </TableCell>
                 </TableRow>
