@@ -485,3 +485,4 @@ function calculateLunarDay(planets: PlanetaryPosition[]): number {
   const sunLongitude = sun.longitude;
   const moonLongitude = moon.longitude;
   return Math.floor(((moonLongitude - sunLongitude + 360) % 360) / 12) + 1;
+}
