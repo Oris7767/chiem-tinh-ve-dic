@@ -287,39 +287,62 @@ export const birthChartService = {
         throw new BirthChartError('Invalid chart data structure', 'VALIDATION');
       }
 
+      // Parse JSON data if needed
+      const planets = typeof savedChart.planets === 'string' ? JSON.parse(savedChart.planets) : savedChart.planets;
+      const houses = typeof savedChart.houses === 'string' ? JSON.parse(savedChart.houses) : savedChart.houses;
+      const nakshatras = typeof savedChart.nakshatras === 'string' ? JSON.parse(savedChart.nakshatras) : savedChart.nakshatras;
+      const metadata = typeof savedChart.metadata === 'string' ? JSON.parse(savedChart.metadata) : savedChart.metadata;
+      const dashas = typeof savedChart.dashas === 'string' ? JSON.parse(savedChart.dashas) : savedChart.dashas;
+
+      // Ensure numerical values are properly converted
+      const parsedPlanets = (planets as any[]).map(planet => ({
+        ...planet,
+        longitude: Number(planet.longitude) || 0,
+        latitude: Number(planet.latitude) || 0,
+        longitudeSpeed: Number(planet.longitudeSpeed) || 0,
+        sign: Number(planet.sign) || 0,
+        house: Number(planet.house) || 0,
+        aspectingPlanets: planet.aspectingPlanets || [],
+        aspects: (planet.aspects || []).map((aspect: any) => ({
+          ...aspect,
+          orb: Number(aspect.orb) || 0
+        })),
+        color: planet.color || '#000000'
+      }));
+
+      const parsedHouses = (houses as any[]).map(house => ({
+        ...house,
+        number: Number(house.number) || 0,
+        longitude: Number(house.longitude) || 0,
+        sign: Number(house.sign) || 0,
+        planets: house.planets || []
+      }));
+
       return {
-        ascendant: savedChart.ascendant || 0,
-        ascendantNakshatra: savedChart.nakshatras?.ascendantNakshatra || {
+        ascendant: Number(savedChart.ascendant) || 0,
+        ascendantNakshatra: nakshatras?.ascendantNakshatra || {
           name: '',
           lord: '',
           startDegree: 0,
           endDegree: 0,
           pada: 1
         },
-        planets: (savedChart.planets as any[]).map(planet => ({
-          ...planet,
-          aspectingPlanets: planet.aspectingPlanets || [],
-          aspects: planet.aspects || [],
-          color: planet.color || '#000000'
-        })),
-        houses: (savedChart.houses as any[]).map(house => ({
-          ...house,
-          planets: house.planets || []
-        })),
-        moonNakshatra: savedChart.nakshatras?.moonNakshatra || '',
-        lunarDay: savedChart.lunarDay || 1,
+        planets: parsedPlanets,
+        houses: parsedHouses,
+        moonNakshatra: nakshatras?.moonNakshatra || '',
+        lunarDay: Number(savedChart.lunarDay) || 1,
         metadata: {
-          ayanamsa: savedChart.metadata?.ayanamsa || 24,
-          date: savedChart.metadata?.date || '',
-          time: savedChart.metadata?.time || '',
-          latitude: savedChart.metadata?.latitude || 0,
-          longitude: savedChart.metadata?.longitude || 0,
-          timezone: savedChart.metadata?.timezone || 'UTC',
-          houseSystem: savedChart.metadata?.houseSystem || 'W'
+          ayanamsa: Number(metadata?.ayanamsa) || 24,
+          date: metadata?.date || '',
+          time: metadata?.time || '',
+          latitude: Number(metadata?.latitude) || 0,
+          longitude: Number(metadata?.longitude) || 0,
+          timezone: metadata?.timezone || 'UTC',
+          houseSystem: metadata?.houseSystem || 'W'
         },
-        dashas: savedChart.dashas ? {
-          current: savedChart.dashas.current as unknown as DashaPeriod,
-          sequence: savedChart.dashas.sequence as unknown as DashaPeriod[]
+        dashas: dashas ? {
+          current: dashas.current as unknown as DashaPeriod,
+          sequence: dashas.sequence as unknown as DashaPeriod[]
         } : {
           current: {} as DashaPeriod,
           sequence: []

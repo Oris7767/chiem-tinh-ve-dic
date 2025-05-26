@@ -2,6 +2,7 @@ import { VEDIC_ASTRO_API_CONFIG, VedicChartRequest, VedicChartResponse, Planetar
 import { VedicChartData, Planet, House } from '@/components/VedicAstrology/VedicChart';
 import { supabase } from '@/integrations/supabase/client';
 import { Json } from '@/integrations/supabase/types';
+import { birthChartService } from '@/services/birthChartService';
 
 // Constants for zodiac signs
 const SIGNS = [
@@ -357,23 +358,11 @@ export async function calculateVedicChart(formData: {
       // Save the chart data for logged in users
       const { data: { user } } = await supabase.auth.getUser();
       if (user && formData.email) {
-        await supabase.from('birth_charts').insert([{
-          user_id: user.id,
-          planets: JSON.stringify(data.planets),
-          houses: JSON.stringify(data.houses),
-          nakshatras: JSON.stringify({ 
-            moonNakshatra: data.moonNakshatra,
-            ascendantNakshatra: data.ascendantNakshatra
-          }),
-          metadata: JSON.stringify({
-            ...data.metadata,
-            name: formData.name,
-            location: formData.location
-          }),
-          dashas: JSON.stringify(data.dashas),
-          ascendant: data.ascendant,
-          lunarDay: data.lunarDay
-        }]);
+        const { error: saveError } = await birthChartService.saveChart(user.id, data, formData);
+        if (saveError) {
+          console.error("Error saving chart:", saveError);
+          throw new Error(`Lỗi khi lưu bản đồ: ${saveError.message}`);
+        }
       }
 
       return data;
