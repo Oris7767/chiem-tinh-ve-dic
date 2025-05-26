@@ -50,13 +50,10 @@ const HouseDetailsTable: React.FC<HouseDetailsTableProps> = ({ houses, planets }
     return `${degrees}°${minutes}'`;
   };
 
-  const getZodiacSign = (sign: string | number): string => {
-    // Nếu sign là string (từ API), trả về trực tiếp
-    if (typeof sign === 'string') {
-      return sign;
-    }
-    // Nếu sign là number (từ VedicChart interface), lấy từ mảng
-    return ZODIAC_SIGNS[sign] || 'Unknown';
+  const getZodiacSign = (signIndex: number): string => {
+    // Ensure signIndex is a valid number between 0 and 11
+    const normalizedIndex = ((signIndex % 12) + 12) % 12;
+    return ZODIAC_SIGNS[normalizedIndex] || 'Unknown';
   };
 
   const getPlanetSymbols = (planetIds: string[]): JSX.Element[] => {
