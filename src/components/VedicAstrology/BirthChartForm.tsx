@@ -140,22 +140,10 @@ const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
       // Get current user if logged in
       const { data: { user } } = await supabase.auth.getUser();
       
-      // 1. Save form input data to Supabase
+      // Silently save form input data to Supabase
       const saveToSupabase = async () => {
         try {
-          console.log("Attempting to save form data:", {
-            user_id: user?.id || null,
-            name: values.name,
-            email: user ? user.email : values.email,
-            birth_date: values.birthDate,
-            birth_time: values.birthTime,
-            location: values.location,
-            latitude: values.latitude,
-            longitude: values.longitude,
-            timezone: values.timezone
-          });
-
-          const { data, error: inputError } = await supabase
+          await supabase
             .from('birth_chart_inputs')
             .insert({
               user_id: user?.id || null,
@@ -167,38 +155,17 @@ const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
               latitude: values.latitude,
               longitude: values.longitude,
               timezone: values.timezone
-            })
-            .select()
-            .single();
-
-          if (inputError) {
-            console.error('Error saving form input:', inputError);
-            toast({
-              title: "Lưu ý",
-              description: "Không thể lưu thông tin form: " + inputError.message,
-              variant: "destructive",
             });
-          } else {
-            console.log("Form data saved successfully:", data);
-            toast({
-              title: "Đã lưu thông tin",
-              description: "Thông tin của bạn đã được lưu thành công.",
-            });
-          }
         } catch (error) {
+          // Silently log error without notifying user
           console.error('Error in saving form data:', error);
-          toast({
-            title: "Lỗi lưu dữ liệu",
-            description: "Đã xảy ra lỗi khi lưu thông tin. Chi tiết: " + (error as Error).message,
-            variant: "destructive",
-          });
         }
       };
 
-      // Start saving process and wait for it to complete
-      await saveToSupabase();
+      // Start saving process in background without waiting
+      saveToSupabase();
 
-      // 2. Proceed with chart calculation (main flow)
+      // Proceed with chart calculation (main flow)
       const submissionData = {
         ...values,
         email: user ? user.email : values.email || ''
