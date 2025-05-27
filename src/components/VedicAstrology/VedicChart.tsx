@@ -300,6 +300,8 @@ const VedicChart = () => {
       console.log("Chart data received:", data);
       setChartData(data);
 
+      // Temporarily disable saving chart data while auth UI is hidden
+      /* 
       // Save chart data if user is logged in
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
@@ -328,6 +330,7 @@ const VedicChart = () => {
           });
         }
       }
+      */
 
       // Set progress to 100% when completed
       setLoadingProgress(100);
@@ -343,7 +346,6 @@ const VedicChart = () => {
       if (loadingIntervalId) {
         clearInterval(loadingIntervalId);
       }
-      // Hide loading popup
       setIsLoading(false);
     }
   };

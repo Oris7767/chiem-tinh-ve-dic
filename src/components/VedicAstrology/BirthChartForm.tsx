@@ -140,42 +140,52 @@ const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
       // Get current user if logged in
       const { data: { user } } = await supabase.auth.getUser();
       
-      // Save form input data
-      const { error: inputError } = await supabase
-        .from('birth_chart_inputs')
-        .insert({
-          user_id: user?.id || null,
-          name: values.name,
-          email: user ? user.email : values.email,
-          birth_date: values.birthDate,
-          birth_time: values.birthTime,
-          location: values.location,
-          latitude: values.latitude,
-          longitude: values.longitude,
-          timezone: values.timezone
-        });
+      // 1. Save form input data to Supabase (don't wait for this to complete)
+      const saveToSupabase = async () => {
+        try {
+          const { error: inputError } = await supabase
+            .from('birth_chart_inputs')
+            .insert({
+              user_id: user?.id || null,
+              name: values.name,
+              email: user ? user.email : values.email,
+              birth_date: values.birthDate,
+              birth_time: values.birthTime,
+              location: values.location,
+              latitude: values.latitude,
+              longitude: values.longitude,
+              timezone: values.timezone
+            });
 
-      if (inputError) {
-        console.error('Error saving form input:', inputError);
-        toast({
-          title: "Lỗi khi lưu thông tin",
-          description: "Không thể lưu thông tin. Vui lòng thử lại sau.",
-          variant: "destructive",
-        });
-        return;
-      }
+          if (inputError) {
+            console.error('Error saving form input:', inputError);
+            toast({
+              title: "Lưu ý",
+              description: "Không thể lưu thông tin form. Nhưng bản đồ sao vẫn sẽ được tính toán.",
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Đã lưu thông tin",
+              description: "Thông tin của bạn đã được lưu thành công.",
+            });
+          }
+        } catch (error) {
+          console.error('Error in saving form data:', error);
+          // Don't block the main flow if saving fails
+        }
+      };
 
-      // If data was saved successfully, show success message
-      toast({
-        title: "Đã lưu thông tin",
-        description: "Thông tin của bạn đã được lưu thành công.",
-      });
+      // Start saving process in background
+      saveToSupabase();
 
-      // Proceed with chart calculation
+      // 2. Proceed with chart calculation (main flow)
       const submissionData = {
         ...values,
         email: user ? user.email : values.email || ''
       };
+      
+      // Call the parent component's onSubmit handler for API processing
       onSubmit(submissionData);
 
     } catch (error) {
