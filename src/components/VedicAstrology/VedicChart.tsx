@@ -409,6 +409,7 @@ const VedicChart = () => {
 
   return (
     <div className="space-y-8">
+      {/* Temporarily hide auth UI
       {user ? (
         <div className="space-y-4">
           <div className="flex justify-between items-center">
@@ -484,6 +485,7 @@ const VedicChart = () => {
           </TabsContent>
         </Tabs>
       )}
+      */}
 
       <Card>
         <CardHeader>
