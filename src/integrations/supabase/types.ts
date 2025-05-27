@@ -360,6 +360,55 @@ export type Database = {
         }
         Relationships: []
       }
+      birth_chart_inputs: {
+        Row: {
+          id: string
+          user_id: string | null
+          name: string
+          email: string
+          birth_date: string
+          birth_time: string
+          location: string
+          latitude: number
+          longitude: number
+          timezone: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          name: string
+          email: string
+          birth_date: string
+          birth_time: string
+          location: string
+          latitude: number
+          longitude: number
+          timezone: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          name?: string
+          email?: string
+          birth_date?: string
+          birth_time?: string
+          location?: string
+          latitude?: number
+          longitude?: number
+          timezone?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "birth_chart_inputs_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never

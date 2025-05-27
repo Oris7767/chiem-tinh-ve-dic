@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { LocationSelector } from './LocationSelector';
+import { useToast } from "@/components/ui/use-toast";
 
 // Define the schema for the form data
 const formSchema = z.object({
@@ -42,6 +43,7 @@ const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
   const [savedCharts, setSavedCharts] = useState<any[]>([]);
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
   const [hasSelectedLocation, setHasSelectedLocation] = useState(false);
+  const { toast } = useToast();
 
   const form = useForm<BirthDataFormValues>({
     resolver: zodResolver(formSchema),
@@ -134,17 +136,56 @@ const BirthChartForm = ({ onSubmit, isLoading }: BirthChartFormProps) => {
       return;
     }
     
-    // Get current user if logged in
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    // If user is logged in, use their email, otherwise use the form email
-    const submissionData = {
-      ...values,
-      email: user ? user.email : values.email || ''
-    };
-    
-    // Call the parent component's onSubmit handler with the updated data
-    onSubmit(submissionData);
+    try {
+      // Get current user if logged in
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      // Save form input data
+      const { error: inputError } = await supabase
+        .from('birth_chart_inputs')
+        .insert({
+          user_id: user?.id || null,
+          name: values.name,
+          email: user ? user.email : values.email,
+          birth_date: values.birthDate,
+          birth_time: values.birthTime,
+          location: values.location,
+          latitude: values.latitude,
+          longitude: values.longitude,
+          timezone: values.timezone
+        });
+
+      if (inputError) {
+        console.error('Error saving form input:', inputError);
+        toast({
+          title: "Lỗi khi lưu thông tin",
+          description: "Không thể lưu thông tin. Vui lòng thử lại sau.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // If data was saved successfully, show success message
+      toast({
+        title: "Đã lưu thông tin",
+        description: "Thông tin của bạn đã được lưu thành công.",
+      });
+
+      // Proceed with chart calculation
+      const submissionData = {
+        ...values,
+        email: user ? user.email : values.email || ''
+      };
+      onSubmit(submissionData);
+
+    } catch (error) {
+      console.error('Error in form submission:', error);
+      toast({
+        title: "Lỗi xử lý",
+        description: "Đã xảy ra lỗi trong quá trình xử lý. Vui lòng thử lại sau.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
