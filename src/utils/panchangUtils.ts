@@ -1,9 +1,7 @@
-import { format, parseISO } from 'date-fns';
-import { vi, enUS } from 'date-fns/locale';
+import { format } from 'date-fns';
 import { PanchangData, PlanetaryTransit, NearestTransits } from '../services/panchangService';
 
 export interface FormattedPanchangData {
-  date: string;
   lunarInfo: {
     day: number;
     month: number;
@@ -23,71 +21,74 @@ export interface FormattedPanchangData {
   };
 }
 
-export interface FormattedTransits extends Omit<NearestTransits, 'events'> {
-  events: (PlanetaryTransit & {
-    formattedDate: string;
-    formattedTime: string;
-  })[];
+export interface FormattedTransit {
+  planet: string;
+  fromSign?: string;
+  toSign?: string;
+  formattedDate: string;
+  formattedTime: string;
+  type: string;
 }
 
-export const formatTime = (timeString: string, language: 'vi' | 'en' = 'en'): string => {
+export const formatPanchangData = (data: PanchangData, language: 'vi' | 'en'): FormattedPanchangData => {
+  return {
+    lunarInfo: {
+      day: data.lunarDay,
+      month: data.lunarMonth,
+      year: data.lunarYear,
+    },
+    solarEvents: {
+      sunriseFormatted: formatTime(data.sunriseTime, language),
+      sunsetFormatted: formatTime(data.sunsetTime, language),
+      moonriseFormatted: formatTime(data.moonriseTime, language),
+      moonsetFormatted: formatTime(data.moonsetTime, language),
+    },
+    astrologicalInfo: {
+      tithi: data.tithi,
+      nakshatra: data.nakshatra,
+      yoga: data.yoga,
+      karana: data.karana,
+    },
+  };
+};
+
+export const formatTransits = (data: NearestTransits, language: 'vi' | 'en'): FormattedTransit[] => {
+  return data.events.map((transit: PlanetaryTransit) => {
+    const base = {
+      planet: transit.planet,
+      formattedDate: formatDate(transit.timestamp, language),
+      formattedTime: formatTime(transit.timestamp, language),
+      type: transit.type
+    };
+
+    if (transit.type === 'INGRESS' && transit.details.fromSign && transit.details.toSign) {
+      return {
+        ...base,
+        fromSign: transit.details.fromSign,
+        toSign: transit.details.toSign,
+      };
+    }
+
+    return base;
+  });
+};
+
+const formatTime = (timeString: string, language: 'vi' | 'en'): string => {
   try {
-    // Assuming timeString is in HH:mm:ss format, we need to create a full date
-    const today = new Date();
-    const [hours, minutes] = timeString.split(':');
-    today.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0);
-    
-    return format(today, 'HH:mm', {
-      locale: language === 'vi' ? vi : enUS
-    });
+    const date = new Date(timeString);
+    return format(date, language === 'vi' ? 'HH:mm' : 'h:mm a');
   } catch (error) {
     console.error('Error formatting time:', error);
     return timeString;
   }
 };
 
-export const formatTransits = (
-  data: NearestTransits,
-  language: 'vi' | 'en' = 'en'
-): FormattedTransits => {
-  return {
-    referenceDate: format(parseISO(data.referenceDate), 'dd/MM/yyyy', {
-      locale: language === 'vi' ? vi : enUS
-    }),
-    events: data.events.map(event => ({
-      ...event,
-      formattedDate: format(parseISO(event.date), 'dd/MM/yyyy', {
-        locale: language === 'vi' ? vi : enUS
-      }),
-      formattedTime: formatTime(event.time, language)
-    }))
-  };
-};
-
-export const formatPanchangData = (
-  data: PanchangData,
-  language: 'vi' | 'en' = 'en'
-): FormattedPanchangData => {
-  return {
-    date: format(parseISO(data.date), 'dd/MM/yyyy', {
-      locale: language === 'vi' ? vi : enUS
-    }),
-    lunarInfo: {
-      day: data.lunarDay,
-      month: data.lunarMonth,
-      year: data.lunarYear
-    },
-    solarEvents: {
-      sunriseFormatted: formatTime(data.sunriseTime, language),
-      sunsetFormatted: formatTime(data.sunsetTime, language),
-      moonriseFormatted: formatTime(data.moonriseTime, language),
-      moonsetFormatted: formatTime(data.moonsetTime, language)
-    },
-    astrologicalInfo: {
-      tithi: data.tithi,
-      nakshatra: data.nakshatra,
-      yoga: data.yoga,
-      karana: data.karana
-    }
-  };
+const formatDate = (dateString: string, language: 'vi' | 'en'): string => {
+  try {
+    const date = new Date(dateString);
+    return format(date, language === 'vi' ? 'dd/MM/yyyy' : 'MMM d, yyyy');
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return dateString;
+  }
 }; 

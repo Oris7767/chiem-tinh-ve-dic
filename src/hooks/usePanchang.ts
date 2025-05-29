@@ -16,7 +16,17 @@ export const usePanchang = () => {
     refetch
   } = useQuery({
     queryKey: ['panchang', today],
-    queryFn: () => getPanchangData(),
+    queryFn: async () => {
+      try {
+        console.log('Fetching panchang data...');
+        const data = await getPanchangData();
+        console.log('Panchang data received:', data);
+        return data;
+      } catch (err) {
+        console.error('Error fetching panchang data:', err);
+        throw err;
+      }
+    },
     staleTime: 1000 * 60 * 60, // Consider data fresh for 1 hour
     gcTime: 1000 * 60 * 60 * 24, // Keep in garbage collection for 24 hours
     retry: 2, // Retry failed requests twice
@@ -27,8 +37,14 @@ export const usePanchang = () => {
 
   useEffect(() => {
     if (rawData) {
-      const formatted = formatPanchangData(rawData, language as 'vi' | 'en');
-      setFormattedData(formatted);
+      try {
+        console.log('Formatting panchang data...');
+        const formatted = formatPanchangData(rawData, language);
+        console.log('Formatted panchang data:', formatted);
+        setFormattedData(formatted);
+      } catch (err) {
+        console.error('Error formatting panchang data:', err);
+      }
     }
   }, [rawData, language]);
 

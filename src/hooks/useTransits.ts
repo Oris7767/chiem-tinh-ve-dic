@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { getNearestTransits } from '../services/panchangService';
-import { formatTransits } from '../utils/panchangUtils';
+import { formatTransits, FormattedTransit } from '../utils/panchangUtils';
 import { useLanguage } from '../context/LanguageContext';
 import { useEffect } from 'react';
 
@@ -16,14 +16,33 @@ export const useTransits = () => {
     refetch
   } = useQuery({
     queryKey: ['transits', today],
-    queryFn: () => getNearestTransits(today),
+    queryFn: async () => {
+      try {
+        console.log('Fetching transit data...');
+        const data = await getNearestTransits(today);
+        console.log('Transit data received:', data);
+        return data;
+      } catch (err) {
+        console.error('Error fetching transit data:', err);
+        throw err;
+      }
+    },
     staleTime: 1000 * 60 * 60,
     gcTime: 1000 * 60 * 60 * 24,
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
-  const formattedData = rawData ? formatTransits(rawData, language as 'vi' | 'en') : null;
+  let formattedData = null;
+  if (rawData) {
+    try {
+      console.log('Formatting transit data...');
+      formattedData = formatTransits(rawData, language);
+      console.log('Formatted transit data:', formattedData);
+    } catch (err) {
+      console.error('Error formatting transit data:', err);
+    }
+  }
 
   useEffect(() => {
     const now = new Date();

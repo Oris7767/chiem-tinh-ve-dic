@@ -9,6 +9,10 @@ import { FormattedPanchangData } from '../utils/panchangUtils';
 import { formatPanchangData } from '../utils/panchangUtils';
 import { PanchangData } from '../services/panchangService';
 import DiyaLamp from '../components/DiyaLamp';
+import { SolarEvents } from '../components/panchang/SolarEvents';
+import { PlanetaryTransits } from '../components/panchang/PlanetaryTransits';
+import { AstrologicalInfo } from '../components/panchang/AstrologicalInfo';
+import { LunarInfo } from '../components/panchang/LunarInfo';
 
 // For development, set this to true to use mock data
 const USE_MOCK = false;
@@ -29,385 +33,116 @@ const Panchang: React.FC = () => {
     return name;
   };
 
-  if ((isPanchangLoading || isTransitsLoading) && !USE_MOCK) {
-    return (
-      <div className="container mx-auto px-4 py-8 min-h-screen bg-[#2C1810]">
-        <div className="flex items-center justify-center h-[60vh]">
-          <div className="text-center">
-            <div className="w-16 h-16 border-4 border-[#D68C45] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <h1 className="text-3xl font-bold text-[#D68C45]">
-              {language === 'vi' ? 'Đang tải Panchang...' : 'Loading Panchang...'}
-            </h1>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if ((panchangError || transitsError) && !USE_MOCK) {
-    return (
-      <div className="container mx-auto px-4 py-8 min-h-screen bg-[#2C1810]">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-red-500 mb-4">
-            {language === 'vi' ? 'Lỗi khi tải dữ liệu' : 'Error loading data'}
-          </h1>
-          <p className="text-[#D68C45]">
-            {language === 'vi' ? 'Vui lòng thử lại sau' : 'Please try again later'}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!data) {
-    return null;
-  }
-
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 }
   };
 
+  const LoadingSpinner = () => (
+    <div className="flex items-center justify-center py-8">
+      <div className="text-center">
+        <div className="w-12 h-12 border-4 border-[#D68C45] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-[#D68C45]">
+          {language === 'vi' ? 'Đang tải...' : 'Loading...'}
+        </p>
+      </div>
+    </div>
+  );
+
+  const ErrorMessage = () => (
+    <div className="text-center py-8">
+      <p className="text-red-500">
+        {language === 'vi' ? 'Lỗi khi tải dữ liệu' : 'Error loading data'}
+      </p>
+      <p className="text-[#D68C45] text-sm">
+        {language === 'vi' ? 'Vui lòng thử lại sau' : 'Please try again later'}
+      </p>
+    </div>
+  );
+
   const renderContent = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {/* Lunar Information */}
-      {isPanchangLoading ? (
-        <motion.div
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          className="p-8 rounded-2xl bg-gradient-to-br from-[#3D2317] to-[#2C1810] border border-[#D68C45]/20"
-        >
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-[#D68C45]/20 rounded w-3/4"></div>
-            <div className="h-24 bg-[#D68C45]/10 rounded"></div>
-          </div>
-        </motion.div>
-      ) : panchangError ? (
-        <motion.div
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          className="p-8 rounded-2xl bg-gradient-to-br from-[#3D2317] to-[#2C1810] border border-[#D68C45]/20"
-        >
-          <div className="text-[#D68C45]">
-            {language === 'vi' 
-              ? 'Không thể tải thông tin âm lịch' 
-              : 'Failed to load lunar information'}
-          </div>
-        </motion.div>
-      ) : panchangData && (
-        <motion.div
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          transition={{ duration: 0.5 }}
-          className={cn(
-            "p-8 rounded-2xl",
-            "bg-gradient-to-br from-[#3D2317] to-[#2C1810]",
-            "border border-[#D68C45]/20",
-            "shadow-xl shadow-[#D68C45]/10"
-          )}
-        >
-          <div className="flex items-center mb-6">
-            <span className="text-4xl mr-4">🌙</span>
-            <h2 className="text-2xl font-semibold text-[#D68C45]">
-              {language === 'vi' ? 'Thông Tin Âm Lịch' : 'Lunar Information'}
-            </h2>
-          </div>
-          <div className="space-y-4">
-            <div className="flex items-center space-x-4 p-3 rounded-lg bg-[#3D2317]">
-              <span className="text-2xl">📅</span>
-              <div>
-                <p className="text-[#E5B583] font-medium">
-                  {language === 'vi' ? 'Ngày' : 'Day'}
-                </p>
-                <p className="text-2xl font-bold text-[#D68C45]">{data.lunarInfo.day}</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4 p-3 rounded-lg bg-[#3D2317]">
-              <span className="text-2xl">📆</span>
-              <div>
-                <p className="text-[#E5B583] font-medium">
-                  {language === 'vi' ? 'Tháng' : 'Month'}
-                </p>
-                <p className="text-2xl font-bold text-[#D68C45]">{data.lunarInfo.month}</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4 p-3 rounded-lg bg-[#3D2317]">
-              <span className="text-2xl">✨</span>
-              <div>
-                <p className="text-[#E5B583] font-medium">
-                  {language === 'vi' ? 'Năm' : 'Year'}
-                </p>
-                <p className="text-2xl font-bold text-[#D68C45]">{data.lunarInfo.year}</p>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
+      <motion.div
+        variants={cardVariants}
+        initial="hidden"
+        animate="visible"
+        transition={{ delay: 0.1 }}
+      >
+        {isPanchangLoading && !USE_MOCK ? (
+          <LoadingSpinner />
+        ) : panchangError && !USE_MOCK ? (
+          <ErrorMessage />
+        ) : (
+          <LunarInfo
+            isLoading={isPanchangLoading}
+            error={panchangError}
+            data={data}
+            language={language as 'vi' | 'en'}
+          />
+        )}
+      </motion.div>
 
-      {/* Solar Events */}
-      {isPanchangLoading ? (
-        <motion.div
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          className="p-8 rounded-2xl bg-gradient-to-br from-[#3D2317] to-[#2C1810] border border-[#D68C45]/20"
-        >
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-[#D68C45]/20 rounded w-3/4"></div>
-            <div className="h-32 bg-[#D68C45]/10 rounded"></div>
-          </div>
-        </motion.div>
-      ) : panchangError ? (
-        <motion.div
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          className="p-8 rounded-2xl bg-gradient-to-br from-[#3D2317] to-[#2C1810] border border-[#D68C45]/20"
-        >
-          <div className="text-[#D68C45]">
-            {language === 'vi' 
-              ? 'Không thể tải thông tin mặt trời và mặt trăng' 
-              : 'Failed to load solar and lunar events'}
-          </div>
-        </motion.div>
-      ) : panchangData && (
-        <motion.div
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className={cn(
-            "p-8 rounded-2xl",
-            "bg-gradient-to-br from-[#3D2317] to-[#2C1810]",
-            "border border-[#D68C45]/20",
-            "shadow-xl shadow-[#D68C45]/10"
-          )}
-        >
-          <div className="flex items-center mb-6">
-            <span className="text-4xl mr-4">☀️</span>
-            <h2 className="text-2xl font-semibold text-[#D68C45]">
-              {language === 'vi' ? 'Mặt Trời & Mặt Trăng' : 'Solar & Lunar Events'}
-            </h2>
-          </div>
-          <div className="space-y-4">
-            <div className="flex items-center space-x-4 p-3 rounded-lg bg-[#3D2317]">
-              <span className="text-2xl">🌅</span>
-              <div>
-                <p className="text-[#E5B583] font-medium">
-                  {language === 'vi' ? 'Mặt trời mọc' : 'Sunrise'}
-                </p>
-                <p className="text-2xl font-bold text-[#D68C45]">{data.solarEvents.sunriseFormatted}</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4 p-3 rounded-lg bg-[#3D2317]">
-              <span className="text-2xl">🌇</span>
-              <div>
-                <p className="text-[#E5B583] font-medium">
-                  {language === 'vi' ? 'Mặt trời lặn' : 'Sunset'}
-                </p>
-                <p className="text-2xl font-bold text-[#D68C45]">{data.solarEvents.sunsetFormatted}</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4 p-3 rounded-lg bg-[#3D2317]">
-              <span className="text-2xl">🌕</span>
-              <div>
-                <p className="text-[#E5B583] font-medium">
-                  {language === 'vi' ? 'Mặt trăng mọc' : 'Moonrise'}
-                </p>
-                <p className="text-2xl font-bold text-[#D68C45]">{data.solarEvents.moonriseFormatted}</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4 p-3 rounded-lg bg-[#3D2317]">
-              <span className="text-2xl">🌑</span>
-              <div>
-                <p className="text-[#E5B583] font-medium">
-                  {language === 'vi' ? 'Mặt trăng lặn' : 'Moonset'}
-                </p>
-                <p className="text-2xl font-bold text-[#D68C45]">{data.solarEvents.moonsetFormatted}</p>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
+      <motion.div
+        variants={cardVariants}
+        initial="hidden"
+        animate="visible"
+        transition={{ delay: 0.2 }}
+      >
+        {isPanchangLoading && !USE_MOCK ? (
+          <LoadingSpinner />
+        ) : panchangError && !USE_MOCK ? (
+          <ErrorMessage />
+        ) : (
+          <SolarEvents
+            isLoading={isPanchangLoading}
+            error={panchangError}
+            data={data}
+            language={language as 'vi' | 'en'}
+          />
+        )}
+      </motion.div>
 
-      {/* Recent Planetary Transits */}
-      {isTransitsLoading ? (
-        <motion.div
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          className="p-8 rounded-2xl bg-gradient-to-br from-[#3D2317] to-[#2C1810] border border-[#D68C45]/20"
-        >
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-[#D68C45]/20 rounded w-3/4"></div>
-            <div className="h-40 bg-[#D68C45]/10 rounded"></div>
-          </div>
-        </motion.div>
-      ) : transitsError ? (
-        <motion.div
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          className="p-8 rounded-2xl bg-gradient-to-br from-[#3D2317] to-[#2C1810] border border-[#D68C45]/20"
-        >
-          <div className="text-[#D68C45]">
-            {language === 'vi' 
-              ? 'Không thể tải thông tin quá cảnh hành tinh' 
-              : 'Failed to load planetary transits'}
-          </div>
-        </motion.div>
-      ) : transitsData && (
-        <motion.div
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className={cn(
-            "p-8 rounded-2xl",
-            "bg-gradient-to-br from-[#3D2317] to-[#2C1810]",
-            "border border-[#D68C45]/20",
-            "shadow-xl shadow-[#D68C45]/10"
-          )}
-        >
-          <div className="flex items-center mb-6">
-            <span className="text-4xl mr-4">🪐</span>
-            <h2 className="text-2xl font-semibold text-[#D68C45]">
-              {language === 'vi' ? 'Quá Cảnh Hành Tinh Gần Đây' : 'Recent Planetary Transits'}
-            </h2>
-          </div>
-          <div className="space-y-4">
-            {transitsData?.events.map((transit, index) => (
-              <div key={index} className="flex items-center space-x-4 p-3 rounded-lg bg-[#3D2317]">
-                <span className="text-2xl">
-                  {transit.planet === 'Mars' ? '♂️' :
-                   transit.planet === 'Venus' ? '♀️' :
-                   transit.planet === 'Mercury' ? '☿' :
-                   transit.planet === 'Jupiter' ? '♃' :
-                   transit.planet === 'Saturn' ? '♄' :
-                   transit.planet === 'Sun' ? '☉' :
-                   transit.planet === 'Moon' ? '☽' :
-                   transit.planet === 'Rahu' ? '☊' :
-                   transit.planet === 'Ketu' ? '☋' : '✨'}
-                </span>
-                <div className="flex-1">
-                  <div className="flex justify-between items-center">
-                    <p className="text-[#E5B583] font-medium">
-                      {language === 'vi' 
-                        ? translateAstroName('planets', transit.planet)
-                        : transit.planet}
-                    </p>
-                    <p className="text-[#D68C45] text-sm">
-                      {transit.formattedDate}
-                    </p>
-                  </div>
-                  <p className="text-lg font-semibold text-[#D68C45]">
-                    {language === 'vi' 
-                      ? `${translateAstroName('zodiacSigns', transit.fromSign)} → ${translateAstroName('zodiacSigns', transit.toSign)}`
-                      : `${transit.fromSign} → ${transit.toSign}`}
-                  </p>
-                  <p className="text-sm text-[#E5B583]">
-                    {transit.formattedTime}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </motion.div>
-      )}
+      <motion.div
+        variants={cardVariants}
+        initial="hidden"
+        animate="visible"
+        transition={{ delay: 0.3 }}
+      >
+        {isTransitsLoading && !USE_MOCK ? (
+          <LoadingSpinner />
+        ) : transitsError && !USE_MOCK ? (
+          <ErrorMessage />
+        ) : (
+          <PlanetaryTransits
+            isLoading={isTransitsLoading}
+            error={transitsError}
+            data={transitsData}
+            language={language as 'vi' | 'en'}
+            translateAstroName={translateAstroName}
+          />
+        )}
+      </motion.div>
 
-      {/* Astrological Information */}
-      {isPanchangLoading ? (
-        <motion.div
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          className="p-8 rounded-2xl bg-gradient-to-br from-[#3D2317] to-[#2C1810] border border-[#D68C45]/20 lg:col-span-3"
-        >
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-[#D68C45]/20 rounded w-3/4"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-24 bg-[#D68C45]/10 rounded"></div>
-              ))}
-            </div>
-          </div>
-        </motion.div>
-      ) : panchangError ? (
-        <motion.div
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          className="p-8 rounded-2xl bg-gradient-to-br from-[#3D2317] to-[#2C1810] border border-[#D68C45]/20 lg:col-span-3"
-        >
-          <div className="text-[#D68C45]">
-            {language === 'vi' 
-              ? 'Không thể tải thông tin chiêm tinh' 
-              : 'Failed to load astrological information'}
-          </div>
-        </motion.div>
-      ) : panchangData && (
-        <motion.div
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className={cn(
-            "p-8 rounded-2xl",
-            "bg-gradient-to-br from-[#3D2317] to-[#2C1810]",
-            "border border-[#D68C45]/20",
-            "shadow-xl shadow-[#D68C45]/10",
-            "lg:col-span-3"
-          )}
-        >
-          <div className="flex items-center mb-6">
-            <span className="text-4xl mr-4">🔮</span>
-            <h2 className="text-2xl font-semibold text-[#D68C45]">
-              {language === 'vi' ? 'Thông Tin Chiêm Tinh' : 'Astrological Information'}
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="p-4 rounded-xl bg-[#3D2317] space-y-3">
-              <div className="flex items-center space-x-3">
-                <span className="text-2xl">🌠</span>
-                <h3 className="text-xl font-medium text-[#E5B583]">Tithi</h3>
-              </div>
-              <p className="text-xl font-semibold text-[#D68C45]">
-                {translateAstroName('tithi', data.astrologicalInfo.tithi)}
-              </p>
-            </div>
-            <div className="p-4 rounded-xl bg-[#3D2317] space-y-3">
-              <div className="flex items-center space-x-3">
-                <span className="text-2xl">⭐</span>
-                <h3 className="text-xl font-medium text-[#E5B583]">Nakshatra</h3>
-              </div>
-              <p className="text-xl font-semibold text-[#D68C45]">
-                {translateAstroName('nakshatra', data.astrologicalInfo.nakshatra)}
-              </p>
-            </div>
-            <div className="p-4 rounded-xl bg-[#3D2317] space-y-3">
-              <div className="flex items-center space-x-3">
-                <span className="text-2xl">🌟</span>
-                <h3 className="text-xl font-medium text-[#E5B583]">Yoga</h3>
-              </div>
-              <p className="text-xl font-semibold text-[#D68C45]">
-                {translateAstroName('yoga', data.astrologicalInfo.yoga)}
-              </p>
-            </div>
-            <div className="p-4 rounded-xl bg-[#3D2317] space-y-3">
-              <div className="flex items-center space-x-3">
-                <span className="text-2xl">✨</span>
-                <h3 className="text-xl font-medium text-[#E5B583]">Karana</h3>
-              </div>
-              <p className="text-xl font-semibold text-[#D68C45]">
-                {translateAstroName('karana', data.astrologicalInfo.karana)}
-              </p>
-            </div>
-          </div>
-        </motion.div>
-      )}
+      <motion.div
+        variants={cardVariants}
+        initial="hidden"
+        animate="visible"
+        transition={{ delay: 0.4 }}
+      >
+        {isPanchangLoading && !USE_MOCK ? (
+          <LoadingSpinner />
+        ) : panchangError && !USE_MOCK ? (
+          <ErrorMessage />
+        ) : (
+          <AstrologicalInfo
+            isLoading={isPanchangLoading}
+            error={panchangError}
+            data={data}
+            language={language as 'vi' | 'en'}
+            translateAstroName={translateAstroName}
+          />
+        )}
+      </motion.div>
     </div>
   );
 
@@ -416,7 +151,6 @@ const Panchang: React.FC = () => {
       <div className="absolute inset-0 bg-[#2C1810]/90 backdrop-blur-sm"></div>
       <DiyaLamp />
       <div className="relative">
-        {/* Header Section */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}

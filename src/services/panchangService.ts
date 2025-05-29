@@ -1,11 +1,17 @@
 import axios from 'axios';
+import { format } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
 
 export interface PlanetaryTransit {
   planet: string;
-  fromSign: string;
-  toSign: string;
-  date: string;
-  time: string;
+  type: string;
+  timestamp: string;
+  details: {
+    fromSign?: string;
+    toSign?: string;
+    longitude?: number;
+    speed?: number;
+  };
 }
 
 export interface NearestTransits {
@@ -30,6 +36,11 @@ export interface PanchangData {
 
 const BASE_URL = 'https://vedicvn-api.onrender.com/api';
 const TIMEOUT = 120000; // 2 minutes in milliseconds
+const DEFAULT_TIMEZONE = 'Asia/Ho_Chi_Minh'; // GMT+7
+const DEFAULT_LOCATION = {
+  latitude: 21.0245,  // Hanoi coordinates
+  longitude: 105.8412
+};
 
 // Create axios instance with default config
 const api = axios.create({
@@ -79,16 +90,14 @@ const getCurrentPosition = (): Promise<GeolocationPosition> => {
 
 export const getPanchangData = async (): Promise<PanchangData> => {
   try {
-    // Get current time in ISO format
+    // Get current time in local timezone
     const now = new Date();
-    const isoDateTime = now.toISOString();
-
-    // Get user's timezone
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const date = format(now, 'yyyy-MM-dd');
+    const time = format(now, 'HH:mm');
 
     // Get user's location with timeout
-    let latitude = 21.0245; // Default to Hanoi coordinates
-    let longitude = 105.8412;
+    let latitude = DEFAULT_LOCATION.latitude;
+    let longitude = DEFAULT_LOCATION.longitude;
 
     try {
       const position = await getCurrentPosition();
@@ -101,19 +110,19 @@ export const getPanchangData = async (): Promise<PanchangData> => {
     console.log('Panchang API Request:', {
       url: `${BASE_URL}/panchang`,
       params: { 
-        datetime: isoDateTime,
+        date,
+        time,
         lat: latitude,
         lng: longitude,
-        timezone
       }
     });
 
     const response = await api.get('/panchang', {
       params: { 
-        datetime: isoDateTime,
+        date,
+        time,
         lat: latitude,
         lng: longitude,
-        timezone
       }
     });
 
@@ -159,9 +168,22 @@ export const getNearestTransits = async (date: string): Promise<NearestTransits>
       throw new Error('No data received from Transit API');
     }
 
-    console.log('Transit API Response:', response.data);
+    // Convert UTC timestamps to local timezone
+    const processedData = {
+      ...response.data,
+      events: response.data.events.map((event: PlanetaryTransit) => {
+        const utcDate = new Date(event.timestamp);
+        const localDate = toZonedTime(utcDate, DEFAULT_TIMEZONE);
+        return {
+          ...event,
+          timestamp: localDate.toISOString(),
+        };
+      }),
+    };
 
-    return response.data;
+    console.log('Transit API Response:', processedData);
+
+    return processedData;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       console.error('Transit API Error:', {
