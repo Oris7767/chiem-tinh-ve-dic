@@ -1,6 +1,6 @@
 import { format, parseISO } from 'date-fns';
 import { vi, enUS } from 'date-fns/locale';
-import { PanchangData, PlanetaryTransit } from '../services/panchangService';
+import { PanchangData, PlanetaryTransit, NearestTransits } from '../services/panchangService';
 
 export interface FormattedPanchangData {
   date: string;
@@ -21,7 +21,13 @@ export interface FormattedPanchangData {
     yoga: string;
     karana: string;
   };
-  recentTransits?: PlanetaryTransit[];
+}
+
+export interface FormattedTransits extends Omit<NearestTransits, 'events'> {
+  events: (PlanetaryTransit & {
+    formattedDate: string;
+    formattedTime: string;
+  })[];
 }
 
 export const formatTime = (timeString: string, language: 'vi' | 'en' = 'en'): string => {
@@ -38,6 +44,24 @@ export const formatTime = (timeString: string, language: 'vi' | 'en' = 'en'): st
     console.error('Error formatting time:', error);
     return timeString;
   }
+};
+
+export const formatTransits = (
+  data: NearestTransits,
+  language: 'vi' | 'en' = 'en'
+): FormattedTransits => {
+  return {
+    referenceDate: format(parseISO(data.referenceDate), 'dd/MM/yyyy', {
+      locale: language === 'vi' ? vi : enUS
+    }),
+    events: data.events.map(event => ({
+      ...event,
+      formattedDate: format(parseISO(event.date), 'dd/MM/yyyy', {
+        locale: language === 'vi' ? vi : enUS
+      }),
+      formattedTime: formatTime(event.time, language)
+    }))
+  };
 };
 
 export const formatPanchangData = (
@@ -64,7 +88,6 @@ export const formatPanchangData = (
       nakshatra: data.nakshatra,
       yoga: data.yoga,
       karana: data.karana
-    },
-    recentTransits: data.recentTransits
+    }
   };
 }; 

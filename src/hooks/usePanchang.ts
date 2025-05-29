@@ -7,18 +7,20 @@ import { useLanguage } from '../context/LanguageContext';
 
 export const usePanchang = () => {
   const { language } = useLanguage();
-  const today = new Date().toISOString();
+  const today = format(new Date(), 'yyyy-MM-dd');
 
   const {
     data: rawData,
     isLoading,
     error,
     refetch
-  } = useQuery<PanchangData>({
-    queryKey: ['panchang', format(new Date(), 'yyyy-MM-dd')],
-    queryFn: () => getPanchangData(today),
+  } = useQuery({
+    queryKey: ['panchang', today],
+    queryFn: () => getPanchangData(),
     staleTime: 1000 * 60 * 60, // Consider data fresh for 1 hour
     gcTime: 1000 * 60 * 60 * 24, // Keep in garbage collection for 24 hours
+    retry: 2, // Retry failed requests twice
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
   });
 
   const [formattedData, setFormattedData] = useState<FormattedPanchangData | null>(null);

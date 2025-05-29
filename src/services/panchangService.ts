@@ -8,6 +8,11 @@ export interface PlanetaryTransit {
   time: string;
 }
 
+export interface NearestTransits {
+  referenceDate: string;
+  events: PlanetaryTransit[];
+}
+
 export interface PanchangData {
   date: string;               // ISO date string
   lunarDay: number;          // 1-30
@@ -21,10 +26,9 @@ export interface PanchangData {
   nakshatra: string;        // Name of the nakshatra
   yoga: string;             // Name of the yoga
   karana: string;           // Name of the karana
-  recentTransits?: PlanetaryTransit[];  // Recent planetary transits
 }
 
-const API_URL = 'https://vedicvn-api.onrender.com/api/v1';
+const BASE_URL = 'https://vedicvn-api.onrender.com/api';
 
 // Function to get user's current position
 const getCurrentPosition = (): Promise<GeolocationPosition> => {
@@ -37,7 +41,7 @@ const getCurrentPosition = (): Promise<GeolocationPosition> => {
   });
 };
 
-export const getPanchangData = async (date: string): Promise<PanchangData> => {
+export const getPanchangData = async (): Promise<PanchangData> => {
   try {
     // Get current time in ISO format
     const now = new Date();
@@ -58,8 +62,8 @@ export const getPanchangData = async (date: string): Promise<PanchangData> => {
       console.warn('Could not get user location, using default coordinates:', error);
     }
 
-    console.log('API Request:', {
-      url: `${API_URL}/panchang/daily`,
+    console.log('Panchang API Request:', {
+      url: `${BASE_URL}/panchang`,
       params: { 
         datetime: isoDateTime,
         lat: latitude,
@@ -68,7 +72,7 @@ export const getPanchangData = async (date: string): Promise<PanchangData> => {
       }
     });
 
-    const response = await axios.get(`${API_URL}/panchang/daily`, {
+    const response = await axios.get(`${BASE_URL}/panchang`, {
       params: { 
         datetime: isoDateTime,
         lat: latitude,
@@ -77,12 +81,12 @@ export const getPanchangData = async (date: string): Promise<PanchangData> => {
       }
     });
 
-    console.log('API Response:', response.data);
+    console.log('Panchang API Response:', response.data);
 
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      console.error('API Error:', {
+      console.error('Panchang API Error:', {
         status: error.response?.status,
         data: error.response?.data,
         message: error.message,
@@ -91,6 +95,36 @@ export const getPanchangData = async (date: string): Promise<PanchangData> => {
       });
     } else {
       console.error('Error fetching Panchang data:', error);
+    }
+    throw error;
+  }
+};
+
+export const getNearestTransits = async (date: string): Promise<NearestTransits> => {
+  try {
+    console.log('Transit API Request:', {
+      url: `${BASE_URL}/panchang/nearest-transits`,
+      params: { date }
+    });
+
+    const response = await axios.get(`${BASE_URL}/panchang/nearest-transits`, {
+      params: { date }
+    });
+
+    console.log('Transit API Response:', response.data);
+
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Transit API Error:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+        url: error.config?.url,
+        params: error.config?.params
+      });
+    } else {
+      console.error('Error fetching nearest transits:', error);
     }
     throw error;
   }
