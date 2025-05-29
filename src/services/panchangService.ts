@@ -29,15 +29,51 @@ export interface PanchangData {
 }
 
 const BASE_URL = 'https://vedicvn-api.onrender.com/api';
+const TIMEOUT = 120000; // 2 minutes in milliseconds
 
-// Function to get user's current position
+// Create axios instance with default config
+const api = axios.create({
+  baseURL: BASE_URL,
+  timeout: TIMEOUT,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Add response interceptor for timeout handling
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.code === 'ECONNABORTED' && error.message.includes('timeout')) {
+      throw new Error('Request timed out after 2 minutes. Please try again.');
+    }
+    throw error;
+  }
+);
+
+// Function to get user's current position with timeout
 const getCurrentPosition = (): Promise<GeolocationPosition> => {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
       reject(new Error('Geolocation is not supported by your browser'));
-    } else {
-      navigator.geolocation.getCurrentPosition(resolve, reject);
+      return;
     }
+
+    // Set timeout for geolocation
+    const timeoutId = setTimeout(() => {
+      reject(new Error('Geolocation request timed out'));
+    }, TIMEOUT);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        clearTimeout(timeoutId);
+        resolve(position);
+      },
+      (error) => {
+        clearTimeout(timeoutId);
+        reject(error);
+      }
+    );
   });
 };
 
@@ -50,7 +86,7 @@ export const getPanchangData = async (): Promise<PanchangData> => {
     // Get user's timezone
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    // Get user's location
+    // Get user's location with timeout
     let latitude = 21.0245; // Default to Hanoi coordinates
     let longitude = 105.8412;
 
@@ -72,7 +108,7 @@ export const getPanchangData = async (): Promise<PanchangData> => {
       }
     });
 
-    const response = await axios.get(`${BASE_URL}/panchang`, {
+    const response = await api.get('/panchang', {
       params: { 
         datetime: isoDateTime,
         lat: latitude,
@@ -80,6 +116,10 @@ export const getPanchangData = async (): Promise<PanchangData> => {
         timezone
       }
     });
+
+    if (!response.data) {
+      throw new Error('No data received from Panchang API');
+    }
 
     console.log('Panchang API Response:', response.data);
 
@@ -93,6 +133,10 @@ export const getPanchangData = async (): Promise<PanchangData> => {
         url: error.config?.url,
         params: error.config?.params
       });
+      
+      if (error.code === 'ECONNABORTED') {
+        throw new Error('Panchang API request timed out after 2 minutes');
+      }
     } else {
       console.error('Error fetching Panchang data:', error);
     }
@@ -107,9 +151,13 @@ export const getNearestTransits = async (date: string): Promise<NearestTransits>
       params: { date }
     });
 
-    const response = await axios.get(`${BASE_URL}/panchang/nearest-transits`, {
+    const response = await api.get('/panchang/nearest-transits', {
       params: { date }
     });
+
+    if (!response.data) {
+      throw new Error('No data received from Transit API');
+    }
 
     console.log('Transit API Response:', response.data);
 
@@ -123,6 +171,10 @@ export const getNearestTransits = async (date: string): Promise<NearestTransits>
         url: error.config?.url,
         params: error.config?.params
       });
+      
+      if (error.code === 'ECONNABORTED') {
+        throw new Error('Transit API request timed out after 2 minutes');
+      }
     } else {
       console.error('Error fetching nearest transits:', error);
     }
