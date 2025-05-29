@@ -1,59 +1,21 @@
 import axios from 'axios';
 
 export interface PanchangData {
-  success: boolean;
-  data: {
-    date: string;
-    lunarDay: {
-      tithi: number;
-      tithiName: string;
-      tithiEnd: string;
-    };
-    lunarMonth: {
-      name: string;
-      isLeap: boolean;
-    };
-    solarEvents: {
-      sunrise: string;
-      sunset: string;
-      moonrise: string;
-      moonset: string;
-    };
-    specialEvents: {
-      solarEclipse: {
-        isEclipse: boolean;
-        type: string;
-        start: string;
-        maximum: string;
-        end: string;
-      };
-      lunarEclipse: {
-        isEclipse: boolean;
-        type: string;
-        start: string;
-        maximum: string;
-        end: string;
-      };
-    };
-    nakshatra: {
-      id: number;
-      name: string;
-      endTime: string;
-    };
-    yoga: {
-      id: number;
-      name: string;
-      endTime: string;
-    };
-    karana: {
-      id: number;
-      name: string;
-      endTime: string;
-    };
-  };
+  date: string;               // ISO date string
+  lunarDay: number;          // 1-30
+  lunarMonth: number;        // 1-12
+  lunarYear: number;         // Lunar calendar year
+  sunriseTime: string;       // Local sunrise time
+  sunsetTime: string;        // Local sunset time
+  moonriseTime: string;      // Local moonrise time
+  moonsetTime: string;       // Local moonset time
+  tithi: string;            // Name of the tithi
+  nakshatra: string;        // Name of the nakshatra
+  yoga: string;             // Name of the yoga
+  karana: string;           // Name of the karana
 }
 
-const API_URL = 'https://vedicvn-api.onrender.com/api';
+const API_URL = 'https://vedicvn-api.onrender.com/api/v1';
 
 // Function to get user's current position
 const getCurrentPosition = (): Promise<GeolocationPosition> => {
@@ -68,13 +30,9 @@ const getCurrentPosition = (): Promise<GeolocationPosition> => {
 
 export const getPanchangData = async (date: string): Promise<PanchangData> => {
   try {
-    // Get current time in HH:mm format
+    // Get current time in ISO format
     const now = new Date();
-    const time = now.toLocaleTimeString('en-US', { 
-      hour12: false, 
-      hour: '2-digit', 
-      minute: '2-digit'
-    });
+    const isoDateTime = now.toISOString();
 
     // Get user's timezone
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -91,23 +49,25 @@ export const getPanchangData = async (date: string): Promise<PanchangData> => {
       console.warn('Could not get user location, using default coordinates:', error);
     }
 
-    const response = await axios.get(`${API_URL}/panchang`, {
+    console.log('API Request:', {
+      url: `${API_URL}/panchang/daily`,
       params: { 
-        date,
-        time,
-        latitude,
-        longitude,
+        datetime: isoDateTime,
+        lat: latitude,
+        lng: longitude,
         timezone
-      },
-      headers: {
-        'Accept-Language': document.documentElement.lang || 'en'
       }
     });
 
-    console.log('API Request:', {
-      url: `${API_URL}/panchang`,
-      params: { date, time, latitude, longitude, timezone }
+    const response = await axios.get(`${API_URL}/panchang/daily`, {
+      params: { 
+        datetime: isoDateTime,
+        lat: latitude,
+        lng: longitude,
+        timezone
+      }
     });
+
     console.log('API Response:', response.data);
 
     return response.data;
@@ -116,7 +76,9 @@ export const getPanchangData = async (date: string): Promise<PanchangData> => {
       console.error('API Error:', {
         status: error.response?.status,
         data: error.response?.data,
-        message: error.message
+        message: error.message,
+        url: error.config?.url,
+        params: error.config?.params
       });
     } else {
       console.error('Error fetching Panchang data:', error);

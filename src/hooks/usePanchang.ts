@@ -7,7 +7,7 @@ import { useLanguage } from '../context/LanguageContext';
 
 export const usePanchang = () => {
   const { language } = useLanguage();
-  const today = format(new Date(), 'yyyy-MM-dd');
+  const today = new Date().toISOString();
 
   const {
     data: rawData,
@@ -15,7 +15,7 @@ export const usePanchang = () => {
     error,
     refetch
   } = useQuery<PanchangData>({
-    queryKey: ['panchang', today],
+    queryKey: ['panchang', format(new Date(), 'yyyy-MM-dd')],
     queryFn: () => getPanchangData(today),
     staleTime: 1000 * 60 * 60, // Consider data fresh for 1 hour
     gcTime: 1000 * 60 * 60 * 24, // Keep in garbage collection for 24 hours
@@ -24,8 +24,8 @@ export const usePanchang = () => {
   const [formattedData, setFormattedData] = useState<FormattedPanchangData | null>(null);
 
   useEffect(() => {
-    if (rawData?.data) {
-      const formatted = formatPanchangData(rawData.data, language as 'vi' | 'en');
+    if (rawData) {
+      const formatted = formatPanchangData(rawData, language as 'vi' | 'en');
       setFormattedData(formatted);
     }
   }, [rawData, language]);
