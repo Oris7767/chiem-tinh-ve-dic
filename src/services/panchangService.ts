@@ -1,5 +1,13 @@
 import axios from 'axios';
 
+export interface PlanetaryTransit {
+  planet: string;
+  fromSign: string;
+  toSign: string;
+  date: string;
+  time: string;
+}
+
 export interface PanchangData {
   date: string;               // ISO date string
   lunarDay: number;          // 1-30
@@ -13,6 +21,7 @@ export interface PanchangData {
   nakshatra: string;        // Name of the nakshatra
   yoga: string;             // Name of the yoga
   karana: string;           // Name of the karana
+  recentTransits?: PlanetaryTransit[];  // Recent planetary transits
 }
 
 const API_URL = 'https://vedicvn-api.onrender.com/api/v1';

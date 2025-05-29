@@ -1,6 +1,6 @@
 import { format, parseISO } from 'date-fns';
 import { vi, enUS } from 'date-fns/locale';
-import { PanchangData } from '../services/panchangService';
+import { PanchangData, PlanetaryTransit } from '../services/panchangService';
 
 export interface FormattedPanchangData {
   date: string;
@@ -21,6 +21,7 @@ export interface FormattedPanchangData {
     yoga: string;
     karana: string;
   };
+  recentTransits?: PlanetaryTransit[];
 }
 
 export const formatTime = (timeString: string, language: 'vi' | 'en' = 'en'): string => {
@@ -63,6 +64,7 @@ export const formatPanchangData = (
       nakshatra: data.nakshatra,
       yoga: data.yoga,
       karana: data.karana
-    }
+    },
+    recentTransits: data.recentTransits
   };
 }; 

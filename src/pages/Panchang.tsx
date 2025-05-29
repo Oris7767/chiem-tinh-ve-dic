@@ -7,6 +7,7 @@ import { mockPanchangData, viPanchangNames } from '../mocks/panchangMock';
 import { FormattedPanchangData } from '../utils/panchangUtils';
 import { formatPanchangData } from '../utils/panchangUtils';
 import { PanchangData } from '../services/panchangService';
+import DiyaLamp from '../components/DiyaLamp';
 
 // For development, set this to true to use mock data
 const USE_MOCK = true;
@@ -68,6 +69,7 @@ const Panchang: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8 min-h-screen bg-[#2C1810] bg-[url('/images/panchang-bg.jpg')] bg-cover bg-center bg-fixed">
       <div className="absolute inset-0 bg-[#2C1810]/90 backdrop-blur-sm"></div>
+      <DiyaLamp />
       <div className="relative">
         {/* Header Section */}
         <motion.div
@@ -193,6 +195,61 @@ const Panchang: React.FC = () => {
                   <p className="text-2xl font-bold text-[#D68C45]">{data.solarEvents.moonsetFormatted}</p>
                 </div>
               </div>
+            </div>
+          </motion.div>
+
+          {/* Recent Planetary Transits */}
+          <motion.div
+            variants={cardVariants}
+            initial="hidden"
+            animate="visible"
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className={cn(
+              "p-8 rounded-2xl",
+              "bg-gradient-to-br from-[#3D2317] to-[#2C1810]",
+              "border border-[#D68C45]/20",
+              "shadow-xl shadow-[#D68C45]/10"
+            )}
+          >
+            <div className="flex items-center mb-6">
+              <span className="text-4xl mr-4">🪐</span>
+              <h2 className="text-2xl font-semibold text-[#D68C45]">
+                {language === 'vi' ? 'Quá Cảnh Hành Tinh Gần Đây' : 'Recent Planetary Transits'}
+              </h2>
+            </div>
+            <div className="space-y-4">
+              {data.recentTransits?.map((transit, index) => (
+                <div key={index} className="flex items-center space-x-4 p-3 rounded-lg bg-[#3D2317]">
+                  <span className="text-2xl">
+                    {transit.planet === 'Mars' ? '♂️' :
+                     transit.planet === 'Venus' ? '♀️' :
+                     transit.planet === 'Mercury' ? '☿' :
+                     transit.planet === 'Jupiter' ? '♃' :
+                     transit.planet === 'Saturn' ? '♄' :
+                     transit.planet === 'Sun' ? '☉' :
+                     transit.planet === 'Moon' ? '☽' :
+                     transit.planet === 'Rahu' ? '☊' :
+                     transit.planet === 'Ketu' ? '☋' : '✨'}
+                  </span>
+                  <div className="flex-1">
+                    <div className="flex justify-between items-center">
+                      <p className="text-[#E5B583] font-medium">
+                        {language === 'vi' 
+                          ? translateAstroName('planets', transit.planet)
+                          : transit.planet}
+                      </p>
+                      <p className="text-[#D68C45] text-sm">
+                        {new Date(transit.date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US')}
+                      </p>
+                    </div>
+                    <p className="text-lg font-semibold text-[#D68C45]">
+                      {language === 'vi' 
+                        ? `${translateAstroName('zodiacSigns', transit.fromSign)} → ${translateAstroName('zodiacSigns', transit.toSign)}`
+                        : `${transit.fromSign} → ${transit.toSign}`}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           </motion.div>
 

@@ -12,7 +12,30 @@ export const mockPanchangData: PanchangData = {
   tithi: "Ekadashi",
   nakshatra: "Rohini",
   yoga: "Siddha",
-  karana: "Bava"
+  karana: "Bava",
+  recentTransits: [
+    {
+      planet: "Mars",
+      fromSign: "Scorpio",
+      toSign: "Sagittarius",
+      date: "2024-02-10",
+      time: "15:30:00"
+    },
+    {
+      planet: "Venus",
+      fromSign: "Capricorn",
+      toSign: "Aquarius",
+      date: "2024-02-08",
+      time: "09:45:00"
+    },
+    {
+      planet: "Mercury",
+      fromSign: "Sagittarius",
+      toSign: "Capricorn",
+      date: "2024-02-05",
+      time: "12:20:00"
+    }
+  ]
 };
 
 // Vietnamese version of the names for testing localization
@@ -40,5 +63,30 @@ export const viPanchangNames = {
     "Balava": "Thiên Tài",
     "Kaulava": "Địa Lợi",
     // Add more mappings as needed
+  },
+  planets: {
+    "Mars": "Sao Hỏa",
+    "Venus": "Sao Kim",
+    "Mercury": "Sao Thủy",
+    "Jupiter": "Sao Mộc",
+    "Saturn": "Sao Thổ",
+    "Sun": "Mặt Trời",
+    "Moon": "Mặt Trăng",
+    "Rahu": "La Hầu",
+    "Ketu": "Kế Đô"
+  },
+  zodiacSigns: {
+    "Aries": "Bạch Dương",
+    "Taurus": "Kim Ngưu",
+    "Gemini": "Song Tử",
+    "Cancer": "Cự Giải",
+    "Leo": "Sư Tử",
+    "Virgo": "Xử Nữ",
+    "Libra": "Thiên Bình",
+    "Scorpio": "Bọ Cạp",
+    "Sagittarius": "Nhân Mã",
+    "Capricorn": "Ma Kết",
+    "Aquarius": "Bảo Bình",
+    "Pisces": "Song Ngư"
   }
 }; 
