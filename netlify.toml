@@ -25,13 +25,6 @@
   to = "/index.html"
   status = 200
 
-# Handle API proxying (if needed)
-[[redirects]]
-  from = "/api/*"
-  to = "https://vedicvn-api.onrender.com/api/:splat"
-  status = 200
-  force = true
-
 # Force HTTPS
 [[redirects]]
   from = "http://*"
