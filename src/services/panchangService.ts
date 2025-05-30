@@ -42,6 +42,8 @@ const DEFAULT_LOCATION = {
   longitude: 105.8412
 };
 
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 // Create axios instance with default config
 const api = axios.create({
   baseURL: VEDIC_ASTRO_API_CONFIG.BASE_URL,
@@ -54,11 +56,26 @@ const api = axios.create({
 // Add response interceptor for timeout handling
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.code === 'ECONNABORTED' && error.message.includes('timeout')) {
-      throw new Error('Request timed out after 2 minutes. Please try again.');
+  async (error) => {
+    const config = error.config;
+
+    // If no retry count is set, initialize it
+    if (!config || !config.retry) {
+      config.retry = VEDIC_ASTRO_API_CONFIG.MAX_RETRIES;
     }
-    throw error;
+
+    // If there are retries left and it's a network error
+    if (config.retry > 0 && (error.code === 'ERR_NETWORK' || error.code === 'ECONNABORTED')) {
+      config.retry -= 1;
+      
+      // Wait before retrying
+      await delay(VEDIC_ASTRO_API_CONFIG.RETRY_DELAY);
+      console.log(`Retrying request... (${VEDIC_ASTRO_API_CONFIG.MAX_RETRIES - config.retry}/${VEDIC_ASTRO_API_CONFIG.MAX_RETRIES})`);
+      
+      return api(config);
+    }
+
+    return Promise.reject(error);
   }
 );
 
