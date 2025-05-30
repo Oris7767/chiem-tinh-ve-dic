@@ -44,40 +44,53 @@ const DEFAULT_LOCATION = {
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-// Create axios instance with default config
-const api = axios.create({
-  baseURL: VEDIC_ASTRO_API_CONFIG.BASE_URL,
+// Create axios instances with default config for each endpoint
+const panchangApi = axios.create({
+  baseURL: VEDIC_ASTRO_API_CONFIG.PANCHANG_URL,
   timeout: TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Add response interceptor for timeout handling
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const config = error.config;
+const transitsApi = axios.create({
+  baseURL: VEDIC_ASTRO_API_CONFIG.TRANSITS_URL,
+  timeout: TIMEOUT,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
-    // If no retry count is set, initialize it
-    if (!config || !config.retry) {
-      config.retry = VEDIC_ASTRO_API_CONFIG.MAX_RETRIES;
+// Add response interceptor for timeout and retry handling
+const setupInterceptors = (api: any) => {
+  api.interceptors.response.use(
+    (response: any) => response,
+    async (error: any) => {
+      const config = error.config;
+  
+      // If no retry count is set, initialize it
+      if (!config || !config.retry) {
+        config.retry = VEDIC_ASTRO_API_CONFIG.MAX_RETRIES;
+      }
+  
+      // If there are retries left and it's a network error
+      if (config.retry > 0 && (error.code === 'ERR_NETWORK' || error.code === 'ECONNABORTED')) {
+        config.retry -= 1;
+        
+        // Wait before retrying
+        await delay(VEDIC_ASTRO_API_CONFIG.RETRY_DELAY);
+        console.log(`Retrying request... (${VEDIC_ASTRO_API_CONFIG.MAX_RETRIES - config.retry}/${VEDIC_ASTRO_API_CONFIG.MAX_RETRIES})`);
+        
+        return api(config);
+      }
+  
+      return Promise.reject(error);
     }
+  );
+};
 
-    // If there are retries left and it's a network error
-    if (config.retry > 0 && (error.code === 'ERR_NETWORK' || error.code === 'ECONNABORTED')) {
-      config.retry -= 1;
-      
-      // Wait before retrying
-      await delay(VEDIC_ASTRO_API_CONFIG.RETRY_DELAY);
-      console.log(`Retrying request... (${VEDIC_ASTRO_API_CONFIG.MAX_RETRIES - config.retry}/${VEDIC_ASTRO_API_CONFIG.MAX_RETRIES})`);
-      
-      return api(config);
-    }
-
-    return Promise.reject(error);
-  }
-);
+setupInterceptors(panchangApi);
+setupInterceptors(transitsApi);
 
 // Function to get user's current position with timeout
 const getCurrentPosition = (): Promise<GeolocationPosition> => {
@@ -125,7 +138,7 @@ export const getPanchangData = async (): Promise<PanchangData> => {
     }
 
     console.log('Panchang API Request:', {
-      url: `${VEDIC_ASTRO_API_CONFIG.BASE_URL}/${VEDIC_ASTRO_API_CONFIG.PANCHANG_ENDPOINT}`,
+      url: VEDIC_ASTRO_API_CONFIG.PANCHANG_URL,
       body: {
         date,
         time,
@@ -135,7 +148,7 @@ export const getPanchangData = async (): Promise<PanchangData> => {
       }
     });
 
-    const response = await api.post(VEDIC_ASTRO_API_CONFIG.PANCHANG_ENDPOINT, {
+    const response = await panchangApi.post('', {
       date,
       time,
       latitude,
@@ -173,11 +186,11 @@ export const getPanchangData = async (): Promise<PanchangData> => {
 export const getNearestTransits = async (date: string): Promise<NearestTransits> => {
   try {
     console.log('Transit API Request:', {
-      url: `${VEDIC_ASTRO_API_CONFIG.BASE_URL}/panchang/nearest-transits`,
+      url: VEDIC_ASTRO_API_CONFIG.TRANSITS_URL,
       params: { date }
     });
 
-    const response = await api.get('/panchang/nearest-transits', {
+    const response = await transitsApi.get('', {
       params: { date }
     });
 

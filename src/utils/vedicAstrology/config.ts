@@ -1,11 +1,10 @@
 // Configuration for the VedAstro calculation service
 export const VEDIC_ASTRO_API_CONFIG = {
-  // Base API URL (ensure no trailing slash)
-  BASE_URL: (import.meta.env.VITE_VEDIC_API_URL || "https://vedicvn-api.onrender.com/api").replace(/\/$/, ""),
-  // Endpoints (ensure leading slash)
-  CHART_ENDPOINT: "/chart",
-  PANCHANG_ENDPOINT: "/panchang",
-  TRANSITS_ENDPOINT: "/panchang/nearest-transits",
+  // API URLs
+  CHART_URL: import.meta.env.VITE_VEDIC_API_URL || "https://vedicvn-api.onrender.com/api/chart",
+  PANCHANG_URL: "https://vedicvn-api.onrender.com/api/panchang",
+  TRANSITS_URL: "https://vedicvn-api.onrender.com/api/panchang/nearest-transits",
+  
   // Other configs
   FALLBACK_MODE: false, // Set to false to use the API
   API_TIMEOUT: 180000, // 3 minutes timeout for API calls

@@ -305,12 +305,15 @@ export async function calculateVedicChart(formData: {
     };
 
     // Log the API payload
-    console.log('Sending API payload:', apiPayload);
+    console.log('Sending API payload:', {
+      url: VEDIC_ASTRO_API_CONFIG.CHART_URL,
+      data: apiPayload
+    });
 
     try {
       // Use fetchWithTimeoutAndRetry to handle retries and timeouts
       const response = await fetchWithTimeoutAndRetry(
-        VEDIC_ASTRO_API_CONFIG.API_URL, 
+        VEDIC_ASTRO_API_CONFIG.CHART_URL, 
         {
           method: 'POST',
           headers: {
