@@ -109,21 +109,21 @@ export const getPanchangData = async (): Promise<PanchangData> => {
 
     console.log('Panchang API Request:', {
       url: `${BASE_URL}/panchang`,
-      params: { 
+      body: {
         date,
         time,
-        lat: latitude,
-        lng: longitude,
+        latitude,
+        longitude,
+        timezone: DEFAULT_TIMEZONE
       }
     });
 
-    const response = await api.get('/panchang', {
-      params: { 
-        date,
-        time,
-        lat: latitude,
-        lng: longitude,
-      }
+    const response = await api.post('/panchang', {
+      date,
+      time,
+      latitude,
+      longitude,
+      timezone: DEFAULT_TIMEZONE
     });
 
     if (!response.data) {
