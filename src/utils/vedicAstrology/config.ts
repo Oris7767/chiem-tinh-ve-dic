@@ -2,8 +2,8 @@
 export const VEDIC_ASTRO_API_CONFIG = {
   // API URLs
   CHART_URL: import.meta.env.VITE_VEDIC_API_URL || "https://vedicvn-api.onrender.com/api/chart",
-  PANCHANG_URL: "https://vedicvn-api.onrender.com/api/panchang",
-  TRANSITS_URL: "https://vedicvn-api.onrender.com/api/panchang/nearest-transits",
+  PANCHANG_URL: import.meta.env.VITE_PANCHANG_API_URL || "https://vedicvn-api.onrender.com/api/panchang",
+  TRANSITS_URL: import.meta.env.VITE_TRANSITS_API_URL || "https://vedicvn-api.onrender.com/api/panchang/nearest-transits",
   
   // Other configs
   FALLBACK_MODE: false, // Set to false to use the API

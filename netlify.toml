@@ -3,7 +3,9 @@
   publish = "dist"
 
 [build.environment]
-  VITE_VEDIC_API_URL = "https://vedicvn-api.onrender.com/api"
+  VITE_VEDIC_API_URL = "https://vedicvn-api.onrender.com/api/chart"
+  VITE_PANCHANG_API_URL = "https://vedicvn-api.onrender.com/api/panchang"
+  VITE_TRANSITS_API_URL = "https://vedicvn-api.onrender.com/api/panchang/nearest-transits"
   VITE_GEOAPIFY_API_KEY = "522a159a787444c0bf969ad2a48c63ca"
   VITE_GMAIL_SENDER_EMAIL = "Votiveacademy@gmail.com"
   NODE_VERSION = "18"
