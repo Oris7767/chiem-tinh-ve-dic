@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { format } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
+import { VEDIC_ASTRO_API_CONFIG } from '@/utils/vedicAstrology/config';
 
 export interface PlanetaryTransit {
   planet: string;
@@ -34,7 +35,6 @@ export interface PanchangData {
   karana: string;           // Name of the karana
 }
 
-const BASE_URL = 'https://vedicvn-api.onrender.com/api';
 const TIMEOUT = 120000; // 2 minutes in milliseconds
 const DEFAULT_TIMEZONE = 'Asia/Ho_Chi_Minh'; // GMT+7
 const DEFAULT_LOCATION = {
@@ -44,7 +44,7 @@ const DEFAULT_LOCATION = {
 
 // Create axios instance with default config
 const api = axios.create({
-  baseURL: BASE_URL,
+  baseURL: VEDIC_ASTRO_API_CONFIG.BASE_URL,
   timeout: TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
@@ -108,7 +108,7 @@ export const getPanchangData = async (): Promise<PanchangData> => {
     }
 
     console.log('Panchang API Request:', {
-      url: `${BASE_URL}/panchang`,
+      url: `${VEDIC_ASTRO_API_CONFIG.BASE_URL}/${VEDIC_ASTRO_API_CONFIG.PANCHANG_ENDPOINT}`,
       body: {
         date,
         time,
@@ -118,7 +118,7 @@ export const getPanchangData = async (): Promise<PanchangData> => {
       }
     });
 
-    const response = await api.post('/panchang', {
+    const response = await api.post(VEDIC_ASTRO_API_CONFIG.PANCHANG_ENDPOINT, {
       date,
       time,
       latitude,
@@ -156,7 +156,7 @@ export const getPanchangData = async (): Promise<PanchangData> => {
 export const getNearestTransits = async (date: string): Promise<NearestTransits> => {
   try {
     console.log('Transit API Request:', {
-      url: `${BASE_URL}/panchang/nearest-transits`,
+      url: `${VEDIC_ASTRO_API_CONFIG.BASE_URL}/panchang/nearest-transits`,
       params: { date }
     });
 
