@@ -76,6 +76,7 @@ const BlogPage = () => {
         title={language === 'vi' ? 'Blog Chiêm Tinh Vệ Đà' : 'Vedic Astrology Blog'}
         description={language === 'vi' ? 'Khám phá tri thức cổ đại về chiêm tinh và số học Vệ Đà qua các bài viết chuyên sâu' : 'Explore ancient wisdom of Vedic astrology and numerology through our articles'}
         schema={dynamicBlogSchema}
+        image="https://vedicvn.com/lovable-uploads/97fa6e16-3fd9-42cd-887d-d6d1d4d3ee6b.png"
       />
       
       <Helmet>
@@ -86,7 +87,7 @@ const BlogPage = () => {
             "@type": "Blog",
             "name": language === 'vi' ? 'Blog Chiêm Tinh Vệ Đà' : 'Vedic Astrology Blog',
             "description": language === 'vi' ? 'Khám phá tri thức cổ đại về chiêm tinh và số học Vệ Đà' : 'Explore ancient wisdom of Vedic astrology and numerology',
-            "url": "https://vedicvn.com/#/blog",
+            "url": "https://vedicvn.com/blog",
             "publisher": {
               "@type": "Organization",
               "name": "vedicvn.com",
@@ -105,7 +106,7 @@ const BlogPage = () => {
               },
               "datePublished": new Date(post.date).toISOString(),
               "image": post.imageUrl,
-              "url": `https://vedicvn.com/#/blog/${post.slug}`
+              "url": `https://vedicvn.com/blog/${post.slug}`
             }))
           })}
         </script>
