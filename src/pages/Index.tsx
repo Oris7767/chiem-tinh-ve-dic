@@ -16,7 +16,7 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <SEO 
-        title="Số học Vệ Đà - Khám phá ý nghĩa sâu sắc | chiemtinhvedavn"
+        title="Votive VedicVN: Chiêm Tinh Vệ Đà - khai trí tuệ, mở hướng đi"
         description="Khám phá ý nghĩa sâu sắc đằng sau những con số trong cuộc sống của bạn dựa trên nguyên lý cổ đại của số học Vệ Đà từ chiemtinhvedavn."
         schema={calculatorSchema}
       />
