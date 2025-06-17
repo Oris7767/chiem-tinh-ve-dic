@@ -110,9 +110,8 @@ const DashaCalculator: React.FC<DashaCalculatorProps> = ({ chartData }) => {
 
   const { current: currentDasha, sequence: dashaSequence } = chartData.dashas;
 
-  // Tìm mahadasha hiện tại trong sequence
-  const currentSequence = dashaSequence.find(seq => seq.planet === currentDasha.planet);
-  const currentAntarDashas = currentSequence?.antardashas || [];
+  // State để biết mahadasha nào đang được chọn
+  const [selectedMahadasha, setSelectedMahadasha] = useState<string | null>(currentDasha.planet);
 
   return (
     <Card>
@@ -143,29 +142,29 @@ const DashaCalculator: React.FC<DashaCalculatorProps> = ({ chartData }) => {
                 </div>
               </div>
             </div>
-            {currentDasha.antardasha?.current && (
+            {currentDasha.currentAntardasha && (
               <div className="mt-2">
                 <div className="text-sm font-medium">Antardasha hiện tại:</div>
                 <div className="text-sm">
-                  {currentDasha.antardasha.current.planet} ({getPlanetAbbr(currentDasha.antardasha.current.planet)})
+                  {currentDasha.currentAntardasha.planet} ({getPlanetAbbr(currentDasha.currentAntardasha.planet)})
                   <div className="text-xs text-gray-600">
-                    {formatDate(currentDasha.antardasha.current.startDate)} - {formatDate(currentDasha.antardasha.current.endDate)}
+                    {formatDate(currentDasha.currentAntardasha.startDate)} - {formatDate(currentDasha.currentAntardasha.endDate)}
                   </div>
                   <div className="mt-2 grid grid-cols-2 gap-4">
                     <div>
                       <div className="text-xs font-medium">Đã qua:</div>
                       <div className="text-xs">
-                        {currentDasha.antardasha.current.elapsed.years} năm,{' '}
-                        {currentDasha.antardasha.current.elapsed.months} tháng,{' '}
-                        {currentDasha.antardasha.current.elapsed.days} ngày
+                        {currentDasha.currentAntardasha.elapsed.years} năm,{' '}
+                        {currentDasha.currentAntardasha.elapsed.months} tháng,{' '}
+                        {currentDasha.currentAntardasha.elapsed.days} ngày
                       </div>
                     </div>
                     <div>
                       <div className="text-xs font-medium">Còn lại:</div>
                       <div className="text-xs">
-                        {currentDasha.antardasha.current.remaining.years} năm,{' '}
-                        {currentDasha.antardasha.current.remaining.months} tháng,{' '}
-                        {currentDasha.antardasha.current.remaining.days} ngày
+                        {currentDasha.currentAntardasha.remaining.years} năm,{' '}
+                        {currentDasha.currentAntardasha.remaining.months} tháng,{' '}
+                        {currentDasha.currentAntardasha.remaining.days} ngày
                       </div>
                     </div>
                   </div>
@@ -175,48 +174,34 @@ const DashaCalculator: React.FC<DashaCalculatorProps> = ({ chartData }) => {
           </div>
         )}
 
-        <Tabs defaultValue="mahadasha">
-          <TabsList className="mb-4 grid w-full grid-cols-2">
-            <TabsTrigger value="mahadasha">Mahadasha</TabsTrigger>
-            <TabsTrigger value="antardasha">Antardasha</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="mahadasha">
-            <div className="space-y-4">
-              {dashaSequence.length > 0 ? (
-                dashaSequence.map((dasha, index) => (
-                  <div
-                    key={index}
-                    className={`p-3 border rounded-md ${
-                      dasha.planet === currentDasha.planet ? 'bg-amber-50 border-amber-300' : ''
-                    }`}
-                  >
-                    <div className="flex justify-between">
-                      <div className="font-medium">
-                        {dasha.planet} ({getPlanetAbbr(dasha.planet)})
-                      </div>
-                      <div className="text-sm">
-                        {formatDate(dasha.startDate)} - {formatDate(dasha.endDate)}
-                      </div>
+        {/* Danh sách Mahadasha, click để mở antardasha */}
+        <div className="space-y-4">
+          {dashaSequence.length > 0 ? (
+            dashaSequence.map((dasha, index) => {
+              const isSelected = selectedMahadasha === dasha.planet;
+              return (
+                <div key={index} className={`p-3 border rounded-md ${dasha.planet === currentDasha.planet ? 'bg-amber-50 border-amber-300' : ''}`}>
+                  <div className="flex justify-between items-center cursor-pointer" onClick={() => setSelectedMahadasha(dasha.planet)}>
+                    <div className="font-medium">
+                      {dasha.planet} ({getPlanetAbbr(dasha.planet)})
+                    </div>
+                    <div className="text-sm">
+                      {formatDate(dasha.startDate)} - {formatDate(dasha.endDate)}
                     </div>
                   </div>
-                ))
-              ) : (
-                <p>Không có dữ liệu dasha.</p>
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="antardasha">
-            <div className="space-y-4">
-              {currentAntarDashas.length > 0 ? (
-                <AntarDashaTable antarDashas={currentAntarDashas} currentPlanet={currentDasha.planet} />
-              ) : (
-                <div className="text-center text-red-500">Không có dữ liệu antardasha</div>
-              )}
-            </div>
-          </TabsContent>
-        </Tabs>
+                  {/* Hiện antardasha nếu được chọn */}
+                  {isSelected && dasha.antardashas && dasha.antardashas.length > 0 && (
+                    <div className="mt-2">
+                      <AntarDashaTable antarDashas={dasha.antardashas} currentPlanet={dasha.planet} />
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          ) : (
+            <p>Không có dữ liệu dasha.</p>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
