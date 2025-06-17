@@ -6,6 +6,7 @@ import { DateTime } from 'luxon';
 import { VedicChartData, DashaPeriod } from './VedicChart';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import AntarDashaTable from './AntarDashaTable';
 
 interface DashaCalculatorProps {
   chartData: VedicChartData;
@@ -109,6 +110,10 @@ const DashaCalculator: React.FC<DashaCalculatorProps> = ({ chartData }) => {
 
   const { current: currentDasha, sequence: dashaSequence } = chartData.dashas;
 
+  // Tìm mahadasha hiện tại trong sequence
+  const currentSequence = dashaSequence.find(seq => seq.planet === currentDasha.planet);
+  const currentAntarDashas = currentSequence?.antardashas || [];
+
   return (
     <Card>
       <CardHeader>
@@ -204,67 +209,10 @@ const DashaCalculator: React.FC<DashaCalculatorProps> = ({ chartData }) => {
 
           <TabsContent value="antardasha">
             <div className="space-y-4">
-              {isLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
-                </div>
-              ) : error ? (
-                <div className="text-center text-red-500">
-                  {error}
-                </div>
+              {currentAntarDashas.length > 0 ? (
+                <AntarDashaTable antarDashas={currentAntarDashas} currentPlanet={currentDasha.planet} />
               ) : (
-                <div className="space-y-3">
-                  {futureAntardashas.map((antardasha, index) => {
-                    const isCurrentAntardasha = currentDasha.antardasha?.current?.planet === antardasha.planet;
-                    const now = DateTime.now();
-                    const startDate = DateTime.fromISO(antardasha.startDate);
-                    const endDate = DateTime.fromISO(antardasha.endDate);
-                    
-                    let elapsed, remaining;
-                    if (isCurrentAntardasha) {
-                      elapsed = now.diff(startDate, ['years', 'months', 'days']);
-                      remaining = endDate.diff(now, ['years', 'months', 'days']);
-                    }
-
-                    return (
-                      <div
-                        key={index}
-                        className={`p-3 border rounded-md ${
-                          isCurrentAntardasha ? 'bg-amber-50 border-amber-300' : ''
-                        }`}
-                      >
-                        <div className="flex justify-between">
-                          <div className="font-medium">
-                            {antardasha.planet} ({getPlanetAbbr(antardasha.planet)})
-                          </div>
-                          <div className="text-sm">
-                            {formatDate(antardasha.startDate)} - {formatDate(antardasha.endDate)}
-                          </div>
-                        </div>
-                        {isCurrentAntardasha && (
-                          <div className="mt-2 grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <div className="font-medium">Đã qua:</div>
-                              <div>
-                                {Math.floor(elapsed.years)} năm,{' '}
-                                {Math.floor(elapsed.months)} tháng,{' '}
-                                {Math.floor(elapsed.days)} ngày
-                              </div>
-                            </div>
-                            <div>
-                              <div className="font-medium">Còn lại:</div>
-                              <div>
-                                {Math.floor(remaining.years)} năm,{' '}
-                                {Math.floor(remaining.months)} tháng,{' '}
-                                {Math.floor(remaining.days)} ngày
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                <div className="text-center text-red-500">Không có dữ liệu antardasha</div>
               )}
             </div>
           </TabsContent>
