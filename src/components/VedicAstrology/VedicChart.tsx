@@ -300,8 +300,6 @@ const VedicChart = () => {
       console.log("Chart data received:", data);
       setChartData(data);
 
-      // Temporarily disable saving chart data while auth UI is hidden
-      /* 
       // Save chart data if user is logged in
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
@@ -330,7 +328,6 @@ const VedicChart = () => {
           });
         }
       }
-      */
 
       // Set progress to 100% when completed
       setLoadingProgress(100);
@@ -411,7 +408,6 @@ const VedicChart = () => {
 
   return (
     <div className="space-y-8">
-      {/* Temporarily hide auth UI
       {user ? (
         <div className="space-y-4">
           <div className="flex justify-between items-center">
@@ -437,30 +433,28 @@ const VedicChart = () => {
                       variant="outline"
                       className="w-full justify-start"
                       onClick={() => {
-                        setChartData({
-                          ascendant: chart.ascendant || 0,
-                          ascendantNakshatra: chart.nakshatras?.ascendantNakshatra || {
-                            name: '',
-                            lord: '',
-                            startDegree: 0,
-                            endDegree: 0,
-                            pada: 1
-                          },
-                          planets: chart.planets || [],
-                          houses: chart.houses || [],
-                          moonNakshatra: chart.nakshatras?.moonNakshatra || '',
-                          lunarDay: chart.lunarDay || 0,
-                          metadata: chart.metadata || {
-                            ayanamsa: 24,
-                            date: '',
-                            time: '',
-                            latitude: 0,
-                            longitude: 0,
-                            timezone: 'UTC',
-                            houseSystem: 'W'
-                          },
-                          dashas: chart.dashas || { current: {}, sequence: [] }
-                        });
+                        try {
+                          // Sử dụng hàm reconstructChartData để chuyển đổi dữ liệu đúng cách
+                          const reconstructedChartData = birthChartService.reconstructChartData(chart);
+                          console.log("Loading saved chart:", reconstructedChartData);
+                          setChartData(reconstructedChartData);
+                          
+                          // Tạo formData từ metadata của chart
+                          const formData = birthChartService.reconstructFormData(chart, user?.email);
+                          setFormData(formData);
+                          
+                          toast({
+                            title: "Bản đồ sao đã được tải",
+                            description: `Đã tải bản đồ của ${new Date(chart.created_at).toLocaleDateString('vi-VN')}`,
+                          });
+                        } catch (error) {
+                          console.error("Error loading saved chart:", error);
+                          toast({
+                            title: "Lỗi khi tải bản đồ",
+                            description: "Không thể tải bản đồ sao. Vui lòng thử lại.",
+                            variant: "destructive"
+                          });
+                        }
                       }}
                     >
                       <span>
@@ -487,7 +481,6 @@ const VedicChart = () => {
           </TabsContent>
         </Tabs>
       )}
-      */}
 
       <Card>
         <CardHeader>

@@ -107,37 +107,30 @@ export const birthChartService = {
       validateChartData(chartData);
       validateFormData(formData);
 
-      // Safely convert data to JSON
-      const safeJsonStringify = (data: any) => {
-        try {
-          return JSON.stringify(data);
-        } catch (error) {
-          console.error("Error stringifying data:", error);
-          throw new BirthChartError(
-            'Failed to convert data to JSON format',
-            'VALIDATION',
-            error
-          );
-        }
-      };
+      // Đảm bảo dữ liệu được chuyển đổi đúng cách trước khi lưu
+      // Tạo bản sao sâu của dữ liệu để tránh tham chiếu
+      const planetsCopy = JSON.parse(JSON.stringify(chartData.planets));
+      const housesCopy = JSON.parse(JSON.stringify(chartData.houses));
+      const dashasCopy = JSON.parse(JSON.stringify(chartData.dashas));
+      const ascendantNakshatra = JSON.parse(JSON.stringify(chartData.ascendantNakshatra));
 
       // Prepare chart data with safe JSON conversion
       const chartDataToSave = {
         user_id: userId,
-        planets: safeJsonStringify(chartData.planets),
-        houses: safeJsonStringify(chartData.houses),
-        nakshatras: safeJsonStringify({
+        planets: planetsCopy,
+        houses: housesCopy,
+        nakshatras: {
           moonNakshatra: chartData.moonNakshatra,
-          ascendantNakshatra: chartData.ascendantNakshatra
-        }),
+          ascendantNakshatra: ascendantNakshatra
+        },
         ascendant: chartData.ascendant,
         lunarDay: chartData.lunarDay,
-        metadata: safeJsonStringify({
+        metadata: {
           ...chartData.metadata,
           name: formData.name,
           location: formData.location
-        }),
-        dashas: safeJsonStringify(chartData.dashas),
+        },
+        dashas: dashasCopy,
         created_at: new Date().toISOString()
       };
 
@@ -287,6 +280,8 @@ export const birthChartService = {
         throw new BirthChartError('Invalid chart data structure', 'VALIDATION');
       }
 
+      console.log("Reconstructing chart data from:", savedChart);
+
       // Parse JSON data if needed
       const planets = typeof savedChart.planets === 'string' ? JSON.parse(savedChart.planets) : savedChart.planets;
       const houses = typeof savedChart.houses === 'string' ? JSON.parse(savedChart.houses) : savedChart.houses;
@@ -294,8 +289,10 @@ export const birthChartService = {
       const metadata = typeof savedChart.metadata === 'string' ? JSON.parse(savedChart.metadata) : savedChart.metadata;
       const dashas = typeof savedChart.dashas === 'string' ? JSON.parse(savedChart.dashas) : savedChart.dashas;
 
+      console.log("Parsed data:", { planets, houses, nakshatras, metadata, dashas });
+
       // Ensure numerical values are properly converted
-      const parsedPlanets = (planets as any[]).map(planet => ({
+      const parsedPlanets = Array.isArray(planets) ? planets.map(planet => ({
         ...planet,
         longitude: Number(planet.longitude) || 0,
         latitude: Number(planet.latitude) || 0,
@@ -303,22 +300,46 @@ export const birthChartService = {
         sign: Number(planet.sign) || 0,
         house: Number(planet.house) || 0,
         aspectingPlanets: planet.aspectingPlanets || [],
-        aspects: (planet.aspects || []).map((aspect: any) => ({
+        aspects: Array.isArray(planet.aspects) ? planet.aspects.map((aspect: any) => ({
           ...aspect,
           orb: Number(aspect.orb) || 0
-        })),
-        color: planet.color || '#000000'
-      }));
+        })) : [],
+        color: planet.color || '#000000',
+        nakshatra: planet.nakshatra || {
+          name: '',
+          lord: '',
+          startDegree: 0,
+          endDegree: 0,
+          pada: 1
+        }
+      })) : [];
 
-      const parsedHouses = (houses as any[]).map(house => ({
+      const parsedHouses = Array.isArray(houses) ? houses.map(house => ({
         ...house,
         number: Number(house.number) || 0,
         longitude: Number(house.longitude) || 0,
         sign: Number(house.sign) || 0,
-        planets: house.planets || []
-      }));
+        planets: Array.isArray(house.planets) ? house.planets : []
+      })) : [];
 
-      return {
+      // Ensure dashas structure is valid
+      const parsedDashas = {
+        current: dashas?.current ? {
+          planet: dashas.current.planet || '',
+          startDate: dashas.current.startDate || '',
+          endDate: dashas.current.endDate || '',
+          elapsed: dashas.current.elapsed || { years: 0, months: 0, days: 0 },
+          remaining: dashas.current.remaining || { years: 0, months: 0, days: 0 },
+          antardasha: dashas.current.antardasha || {
+            current: undefined,
+            sequence: []
+          }
+        } : {} as any,
+        sequence: Array.isArray(dashas?.sequence) ? dashas.sequence : []
+      };
+
+      // Reconstruct the chart data
+      const reconstructed: VedicChartData = {
         ascendant: Number(savedChart.ascendant) || 0,
         ascendantNakshatra: nakshatras?.ascendantNakshatra || {
           name: '',
@@ -340,14 +361,11 @@ export const birthChartService = {
           timezone: metadata?.timezone || 'UTC',
           houseSystem: metadata?.houseSystem || 'W'
         },
-        dashas: dashas ? {
-          current: dashas.current as unknown as DashaPeriod,
-          sequence: dashas.sequence as unknown as DashaPeriod[]
-        } : {
-          current: {} as DashaPeriod,
-          sequence: []
-        }
+        dashas: parsedDashas
       };
+
+      console.log("Reconstructed chart data:", reconstructed);
+      return reconstructed;
     } catch (error) {
       console.error("Error reconstructing chart data:", error);
       throw error;
@@ -356,20 +374,37 @@ export const birthChartService = {
 
   reconstructFormData(savedChart: SavedChart, userEmail: string): BirthDataFormValues {
     try {
-      if (!savedChart?.metadata) {
+      if (!savedChart) {
         throw new BirthChartError('Invalid saved chart data', 'VALIDATION');
       }
 
-      return {
-        name: savedChart.metadata?.name || '',
+      console.log("Reconstructing form data from:", savedChart);
+
+      // Parse metadata if it's a string
+      const metadata = typeof savedChart.metadata === 'string' 
+        ? JSON.parse(savedChart.metadata) 
+        : savedChart.metadata;
+
+      if (!metadata) {
+        throw new BirthChartError('Missing metadata in saved chart', 'VALIDATION');
+      }
+
+      console.log("Parsed metadata:", metadata);
+
+      // Ensure all fields are properly extracted
+      const formData: BirthDataFormValues = {
+        name: metadata.name || '',
         email: userEmail || '',
-        birthDate: savedChart.metadata?.date || '',
-        birthTime: savedChart.metadata?.time || '',
-        location: savedChart.metadata?.location || '',
-        latitude: savedChart.metadata?.latitude || 0,
-        longitude: savedChart.metadata?.longitude || 0,
-        timezone: savedChart.metadata?.timezone || 'UTC'
+        birthDate: metadata.date || '',
+        birthTime: metadata.time || '',
+        location: metadata.location || '',
+        latitude: Number(metadata.latitude) || 0,
+        longitude: Number(metadata.longitude) || 0,
+        timezone: metadata.timezone || 'UTC'
       };
+
+      console.log("Reconstructed form data:", formData);
+      return formData;
     } catch (error) {
       console.error("Error reconstructing form data:", error);
       throw error;

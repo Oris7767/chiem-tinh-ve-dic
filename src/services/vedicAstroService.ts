@@ -157,58 +157,19 @@ async function fetchSavedChart(email: string): Promise<VedicChartData | null> {
     const chartData = charts[0] as DbBirthChart;
 
     // Parse the stored JSON data properly
-    const planets = safeParseJson<Planet[]>(chartData.planets, []);
-    const houses = safeParseJson<House[]>(chartData.houses, []);
-    const nakshatras = safeParseJson<{
-      moonNakshatra: string;
-      ascendantNakshatra: NakshatraInfo;
-    }>(chartData.nakshatras, {
-      moonNakshatra: '',
-      ascendantNakshatra: {
-        name: '',
-        lord: '',
-        startDegree: 0,
-        endDegree: 0,
-        pada: 1
-      }
-    });
-    const metadata = safeParseJson<ChartMetadata>(chartData.metadata || null, {
-      ayanamsa: 24,
-      date: '',
-      time: '',
-      latitude: 0,
-      longitude: 0,
-      timezone: 'UTC',
-      houseSystem: 'W'
-    });
-    const dashas = safeParseJson<DashaData>(chartData.dashas || null, {
-      current: {
-        planet: '',
-        startDate: '',
-        endDate: '',
-        elapsed: { years: 0, months: 0, days: 0 },
-        remaining: { years: 0, months: 0, days: 0 },
-        antardasha: {
-          current: {
-            planet: '',
-            startDate: '',
-            endDate: '',
-            elapsed: { years: 0, months: 0, days: 0 },
-            remaining: { years: 0, months: 0, days: 0 }
-          },
-          sequence: []
-        }
-      },
-      sequence: []
-    });
+    const planets = typeof chartData.planets === 'string' ? JSON.parse(chartData.planets) : chartData.planets;
+    const houses = typeof chartData.houses === 'string' ? JSON.parse(chartData.houses) : chartData.houses;
+    const nakshatras = typeof chartData.nakshatras === 'string' ? JSON.parse(chartData.nakshatras) : chartData.nakshatras;
+    const metadata = typeof chartData.metadata === 'string' ? JSON.parse(chartData.metadata) : chartData.metadata;
+    const dashas = typeof chartData.dashas === 'string' ? JSON.parse(chartData.dashas) : chartData.dashas;
 
     return {
-      ascendant: houses[0]?.longitude || 0,
+      ascendant: Number(('ascendant' in chartData && chartData.ascendant !== undefined && chartData.ascendant !== null) ? chartData.ascendant : (houses[0]?.longitude || 0)),
       ascendantNakshatra: nakshatras.ascendantNakshatra,
       planets,
       houses,
       moonNakshatra: nakshatras.moonNakshatra,
-      lunarDay: 1,
+      lunarDay: Number(('lunarDay' in chartData && chartData.lunarDay !== undefined && chartData.lunarDay !== null) ? chartData.lunarDay : 1),
       metadata,
       dashas
     };
