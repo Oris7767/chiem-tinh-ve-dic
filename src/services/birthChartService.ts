@@ -29,8 +29,17 @@ const validateChartData = (chartData: VedicChartData) => {
     throw new BirthChartError('Invalid houses data', 'VALIDATION');
   }
 
-  if (!chartData.metadata || !chartData.metadata.date || !chartData.metadata.time) {
-    throw new BirthChartError('Missing required metadata', 'VALIDATION');
+  if (!chartData.metadata) {
+    throw new BirthChartError('Missing metadata', 'VALIDATION');
+  }
+
+  // Kiểm tra các trường bắt buộc trong metadata
+  const requiredFields = ['date', 'time', 'latitude', 'longitude', 'timezone'];
+  const missingFields = requiredFields.filter(field => !chartData.metadata[field]);
+  
+  if (missingFields.length > 0) {
+    console.warn(`Missing metadata fields: ${missingFields.join(', ')}. Will use default values.`);
+    // Không throw error, chỉ cảnh báo
   }
 };
 
@@ -107,10 +116,31 @@ export const birthChartService = {
       validateChartData(chartData);
       validateFormData(formData);
 
+      // Bảng chuyển đổi từ tên sang số cung hoàng đạo
+      const SIGN_NAME_TO_INDEX = {
+        "Aries": 0, "Taurus": 1, "Gemini": 2, "Cancer": 3,
+        "Leo": 4, "Virgo": 5, "Libra": 6, "Scorpio": 7,
+        "Sagittarius": 8, "Capricorn": 9, "Aquarius": 10, "Pisces": 11
+      };
+
       // Đảm bảo dữ liệu được chuyển đổi đúng cách trước khi lưu
       // Tạo bản sao sâu của dữ liệu để tránh tham chiếu
-      const planetsCopy = JSON.parse(JSON.stringify(chartData.planets));
-      const housesCopy = JSON.parse(JSON.stringify(chartData.houses));
+      const planetsCopy = JSON.parse(JSON.stringify(chartData.planets)).map(planet => {
+        // Đảm bảo sign luôn là số
+        if (typeof planet.sign === 'string' && planet.sign in SIGN_NAME_TO_INDEX) {
+          planet.sign = SIGN_NAME_TO_INDEX[planet.sign];
+        }
+        return planet;
+      });
+
+      const housesCopy = JSON.parse(JSON.stringify(chartData.houses)).map(house => {
+        // Đảm bảo sign luôn là số
+        if (typeof house.sign === 'string' && house.sign in SIGN_NAME_TO_INDEX) {
+          house.sign = SIGN_NAME_TO_INDEX[house.sign];
+        }
+        return house;
+      });
+
       const dashasCopy = JSON.parse(JSON.stringify(chartData.dashas));
       const ascendantNakshatra = JSON.parse(JSON.stringify(chartData.ascendantNakshatra));
 
@@ -291,36 +321,70 @@ export const birthChartService = {
 
       console.log("Parsed data:", { planets, houses, nakshatras, metadata, dashas });
 
-      // Ensure numerical values are properly converted
-      const parsedPlanets = Array.isArray(planets) ? planets.map(planet => ({
-        ...planet,
-        longitude: Number(planet.longitude) || 0,
-        latitude: Number(planet.latitude) || 0,
-        longitudeSpeed: Number(planet.longitudeSpeed) || 0,
-        sign: Number(planet.sign) || 0,
-        house: Number(planet.house) || 0,
-        aspectingPlanets: planet.aspectingPlanets || [],
-        aspects: Array.isArray(planet.aspects) ? planet.aspects.map((aspect: any) => ({
-          ...aspect,
-          orb: Number(aspect.orb) || 0
-        })) : [],
-        color: planet.color || '#000000',
-        nakshatra: planet.nakshatra || {
-          name: '',
-          lord: '',
-          startDegree: 0,
-          endDegree: 0,
-          pada: 1
-        }
-      })) : [];
+      // Bảng chuyển đổi từ số sang tên cung hoàng đạo
+      const SIGN_INDEX_TO_NAME = [
+        "Aries", "Taurus", "Gemini", "Cancer", 
+        "Leo", "Virgo", "Libra", "Scorpio", 
+        "Sagittarius", "Capricorn", "Aquarius", "Pisces"
+      ];
 
-      const parsedHouses = Array.isArray(houses) ? houses.map(house => ({
-        ...house,
-        number: Number(house.number) || 0,
-        longitude: Number(house.longitude) || 0,
-        sign: Number(house.sign) || 0,
-        planets: Array.isArray(house.planets) ? house.planets : []
-      })) : [];
+      // Bảng chuyển đổi từ tên sang số cung hoàng đạo
+      const SIGN_NAME_TO_INDEX = {
+        "Aries": 0, "Taurus": 1, "Gemini": 2, "Cancer": 3,
+        "Leo": 4, "Virgo": 5, "Libra": 6, "Scorpio": 7,
+        "Sagittarius": 8, "Capricorn": 9, "Aquarius": 10, "Pisces": 11
+      };
+
+      // Đảm bảo các giá trị số được chuyển đổi đúng
+      const parsedPlanets = Array.isArray(planets) ? planets.map(planet => {
+        // Xử lý sign dù là số hay tên
+        let signIndex = planet.sign;
+        if (typeof planet.sign === 'string' && planet.sign in SIGN_NAME_TO_INDEX) {
+          signIndex = SIGN_NAME_TO_INDEX[planet.sign];
+        } else if (typeof planet.sign === 'number') {
+          signIndex = planet.sign;
+        }
+
+        return {
+          ...planet,
+          longitude: Number(planet.longitude) || 0,
+          latitude: Number(planet.latitude) || 0,
+          longitudeSpeed: Number(planet.longitudeSpeed) || 0,
+          sign: Number(signIndex) || 0,
+          house: Number(planet.house) || 0,
+          aspectingPlanets: planet.aspectingPlanets || [],
+          aspects: Array.isArray(planet.aspects) ? planet.aspects.map((aspect: any) => ({
+            ...aspect,
+            orb: Number(aspect.orb) || 0
+          })) : [],
+          color: planet.color || '#000000',
+          nakshatra: planet.nakshatra || {
+            name: '',
+            lord: '',
+            startDegree: 0,
+            endDegree: 0,
+            pada: 1
+          }
+        };
+      }) : [];
+
+      const parsedHouses = Array.isArray(houses) ? houses.map(house => {
+        // Xử lý sign dù là số hay tên
+        let signIndex = house.sign;
+        if (typeof house.sign === 'string' && house.sign in SIGN_NAME_TO_INDEX) {
+          signIndex = SIGN_NAME_TO_INDEX[house.sign];
+        } else if (typeof house.sign === 'number') {
+          signIndex = house.sign;
+        }
+
+        return {
+          ...house,
+          number: Number(house.number) || 0,
+          longitude: Number(house.longitude) || 0,
+          sign: Number(signIndex) || 0,
+          planets: Array.isArray(house.planets) ? house.planets : []
+        };
+      }) : [];
 
       // Ensure dashas structure is valid
       const parsedDashas = {

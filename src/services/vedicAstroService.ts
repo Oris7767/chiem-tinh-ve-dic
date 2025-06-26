@@ -248,6 +248,9 @@ export async function calculateVedicChart(formData: {
       email: formData.email
     });
 
+    // Bỏ đoạn kiểm tra và trả về bản đồ đã lưu
+    // Luôn tính toán lại từ API khi người dùng nhấn nút "Tính toán bản đồ sao"
+    /*
     // Check if user is logged in and has a saved chart
     if (formData.email) {
       const savedChart = await fetchSavedChart(formData.email);
@@ -255,6 +258,7 @@ export async function calculateVedicChart(formData: {
         return savedChart;
       }
     }
+    */
 
     // Format the payload according to the specified format
     const apiPayload = {
@@ -315,6 +319,20 @@ export async function calculateVedicChart(formData: {
 
       // Convert API response to VedicChartData format
       const data = convertApiResponseToChartData(apiData);
+      
+      // Bổ sung thông tin từ formData vào metadata
+      data.metadata = {
+        ...data.metadata,
+        name: formData.name || '',
+        location: formData.location || '',
+        date: formData.birthDate || data.metadata.date,
+        time: formData.birthTime || data.metadata.time,
+        latitude: formData.latitude || data.metadata.latitude,
+        longitude: formData.longitude || data.metadata.longitude,
+        timezone: formData.timezone || data.metadata.timezone
+      };
+      
+      console.log("Final chart data with metadata:", data);
 
       // Save the chart data for logged in users
       const { data: { user } } = await supabase.auth.getUser();
@@ -417,6 +435,22 @@ function convertApiResponseToChartData(apiData: VedicChartResponse): VedicChartD
     }
   };
 
+  // Đảm bảo metadata luôn đầy đủ
+  const metadata = {
+    ayanamsa: apiData.metadata?.ayanamsa || 24,
+    date: apiData.metadata?.date || new Date().toISOString().split('T')[0],
+    time: apiData.metadata?.time || new Date().toTimeString().split(' ')[0].substring(0, 5),
+    latitude: apiData.metadata?.latitude || 0,
+    longitude: apiData.metadata?.longitude || 0,
+    timezone: apiData.metadata?.timezone || 'UTC',
+    houseSystem: apiData.metadata?.houseSystem || 'W',
+    // Thêm các trường khác nếu cần
+    name: '',
+    location: ''
+  };
+
+  console.log("Processed metadata:", metadata);
+
   return {
     ascendant: ascLongitude,
     ascendantNakshatra: apiData.ascendant.nakshatra,
@@ -424,7 +458,7 @@ function convertApiResponseToChartData(apiData: VedicChartResponse): VedicChartD
     houses,
     moonNakshatra,
     lunarDay: calculateLunarDay(apiData.planets),
-    metadata: apiData.metadata,
+    metadata: metadata,
     dashas: {
       current: normalizedCurrentDasha,
       sequence: apiData.dashas.sequence
