@@ -103,6 +103,7 @@ export interface SavedChart {
     current: Json;
     sequence: Json[];
   };
+  ascendant_full?: Json;
 }
 
 export const birthChartService = {
@@ -115,6 +116,8 @@ export const birthChartService = {
 
       validateChartData(chartData);
       validateFormData(formData);
+
+      console.log("Original ascendantFull before saving:", chartData.ascendantFull);
 
       // Bảng chuyển đổi từ tên sang số cung hoàng đạo
       const SIGN_NAME_TO_INDEX = {
@@ -144,6 +147,10 @@ export const birthChartService = {
       const dashasCopy = JSON.parse(JSON.stringify(chartData.dashas));
       const ascendantNakshatra = JSON.parse(JSON.stringify(chartData.ascendantNakshatra));
 
+      // Chuẩn bị dữ liệu ascendant_full
+      const ascendantFullString = chartData.ascendantFull ? JSON.stringify(chartData.ascendantFull) : null;
+      console.log("Stringified ascendant_full:", ascendantFullString);
+
       // Prepare chart data with safe JSON conversion
       const chartDataToSave = {
         user_id: userId,
@@ -153,12 +160,14 @@ export const birthChartService = {
           moonNakshatra: chartData.moonNakshatra,
           ascendantNakshatra: ascendantNakshatra
         },
-        ascendant: chartData.ascendant,
-        lunarDay: chartData.lunarDay,
+        // Lưu ascendant vào metadata thay vì trường riêng
         metadata: {
           ...chartData.metadata,
           name: formData.name,
-          location: formData.location
+          location: formData.location,
+          ascendant: chartData.ascendant,
+          ascendant_full: ascendantFullString,
+          lunarDay: chartData.lunarDay
         },
         dashas: dashasCopy,
         created_at: new Date().toISOString()
@@ -318,8 +327,25 @@ export const birthChartService = {
       const nakshatras = typeof savedChart.nakshatras === 'string' ? JSON.parse(savedChart.nakshatras) : savedChart.nakshatras;
       const metadata = typeof savedChart.metadata === 'string' ? JSON.parse(savedChart.metadata) : savedChart.metadata;
       const dashas = typeof savedChart.dashas === 'string' ? JSON.parse(savedChart.dashas) : savedChart.dashas;
+      
+      // Xử lý ascendant_full
+      console.log("Raw ascendant_full from database:", savedChart.ascendant_full);
+      let ascendantFull = null;
+      
+      try {
+        if (savedChart.ascendant_full) {
+          if (typeof savedChart.ascendant_full === 'string') {
+            ascendantFull = JSON.parse(savedChart.ascendant_full);
+          } else {
+            ascendantFull = savedChart.ascendant_full;
+          }
+        }
+        console.log("Parsed ascendantFull:", ascendantFull);
+      } catch (error) {
+        console.error("Error parsing ascendant_full:", error);
+      }
 
-      console.log("Parsed data:", { planets, houses, nakshatras, metadata, dashas });
+      console.log("Parsed data:", { planets, houses, nakshatras, metadata, dashas, ascendantFull });
 
       // Bảng chuyển đổi từ số sang tên cung hoàng đạo
       const SIGN_INDEX_TO_NAME = [
@@ -412,6 +438,8 @@ export const birthChartService = {
           endDegree: 0,
           pada: 1
         },
+        // Khôi phục đối tượng ascendant đầy đủ nếu có
+        ascendantFull: ascendantFull,
         planets: parsedPlanets,
         houses: parsedHouses,
         moonNakshatra: nakshatras?.moonNakshatra || '',
@@ -472,6 +500,34 @@ export const birthChartService = {
     } catch (error) {
       console.error("Error reconstructing form data:", error);
       throw error;
+    }
+  },
+
+  async getChartById(chartId: string): Promise<VedicChartData | null> {
+    try {
+      const { data: chart, error } = await supabase
+        .from('birth_charts')
+        .select('*')
+        .eq('id', chartId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching chart:', error);
+        return null;
+      }
+
+      if (!chart) {
+        console.error('Chart not found');
+        return null;
+      }
+
+      console.log('Fetched chart data:', chart);
+
+      // Reconstruct chart data using existing method
+      return this.reconstructChartData(chart);
+    } catch (error) {
+      console.error('Error in getChartById:', error);
+      return null;
     }
   }
 }; 

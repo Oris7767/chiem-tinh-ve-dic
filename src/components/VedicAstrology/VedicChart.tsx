@@ -113,6 +113,7 @@ export interface DashaPeriod {
 export interface VedicChartData {
   ascendant: number;
   ascendantNakshatra: NakshatraInfo;
+  ascendantFull?: any;
   planets: Planet[];
   houses: House[];
   moonNakshatra: string;

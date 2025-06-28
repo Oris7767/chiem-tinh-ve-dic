@@ -368,7 +368,11 @@ export async function calculateVedicChart(formData: {
  * Convert API response format to app's VedicChartData format
  */
 function convertApiResponseToChartData(apiData: VedicChartResponse): VedicChartData {
-  // Ascendant
+  // Giữ nguyên dữ liệu ascendant từ API thay vì chỉ lấy longitude
+  const ascendantData = apiData.ascendant;
+  console.log("Original ascendant data from API:", JSON.stringify(ascendantData));
+  
+  // Tính toán ascendant longitude để tương thích với mã cũ
   const ascSignIdx = SIGN_TO_INDEX[apiData.ascendant.sign.name] || 0;
   const ascDeg = apiData.ascendant.sign.degree || 0;
   const ascLongitude = ascSignIdx * 30 + ascDeg;
@@ -450,9 +454,12 @@ function convertApiResponseToChartData(apiData: VedicChartResponse): VedicChartD
   };
 
   console.log("Processed metadata:", metadata);
+  console.log("Original ascendant:", ascendantData);
 
   return {
+    // Giữ cả đối tượng ascendant và ascendant longitude
     ascendant: ascLongitude,
+    ascendantFull: ascendantData, // Thêm trường mới để lưu đối tượng đầy đủ
     ascendantNakshatra: apiData.ascendant.nakshatra,
     planets,
     houses,
