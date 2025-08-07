@@ -17,6 +17,7 @@ import BlogLoginPage from "./pages/BlogLoginPage";
 import SubscribersAdminPage from "./pages/SubscribersAdminPage";
 import VedicChartPage from "./pages/VedicChartPage";
 import PanchangPage from "./pages/Panchang";
+import TradingViewPage from "./pages/TradingViewPage";
 import NotFound from "./pages/NotFound";
 import ChatBot from "./components/ChatBot";
 
@@ -58,6 +59,7 @@ const App = () => (
                   <Route path="/numerology/admin" element={<NumerologyAdminPage />} />
                   <Route path="/vedic-chart" element={<VedicChartPage />} />
                   <Route path="/panchang" element={<PanchangPage />} />
+                  <Route path="/trading" element={<TradingViewPage />} />
                   {/* ADD ALL CUSTOM ROUTES BELOW THE CATCH-ALL "*" ROUTE */}
                   <Route path="/blog" element={<BlogPage />} />
                   <Route path="/blog/:slug" element={<BlogPostPage />} />

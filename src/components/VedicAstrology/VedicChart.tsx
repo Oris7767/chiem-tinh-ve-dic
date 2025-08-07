@@ -5,11 +5,17 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import BirthChartForm, { BirthDataFormValues } from './BirthChartForm';
 import { LoginForm, RegisterForm } from './AuthForms';
 import { useToast } from "@/components/ui/use-toast";
-import { Download, Loader2, LogOut } from 'lucide-react';
+import { Download, Loader2, LogOut, ChevronDown } from 'lucide-react';
 import SouthIndianChart from './SouthIndianChart';
 import DashaCalculator from './DashaCalculator';
 import { calculateVedicChart } from '@/services/vedicAstroService';
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { supabase } from '@/integrations/supabase/client';
 import { Json } from '@/integrations/supabase/types';
 import { DateTime } from 'luxon';
@@ -368,45 +374,74 @@ const VedicChart = () => {
   const downloadChartAsSVG = () => {
     if (!chartData) return;
 
-    const svgElement = document.getElementById('birth-chart-svg');
-    if (!svgElement) return;
+    // Import the complete SVG export function
+    import('../../../utils/svgExportUtils').then(({ downloadCompleteSVG }) => {
+      downloadCompleteSVG(chartData, formData);
+      
+      toast({
+        title: "Tải xuống thành công",
+        description: "Bản đồ sao hoàn chỉnh đã được tải về với tất cả thông tin chi tiết.",
+      });
+    }).catch((error) => {
+      console.error('Error downloading complete SVG:', error);
+      
+      // Fallback to original simple SVG download
+      const svgElement = document.getElementById('birth-chart-svg');
+      if (!svgElement) return;
 
-    // Create a clone of the SVG element to modify
-    const svgClone = svgElement.cloneNode(true) as SVGSVGElement;
+      const svgClone = svgElement.cloneNode(true) as SVGSVGElement;
+      svgClone.setAttribute('width', '800');
+      svgClone.setAttribute('height', '800');
 
-    // Set the width and height attributes
-    svgClone.setAttribute('width', '800');
-    svgClone.setAttribute('height', '800');
+      const serializer = new XMLSerializer();
+      let source = serializer.serializeToString(svgClone);
 
-    // Convert to string
-    const serializer = new XMLSerializer();
-    let source = serializer.serializeToString(svgClone);
+      if (!source.match(/^<\?xml/)) {
+        source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+      }
 
-    // Add XML declaration
-    if (!source.match(/^<\?xml/)) {
-      source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
-    }
+      const svgBlob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(svgBlob);
 
-    // Convert to URL data
-    const svgBlob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
-    const url = URL.createObjectURL(svgBlob);
+      const downloadLink = document.createElement('a');
+      downloadLink.href = url;
 
-    // Create a link and trigger download
-    const downloadLink = document.createElement('a');
-    downloadLink.href = url;
+      const fileName = formData 
+        ? `vedic-chart-${formData.name?.replace(/\s+/g, '-')}-${formData.birthDate}.svg`
+        : 'vedic-birth-chart.svg';
 
-    // Generate a filename based on birth data
-    const fileName = formData 
-      ? `vedic-chart-${formData.name.replace(/\s+/g, '-')}-${formData.birthDate}.svg`
-      : 'vedic-birth-chart.svg';
+      downloadLink.download = fileName;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
 
-    downloadLink.download = fileName;
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Tải xuống cơ bản",
+        description: "Đã tải về bản đồ sao cơ bản. Chức năng hoàn chỉnh đang được cập nhật.",
+      });
+    });
+  };
 
-    // Cleanup
-    URL.revokeObjectURL(url);
+  const downloadSeparateFiles = () => {
+    if (!chartData) return;
+
+    import('../../../utils/svgExportUtils').then(({ downloadSeparateSVGs }) => {
+      downloadSeparateSVGs(chartData, formData);
+      
+      toast({
+        title: "Tải xuống thành công",
+        description: "Đã tải về 2 file SVG riêng biệt: bản đồ sao và thông tin chi tiết.",
+      });
+    }).catch((error) => {
+      console.error('Error downloading separate SVGs:', error);
+      toast({
+        title: "Lỗi tải xuống",
+        description: "Không thể tải file riêng biệt. Vui lòng thử lại.",
+        variant: "destructive",
+      });
+    });
   };
 
   return (
@@ -542,7 +577,8 @@ const VedicChart = () => {
             <ChartDisplay 
               chartData={chartData} 
               userData={formData} 
-              onDownload={downloadChartAsSVG} 
+              onDownload={downloadChartAsSVG}
+              onDownloadSeparate={downloadSeparateFiles}
             />
           </TabsContent>
 
@@ -584,10 +620,25 @@ const ChartDisplay = ({ chartData, userData, onDownload }: ChartDisplayProps) =>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Bản đồ sao</CardTitle>
           {onDownload && (
-            <Button variant="outline" size="sm" onClick={onDownload}>
-              <Download className="h-4 w-4 mr-2" />
-              Lưu bản đồ
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Download className="h-4 w-4 mr-2" />
+                  Tải bản đồ
+                  <ChevronDown className="h-4 w-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={onDownload}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Tải file hoàn chỉnh (1 file SVG)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={downloadSeparateFiles}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Tải file riêng biệt (2 file SVG)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </CardHeader>
         <CardContent>
