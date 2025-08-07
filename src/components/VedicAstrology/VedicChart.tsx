@@ -19,6 +19,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { Json } from '@/integrations/supabase/types';
 import { DateTime } from 'luxon';
+import { downloadCompleteSVG, downloadSeparateSVGs } from '@/utils/svgExportUtils';
 import { Progress } from "@/components/ui/progress";
 import PlanetAspectsTable from './PlanetAspectsTable';
 import PlanetDetailsTable from './PlanetDetailsTable';
@@ -374,15 +375,14 @@ const VedicChart = () => {
   const downloadChartAsSVG = () => {
     if (!chartData) return;
 
-    // Import the complete SVG export function
-    import('../../../utils/svgExportUtils').then(({ downloadCompleteSVG }) => {
+    try {
       downloadCompleteSVG(chartData, formData);
       
       toast({
         title: "Tải xuống thành công",
         description: "Bản đồ sao hoàn chỉnh đã được tải về với tất cả thông tin chi tiết.",
       });
-    }).catch((error) => {
+    } catch (error) {
       console.error('Error downloading complete SVG:', error);
       
       // Fallback to original simple SVG download
@@ -421,27 +421,27 @@ const VedicChart = () => {
         title: "Tải xuống cơ bản",
         description: "Đã tải về bản đồ sao cơ bản. Chức năng hoàn chỉnh đang được cập nhật.",
       });
-    });
+    }
   };
 
   const downloadSeparateFiles = () => {
     if (!chartData) return;
 
-    import('../../../utils/svgExportUtils').then(({ downloadSeparateSVGs }) => {
+    try {
       downloadSeparateSVGs(chartData, formData);
       
       toast({
         title: "Tải xuống thành công",
         description: "Đã tải về 2 file SVG riêng biệt: bản đồ sao và thông tin chi tiết.",
       });
-    }).catch((error) => {
+    } catch (error) {
       console.error('Error downloading separate SVGs:', error);
       toast({
         title: "Lỗi tải xuống",
         description: "Không thể tải file riêng biệt. Vui lòng thử lại.",
         variant: "destructive",
       });
-    });
+    }
   };
 
   return (

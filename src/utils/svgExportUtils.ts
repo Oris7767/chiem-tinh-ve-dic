@@ -1,4 +1,4 @@
-import { ChartMetadata, NakshatraInfo, DashaPeriod } from './vedicAstrology/config';
+import { ChartMetadata, NakshatraInfo, DashaPeriod } from '@/utils/vedicAstrology/config';
 
 export interface Planet {
   id: string;
