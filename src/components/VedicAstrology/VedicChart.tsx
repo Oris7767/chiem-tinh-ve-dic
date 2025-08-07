@@ -5,7 +5,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import BirthChartForm, { BirthDataFormValues } from './BirthChartForm';
 import { LoginForm, RegisterForm } from './AuthForms';
 import { useToast } from "@/components/ui/use-toast";
-import { Download, Loader2, LogOut, ChevronDown } from 'lucide-react';
+import { Download, Loader2, LogOut, ChevronDown, Image, FileText } from 'lucide-react';
 import SouthIndianChart from './SouthIndianChart';
 import DashaCalculator from './DashaCalculator';
 import { calculateVedicChart } from '@/services/vedicAstroService';
@@ -20,6 +20,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Json } from '@/integrations/supabase/types';
 import { DateTime } from 'luxon';
 import { downloadCompleteSVG, downloadSeparateSVGs } from '@/utils/svgExportUtils';
+import { downloadAsPNG, downloadAsPDF } from '@/utils/imageExportUtils';
 import { Progress } from "@/components/ui/progress";
 import PlanetAspectsTable from './PlanetAspectsTable';
 import PlanetDetailsTable from './PlanetDetailsTable';
@@ -444,6 +445,46 @@ const VedicChart = () => {
     }
   };
 
+  const downloadAsPNGFile = async () => {
+    if (!chartData) return;
+
+    try {
+      await downloadAsPNG(chartData, formData);
+      
+      toast({
+        title: "Tải xuống thành công",
+        description: "Bản đồ sao đã được tải về dạng PNG chất lượng cao, dễ xem trên điện thoại.",
+      });
+    } catch (error) {
+      console.error('Error downloading PNG:', error);
+      toast({
+        title: "Lỗi tải xuống",
+        description: "Không thể tải file PNG. Vui lòng thử lại.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const downloadAsPDFFile = async () => {
+    if (!chartData) return;
+
+    try {
+      await downloadAsPDF(chartData, formData);
+      
+      toast({
+        title: "Tải xuống thành công",
+        description: "Bản đồ sao đã được tải về dạng PDF đẹp, dễ in và chia sẻ.",
+      });
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      toast({
+        title: "Lỗi tải xuống",
+        description: "Không thể tải file PDF. Vui lòng thử lại.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* Temporarily hide auth UI
@@ -579,6 +620,8 @@ const VedicChart = () => {
               userData={formData} 
               onDownload={downloadChartAsSVG}
               onDownloadSeparate={downloadSeparateFiles}
+              onDownloadPNG={downloadAsPNGFile}
+              onDownloadPDF={downloadAsPDFFile}
             />
           </TabsContent>
 
@@ -600,9 +643,11 @@ interface ChartDisplayProps {
   userData?: BirthDataFormValues | null;
   onDownload?: () => void;
   onDownloadSeparate?: () => void;
+  onDownloadPNG?: () => void;
+  onDownloadPDF?: () => void;
 }
 
-const ChartDisplay = ({ chartData, userData, onDownload, onDownloadSeparate }: ChartDisplayProps) => {
+const ChartDisplay = ({ chartData, userData, onDownload, onDownloadSeparate, onDownloadPNG, onDownloadPDF }: ChartDisplayProps) => {
   // Format birth info for display in the chart
   const getBirthInfo = () => {
     if (!userData) return '';
@@ -629,14 +674,34 @@ const ChartDisplay = ({ chartData, userData, onDownload, onDownloadSeparate }: C
                   <ChevronDown className="h-4 w-4 ml-2" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="w-64">
+                <DropdownMenuItem onClick={onDownloadPNG}>
+                  <Image className="h-4 w-4 mr-2" />
+                  <div className="flex flex-col">
+                    <span>Tải PNG (Khuyến nghị)</span>
+                    <span className="text-xs text-gray-500">Đẹp, dễ xem trên điện thoại</span>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onDownloadPDF}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  <div className="flex flex-col">
+                    <span>Tải PDF</span>
+                    <span className="text-xs text-gray-500">Dễ in và chia sẻ</span>
+                  </div>
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={onDownload}>
                   <Download className="h-4 w-4 mr-2" />
-                  Tải file hoàn chỉnh (1 file SVG)
+                  <div className="flex flex-col">
+                    <span>Tải SVG hoàn chỉnh</span>
+                    <span className="text-xs text-gray-500">Vector, có thể chỉnh sửa</span>
+                  </div>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={onDownloadSeparate}>
                   <Download className="h-4 w-4 mr-2" />
-                  Tải file riêng biệt (2 file SVG)
+                  <div className="flex flex-col">
+                    <span>Tải SVG riêng biệt</span>
+                    <span className="text-xs text-gray-500">2 file SVG tách biệt</span>
+                  </div>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
