@@ -599,9 +599,10 @@ interface ChartDisplayProps {
   chartData: VedicChartData;
   userData?: BirthDataFormValues | null;
   onDownload?: () => void;
+  onDownloadSeparate?: () => void;
 }
 
-const ChartDisplay = ({ chartData, userData, onDownload }: ChartDisplayProps) => {
+const ChartDisplay = ({ chartData, userData, onDownload, onDownloadSeparate }: ChartDisplayProps) => {
   // Format birth info for display in the chart
   const getBirthInfo = () => {
     if (!userData) return '';
@@ -633,7 +634,7 @@ const ChartDisplay = ({ chartData, userData, onDownload }: ChartDisplayProps) =>
                   <Download className="h-4 w-4 mr-2" />
                   Tải file hoàn chỉnh (1 file SVG)
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={downloadSeparateFiles}>
+                <DropdownMenuItem onClick={onDownloadSeparate}>
                   <Download className="h-4 w-4 mr-2" />
                   Tải file riêng biệt (2 file SVG)
                 </DropdownMenuItem>
