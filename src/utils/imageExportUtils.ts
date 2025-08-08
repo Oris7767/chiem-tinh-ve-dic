@@ -495,14 +495,28 @@ export async function downloadAsPNG(
       }
       
       const chartClone = originalChart.cloneNode(true) as SVGSVGElement;
+      
+      // Set explicit dimensions
       chartClone.setAttribute('width', '500');
       chartClone.setAttribute('height', '500');
+      chartClone.setAttribute('viewBox', '0 0 500 500');
+      
       // Remove any problematic attributes
       chartClone.removeAttribute('class');
       
-      // Ensure the SVG has proper styling
+      // Ensure the SVG has proper styling for rendering
       chartClone.style.display = 'block';
       chartClone.style.margin = '0 auto';
+      chartClone.style.width = '500px';
+      chartClone.style.height = '500px';
+      chartClone.style.backgroundColor = 'white';
+      
+      console.log('Cloned SVG attributes:', {
+        width: chartClone.getAttribute('width'),
+        height: chartClone.getAttribute('height'),
+        viewBox: chartClone.getAttribute('viewBox'),
+        children: chartClone.children.length
+      });
       
       chartContainer.appendChild(chartClone);
       
@@ -527,6 +541,16 @@ export async function downloadAsPNG(
       logging: true, // Enable logging for debugging
       removeContainer: false,
       foreignObjectRendering: false, // Disable foreign object rendering for better compatibility
+      onclone: (clonedDoc) => {
+        // Ensure SVG elements are properly styled in the cloned document
+        const svgElements = clonedDoc.querySelectorAll('svg');
+        svgElements.forEach(svg => {
+          svg.style.display = 'block';
+          svg.style.width = svg.getAttribute('width') || '500px';
+          svg.style.height = svg.getAttribute('height') || '500px';
+        });
+        console.log('Cloned document prepared with', svgElements.length, 'SVG elements');
+      },
       ignoreElements: (element) => {
         // Ignore elements that might cause issues
         return element.tagName === 'SCRIPT' || element.tagName === 'STYLE';
@@ -537,6 +561,32 @@ export async function downloadAsPNG(
     if (canvas.width === 0 || canvas.height === 0) {
       throw new Error('Canvas không có nội dung. Vui lòng thử lại.');
     }
+    
+    // Debug canvas content
+    console.log('Canvas created:', {
+      width: canvas.width,
+      height: canvas.height,
+      dataURL: canvas.toDataURL().substring(0, 50) + '...'
+    });
+    
+    // Check if canvas is mostly empty (white/transparent)
+    const ctx = canvas.getContext('2d');
+    const imageData = ctx?.getImageData(0, 0, Math.min(canvas.width, 100), Math.min(canvas.height, 100));
+    let hasContent = false;
+    if (imageData) {
+      for (let i = 0; i < imageData.data.length; i += 4) {
+        const r = imageData.data[i];
+        const g = imageData.data[i + 1];
+        const b = imageData.data[i + 2];
+        const a = imageData.data[i + 3];
+        // Check if pixel is not white/transparent
+        if (!(r > 250 && g > 250 && b > 250) && a > 0) {
+          hasContent = true;
+          break;
+        }
+      }
+    }
+    console.log('Canvas has visible content:', hasContent);
     
     // Convert to blob and download
     return new Promise((resolve, reject) => {
@@ -616,14 +666,28 @@ export async function downloadAsPDF(
       }
       
       const chartClone = originalChart.cloneNode(true) as SVGSVGElement;
+      
+      // Set explicit dimensions
       chartClone.setAttribute('width', '500');
       chartClone.setAttribute('height', '500');
+      chartClone.setAttribute('viewBox', '0 0 500 500');
+      
       // Remove any problematic attributes
       chartClone.removeAttribute('class');
       
-      // Ensure the SVG has proper styling
+      // Ensure the SVG has proper styling for rendering
       chartClone.style.display = 'block';
       chartClone.style.margin = '0 auto';
+      chartClone.style.width = '500px';
+      chartClone.style.height = '500px';
+      chartClone.style.backgroundColor = 'white';
+      
+      console.log('Cloned SVG attributes:', {
+        width: chartClone.getAttribute('width'),
+        height: chartClone.getAttribute('height'),
+        viewBox: chartClone.getAttribute('viewBox'),
+        children: chartClone.children.length
+      });
       
       chartContainer.appendChild(chartClone);
       
@@ -648,6 +712,16 @@ export async function downloadAsPDF(
       logging: true, // Enable logging for debugging
       removeContainer: false,
       foreignObjectRendering: false,
+      onclone: (clonedDoc) => {
+        // Ensure SVG elements are properly styled in the cloned document
+        const svgElements = clonedDoc.querySelectorAll('svg');
+        svgElements.forEach(svg => {
+          svg.style.display = 'block';
+          svg.style.width = svg.getAttribute('width') || '500px';
+          svg.style.height = svg.getAttribute('height') || '500px';
+        });
+        console.log('Cloned document prepared with', svgElements.length, 'SVG elements');
+      },
       ignoreElements: (element) => {
         return element.tagName === 'SCRIPT' || element.tagName === 'STYLE';
       }
@@ -657,6 +731,32 @@ export async function downloadAsPDF(
     if (canvas.width === 0 || canvas.height === 0) {
       throw new Error('Canvas không có nội dung. Vui lòng thử lại.');
     }
+    
+    // Debug canvas content
+    console.log('Canvas created for PDF:', {
+      width: canvas.width,
+      height: canvas.height,
+      dataURL: canvas.toDataURL().substring(0, 50) + '...'
+    });
+    
+    // Check if canvas is mostly empty (white/transparent)
+    const ctx = canvas.getContext('2d');
+    const imageData = ctx?.getImageData(0, 0, Math.min(canvas.width, 100), Math.min(canvas.height, 100));
+    let hasContent = false;
+    if (imageData) {
+      for (let i = 0; i < imageData.data.length; i += 4) {
+        const r = imageData.data[i];
+        const g = imageData.data[i + 1];
+        const b = imageData.data[i + 2];
+        const a = imageData.data[i + 3];
+        // Check if pixel is not white/transparent
+        if (!(r > 250 && g > 250 && b > 250) && a > 0) {
+          hasContent = true;
+          break;
+        }
+      }
+    }
+    console.log('Canvas has visible content for PDF:', hasContent);
     
     const imgData = canvas.toDataURL('image/png', 0.9);
     

@@ -121,6 +121,8 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({
     <div className="relative w-full h-full">
       <svg
         viewBox="0 0 500 500"
+        width="500"
+        height="500"
         className="w-full h-full border border-amber-200 rounded-lg"
         id="birth-chart-svg"
       >
