@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -17,10 +16,19 @@ import BlogPostPage from "./pages/BlogPostPage";
 import BlogLoginPage from "./pages/BlogLoginPage";
 import SubscribersAdminPage from "./pages/SubscribersAdminPage";
 import VedicChartPage from "./pages/VedicChartPage";
+import PanchangPage from "./pages/Panchang";
+import TradingViewPage from "./pages/TradingViewPage";
 import NotFound from "./pages/NotFound";
 import ChatBot from "./components/ChatBot";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1
+    }
+  }
+});
 
 const App = () => (
   <React.StrictMode>
@@ -50,6 +58,8 @@ const App = () => (
                   <Route path="/numerology" element={<NumerologyPage />} />
                   <Route path="/numerology/admin" element={<NumerologyAdminPage />} />
                   <Route path="/vedic-chart" element={<VedicChartPage />} />
+                  <Route path="/panchang" element={<PanchangPage />} />
+                  <Route path="/trading" element={<TradingViewPage />} />
                   {/* ADD ALL CUSTOM ROUTES BELOW THE CATCH-ALL "*" ROUTE */}
                   <Route path="/blog" element={<BlogPage />} />
                   <Route path="/blog/:slug" element={<BlogPostPage />} />
