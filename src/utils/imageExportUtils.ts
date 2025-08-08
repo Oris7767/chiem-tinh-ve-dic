@@ -100,6 +100,61 @@ function debugSVGContent(svgElement: SVGSVGElement): void {
   }
 }
 
+// Utility function to convert SVG directly to canvas
+async function svgToCanvas(svgElement: SVGSVGElement, width: number = 500, height: number = 500): Promise<HTMLCanvasElement> {
+  return new Promise((resolve, reject) => {
+    try {
+      // Create a new canvas
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      
+      if (!ctx) {
+        reject(new Error('Cannot get canvas context'));
+        return;
+      }
+      
+      // Clone the SVG to avoid modifying the original
+      const svgClone = svgElement.cloneNode(true) as SVGSVGElement;
+      svgClone.setAttribute('width', width.toString());
+      svgClone.setAttribute('height', height.toString());
+      svgClone.setAttribute('viewBox', `0 0 ${width} ${height}`);
+      
+      // Serialize SVG to string
+      const svgData = new XMLSerializer().serializeToString(svgClone);
+      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const svgUrl = URL.createObjectURL(svgBlob);
+      
+      // Create image from SVG
+      const img = new Image();
+      img.onload = () => {
+        // Fill canvas with white background
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, width, height);
+        
+        // Draw the SVG image
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        URL.revokeObjectURL(svgUrl);
+        console.log('SVG converted to canvas successfully');
+        resolve(canvas);
+      };
+      
+      img.onerror = (error) => {
+        URL.revokeObjectURL(svgUrl);
+        console.error('Failed to load SVG as image:', error);
+        reject(new Error('Failed to convert SVG to image'));
+      };
+      
+      img.src = svgUrl;
+    } catch (error) {
+      console.error('Error in svgToCanvas:', error);
+      reject(error);
+    }
+  });
+}
+
 function createStyledHTML(
   chartData: VedicChartData,
   userData?: BirthDataFormValues | null
@@ -518,9 +573,27 @@ export async function downloadAsPNG(
         children: chartClone.children.length
       });
       
-      chartContainer.appendChild(chartClone);
+      // Try direct SVG to canvas conversion first
+      if (originalChart instanceof SVGSVGElement) {
+        try {
+          console.log('Attempting direct SVG to canvas conversion...');
+          const svgCanvas = await svgToCanvas(originalChart, 500, 500);
+          
+          // Replace the chart container with the canvas
+          chartContainer.innerHTML = '';
+          chartContainer.appendChild(svgCanvas);
+          
+          console.log('Direct SVG conversion successful');
+        } catch (svgError) {
+          console.warn('Direct SVG conversion failed, falling back to cloned SVG:', svgError);
+          chartContainer.appendChild(chartClone);
+        }
+      } else {
+        console.warn('Original chart is not SVG, using cloned element');
+        chartContainer.appendChild(chartClone);
+      }
       
-      console.log('SVG chart cloned successfully for PNG export');
+      console.log('SVG chart prepared for PNG export');
     } else {
       console.warn('Chart SVG not found, proceeding without chart visualization');
       if (chartContainer) {
@@ -624,6 +697,117 @@ export async function downloadAsPNG(
   }
 }
 
+// Alternative PNG download function that works directly with SVG
+export async function downloadAsPNGDirect(
+  chartData: VedicChartData,
+  userData?: BirthDataFormValues | null
+): Promise<void> {
+  try {
+    console.log('Starting direct PNG download...');
+    
+    // Get the original SVG
+    const originalChart = document.getElementById('birth-chart-svg');
+    if (!originalChart || !(originalChart instanceof SVGSVGElement)) {
+      throw new Error('SVG chart not found or not properly rendered');
+    }
+    
+    debugSVGContent(originalChart);
+    
+    // Convert SVG directly to canvas
+    const svgCanvas = await svgToCanvas(originalChart, 500, 500);
+    
+    // Create the full content canvas
+    const fullCanvas = document.createElement('canvas');
+    const fullWidth = 1200;
+    const fullHeight = 1600; // Estimated height
+    fullCanvas.width = fullWidth;
+    fullCanvas.height = fullHeight;
+    
+    const ctx = fullCanvas.getContext('2d');
+    if (!ctx) {
+      throw new Error('Cannot get canvas context');
+    }
+    
+    // Fill background
+    ctx.fillStyle = '#fef7cd';
+    ctx.fillRect(0, 0, fullWidth, fullHeight);
+    
+    // Draw header
+    ctx.fillStyle = '#B45309';
+    ctx.fillRect(0, 0, fullWidth, 100);
+    
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 28px Arial';
+    ctx.textAlign = 'center';
+    const title = `Vedic Birth Chart${userData?.name ? ` - ${userData.name}` : ''}`;
+    ctx.fillText(title, fullWidth / 2, 40);
+    
+    if (userData) {
+      ctx.font = '16px Arial';
+      const birthInfo = [
+        userData.birthDate ? new Date(userData.birthDate).toLocaleDateString('vi-VN') : '',
+        userData.birthTime || '',
+        userData.location || ''
+      ].filter(Boolean).join(' - ');
+      ctx.fillText(birthInfo, fullWidth / 2, 70);
+    }
+    
+    // Draw SVG chart
+    const chartX = (fullWidth - 500) / 2;
+    const chartY = 120;
+    ctx.drawImage(svgCanvas, chartX, chartY);
+    
+    // Add basic info text
+    ctx.fillStyle = '#333';
+    ctx.font = '16px Arial';
+    ctx.textAlign = 'left';
+    
+    let yPos = chartY + 520;
+    ctx.fillText('Chi tiết biểu đồ Vedic:', 50, yPos);
+    yPos += 30;
+    
+    // Add planet info
+    chartData.planets.forEach((planet, index) => {
+      if (yPos > fullHeight - 50) return; // Prevent overflow
+      
+      const planetInfo = `${planet.symbol} ${planet.name} - Nhà ${planet.house} - ${ZODIAC_SIGNS[planet.sign]}`;
+      ctx.font = '14px Arial';
+      ctx.fillText(planetInfo, 50, yPos);
+      yPos += 25;
+    });
+    
+    // Convert to blob and download
+    return new Promise((resolve, reject) => {
+      fullCanvas.toBlob((blob) => {
+        if (blob && blob.size > 0) {
+          const url = URL.createObjectURL(blob);
+          const downloadLink = document.createElement('a');
+          downloadLink.href = url;
+          
+          const fileName = userData?.name 
+            ? `vedic-chart-${userData.name.replace(/\s+/g, '-')}-${userData.birthDate || 'unknown'}.png`
+            : 'vedic-birth-chart.png';
+          
+          downloadLink.download = fileName;
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+          document.body.removeChild(downloadLink);
+          URL.revokeObjectURL(url);
+          
+          console.log(`Direct PNG file downloaded successfully: ${fileName}, size: ${blob.size} bytes`);
+          resolve();
+        } else {
+          reject(new Error('Failed to create blob from canvas'));
+        }
+      }, 'image/png', 0.9);
+    });
+    
+  } catch (error) {
+    console.error('Error in direct PNG download:', error);
+    throw new Error(`Không thể tạo file PNG: ${error.message || 'Lỗi không xác định'}`);
+  }
+}
+
 export async function downloadAsPDF(
   chartData: VedicChartData,
   userData?: BirthDataFormValues | null
@@ -689,9 +873,27 @@ export async function downloadAsPDF(
         children: chartClone.children.length
       });
       
-      chartContainer.appendChild(chartClone);
+      // Try direct SVG to canvas conversion first
+      if (originalChart instanceof SVGSVGElement) {
+        try {
+          console.log('Attempting direct SVG to canvas conversion for PDF...');
+          const svgCanvas = await svgToCanvas(originalChart, 500, 500);
+          
+          // Replace the chart container with the canvas
+          chartContainer.innerHTML = '';
+          chartContainer.appendChild(svgCanvas);
+          
+          console.log('Direct SVG conversion successful for PDF');
+        } catch (svgError) {
+          console.warn('Direct SVG conversion failed, falling back to cloned SVG:', svgError);
+          chartContainer.appendChild(chartClone);
+        }
+      } else {
+        console.warn('Original chart is not SVG, using cloned element');
+        chartContainer.appendChild(chartClone);
+      }
       
-      console.log('SVG chart cloned successfully for PDF export');
+      console.log('SVG chart prepared for PDF export');
     } else {
       console.warn('Chart SVG not found, proceeding without chart visualization');
       if (chartContainer) {
