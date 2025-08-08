@@ -57,6 +57,49 @@ const PLANET_NAMES_VI = {
   'Ketu': 'Sao Ketu'
 };
 
+// Utility function to wait for SVG to be fully rendered
+async function waitForSVGRender(svgElement: SVGSVGElement, maxWaitTime = 5000): Promise<boolean> {
+  const startTime = Date.now();
+  
+  while (Date.now() - startTime < maxWaitTime) {
+    // Check if SVG has content (children elements)
+    if (svgElement.children.length > 0) {
+      try {
+        // Check if SVG has actual rendered content
+        const bbox = svgElement.getBBox();
+        if (bbox.width > 0 && bbox.height > 0) {
+          console.log(`SVG rendered successfully: ${bbox.width}x${bbox.height}, children: ${svgElement.children.length}`);
+          return true;
+        }
+      } catch (error) {
+        // getBBox might fail if SVG is not properly rendered yet
+        console.log('SVG getBBox failed, still waiting for render...');
+      }
+    }
+    
+    // Wait a bit before checking again
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  
+  console.warn(`SVG render timeout after ${maxWaitTime}ms. Children: ${svgElement.children.length}`);
+  return false;
+}
+
+// Debug function to log SVG content
+function debugSVGContent(svgElement: SVGSVGElement): void {
+  console.log('SVG Debug Info:');
+  console.log('- Children count:', svgElement.children.length);
+  console.log('- ViewBox:', svgElement.getAttribute('viewBox'));
+  console.log('- Width:', svgElement.getAttribute('width'));
+  console.log('- Height:', svgElement.getAttribute('height'));
+  console.log('- InnerHTML length:', svgElement.innerHTML.length);
+  
+  if (svgElement.children.length > 0) {
+    console.log('- First child:', svgElement.children[0].tagName);
+    console.log('- Last child:', svgElement.children[svgElement.children.length - 1].tagName);
+  }
+}
+
 function createStyledHTML(
   chartData: VedicChartData,
   userData?: BirthDataFormValues | null
@@ -429,22 +472,50 @@ export async function downloadAsPNG(
     document.body.appendChild(tempContainer);
     
     // Wait for fonts and styles to load
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 300));
     
-    // Insert the chart SVG
+    // Insert the chart SVG with better error handling
     const chartContainer = tempContainer.querySelector('#chart-container');
     const originalChart = document.getElementById('birth-chart-svg');
+    
     if (chartContainer && originalChart) {
+      // Wait for the original chart to be fully rendered
+      if (originalChart instanceof SVGSVGElement) {
+        debugSVGContent(originalChart);
+        const isRendered = await waitForSVGRender(originalChart);
+        
+        if (!isRendered) {
+          console.warn('SVG chart not fully rendered, waiting additional time...');
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      } else {
+        console.warn('Original chart is not an SVG element:', originalChart.tagName);
+        // Fallback wait time if not SVG element
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
       const chartClone = originalChart.cloneNode(true) as SVGSVGElement;
       chartClone.setAttribute('width', '500');
       chartClone.setAttribute('height', '500');
       // Remove any problematic attributes
       chartClone.removeAttribute('class');
+      
+      // Ensure the SVG has proper styling
+      chartClone.style.display = 'block';
+      chartClone.style.margin = '0 auto';
+      
       chartContainer.appendChild(chartClone);
+      
+      console.log('SVG chart cloned successfully for PNG export');
+    } else {
+      console.warn('Chart SVG not found, proceeding without chart visualization');
+      if (chartContainer) {
+        chartContainer.innerHTML = '<div style="width: 500px; height: 500px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #666;">Biểu đồ sao không khả dụng</div>';
+      }
     }
     
-    // Wait a bit more for SVG to render
-    await new Promise(resolve => setTimeout(resolve, 200));
+    // Wait more time for SVG to render completely
+    await new Promise(resolve => setTimeout(resolve, 800));
     
     const canvas = await html2canvas(tempContainer, {
       width: 1200,
@@ -453,7 +524,7 @@ export async function downloadAsPNG(
       useCORS: true,
       allowTaint: false,
       backgroundColor: '#fef7cd',
-      logging: false,
+      logging: true, // Enable logging for debugging
       removeContainer: false,
       foreignObjectRendering: false, // Disable foreign object rendering for better compatibility
       ignoreElements: (element) => {
@@ -462,10 +533,15 @@ export async function downloadAsPNG(
       }
     });
     
+    // Verify canvas has content
+    if (canvas.width === 0 || canvas.height === 0) {
+      throw new Error('Canvas không có nội dung. Vui lòng thử lại.');
+    }
+    
     // Convert to blob and download
     return new Promise((resolve, reject) => {
       canvas.toBlob((blob) => {
-        if (blob) {
+        if (blob && blob.size > 0) {
           const url = URL.createObjectURL(blob);
           const downloadLink = document.createElement('a');
           downloadLink.href = url;
@@ -479,9 +555,11 @@ export async function downloadAsPNG(
           downloadLink.click();
           document.body.removeChild(downloadLink);
           URL.revokeObjectURL(url);
+          
+          console.log(`PNG file downloaded successfully: ${fileName}, size: ${blob.size} bytes`);
           resolve();
         } else {
-          reject(new Error('Failed to create blob from canvas'));
+          reject(new Error('Failed to create blob from canvas or blob is empty'));
         }
       }, 'image/png', 0.9);
     });
@@ -515,22 +593,50 @@ export async function downloadAsPDF(
     document.body.appendChild(tempContainer);
     
     // Wait for fonts and styles to load
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 300));
     
-    // Insert the chart SVG
+    // Insert the chart SVG with better error handling
     const chartContainer = tempContainer.querySelector('#chart-container');
     const originalChart = document.getElementById('birth-chart-svg');
+    
     if (chartContainer && originalChart) {
+      // Wait for the original chart to be fully rendered
+      if (originalChart instanceof SVGSVGElement) {
+        debugSVGContent(originalChart);
+        const isRendered = await waitForSVGRender(originalChart);
+        
+        if (!isRendered) {
+          console.warn('SVG chart not fully rendered, waiting additional time...');
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      } else {
+        console.warn('Original chart is not an SVG element:', originalChart.tagName);
+        // Fallback wait time if not SVG element
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
       const chartClone = originalChart.cloneNode(true) as SVGSVGElement;
       chartClone.setAttribute('width', '500');
       chartClone.setAttribute('height', '500');
       // Remove any problematic attributes
       chartClone.removeAttribute('class');
+      
+      // Ensure the SVG has proper styling
+      chartClone.style.display = 'block';
+      chartClone.style.margin = '0 auto';
+      
       chartContainer.appendChild(chartClone);
+      
+      console.log('SVG chart cloned successfully for PDF export');
+    } else {
+      console.warn('Chart SVG not found, proceeding without chart visualization');
+      if (chartContainer) {
+        chartContainer.innerHTML = '<div style="width: 500px; height: 500px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #666;">Biểu đồ sao không khả dụng</div>';
+      }
     }
     
-    // Wait a bit more for SVG to render
-    await new Promise(resolve => setTimeout(resolve, 200));
+    // Wait more time for SVG to render completely
+    await new Promise(resolve => setTimeout(resolve, 800));
     
     const canvas = await html2canvas(tempContainer, {
       width: 1200,
@@ -539,7 +645,7 @@ export async function downloadAsPDF(
       useCORS: true,
       allowTaint: false,
       backgroundColor: '#fef7cd',
-      logging: false,
+      logging: true, // Enable logging for debugging
       removeContainer: false,
       foreignObjectRendering: false,
       ignoreElements: (element) => {
@@ -547,7 +653,17 @@ export async function downloadAsPDF(
       }
     });
     
+    // Verify canvas has content
+    if (canvas.width === 0 || canvas.height === 0) {
+      throw new Error('Canvas không có nội dung. Vui lòng thử lại.');
+    }
+    
     const imgData = canvas.toDataURL('image/png', 0.9);
+    
+    // Verify image data is not empty
+    if (!imgData || imgData === 'data:,') {
+      throw new Error('Không thể tạo dữ liệu hình ảnh từ canvas.');
+    }
     
     // Create PDF
     const pdf = new jsPDF({
@@ -583,6 +699,8 @@ export async function downloadAsPDF(
       : 'vedic-birth-chart.pdf';
     
     pdf.save(fileName);
+    
+    console.log(`PDF file downloaded successfully: ${fileName}`);
     
   } catch (error) {
     console.error('Error generating PDF:', error);

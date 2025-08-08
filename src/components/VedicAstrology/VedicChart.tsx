@@ -446,9 +446,28 @@ const VedicChart = () => {
   };
 
   const downloadAsPNGFile = async () => {
-    if (!chartData) return;
+    if (!chartData) {
+      toast({
+        title: "Lỗi",
+        description: "Không có dữ liệu biểu đồ để tải xuống.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if SVG chart exists
+    const svgElement = document.getElementById('birth-chart-svg');
+    if (!svgElement) {
+      toast({
+        title: "Lỗi",
+        description: "Biểu đồ chưa được tải hoàn tất. Vui lòng đợi một chút và thử lại.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
+      console.log('Starting PNG download with chart data:', chartData);
       await downloadAsPNG(chartData, formData);
       
       toast({
@@ -459,16 +478,35 @@ const VedicChart = () => {
       console.error('Error downloading PNG:', error);
       toast({
         title: "Lỗi tải xuống",
-        description: "Không thể tải file PNG. Vui lòng thử lại.",
+        description: error.message || "Không thể tải file PNG. Vui lòng thử lại.",
         variant: "destructive",
       });
     }
   };
 
   const downloadAsPDFFile = async () => {
-    if (!chartData) return;
+    if (!chartData) {
+      toast({
+        title: "Lỗi",
+        description: "Không có dữ liệu biểu đồ để tải xuống.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if SVG chart exists
+    const svgElement = document.getElementById('birth-chart-svg');
+    if (!svgElement) {
+      toast({
+        title: "Lỗi",
+        description: "Biểu đồ chưa được tải hoàn tất. Vui lòng đợi một chút và thử lại.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
+      console.log('Starting PDF download with chart data:', chartData);
       await downloadAsPDF(chartData, formData);
       
       toast({
@@ -479,7 +517,7 @@ const VedicChart = () => {
       console.error('Error downloading PDF:', error);
       toast({
         title: "Lỗi tải xuống",
-        description: "Không thể tải file PDF. Vui lòng thử lại.",
+        description: error.message || "Không thể tải file PDF. Vui lòng thử lại.",
         variant: "destructive",
       });
     }
