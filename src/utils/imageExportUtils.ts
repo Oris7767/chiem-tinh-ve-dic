@@ -1,6 +1,6 @@
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { VedicChartData } from './svgExportUtils';
+import { VedicChartData, Planet, House } from './svgExportUtils';
 
 interface BirthDataFormValues {
   name?: string;
@@ -112,8 +112,8 @@ function createStyledHTML(
         }
         
         body {
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-          background: linear-gradient(135deg, #fef7cd 0%, #fff8dc 100%);
+          font-family: Arial, sans-serif;
+          background: #fef7cd;
           padding: 20px;
           color: #333;
         }
@@ -128,7 +128,7 @@ function createStyledHTML(
         }
         
         .header {
-          background: linear-gradient(135deg, #B45309 0%, #D4A574 100%);
+          background: #B45309;
           color: white;
           padding: 30px;
           text-align: center;
@@ -185,7 +185,7 @@ function createStyledHTML(
         }
         
         .table th {
-          background: linear-gradient(135deg, #B45309 0%, #D4A574 100%);
+          background: #B45309;
           color: white;
           padding: 15px 10px;
           font-weight: 600;
@@ -213,7 +213,7 @@ function createStyledHTML(
         }
         
         .dasha-current {
-          background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+          background: #fef3c7;
           border: 2px solid #f59e0b;
           border-radius: 10px;
           padding: 20px;
@@ -414,60 +414,85 @@ export async function downloadAsPNG(
   chartData: VedicChartData,
   userData?: BirthDataFormValues | null
 ): Promise<void> {
-  // Create a temporary container
-  const tempContainer = document.createElement('div');
-  tempContainer.style.position = 'absolute';
-  tempContainer.style.left = '-9999px';
-  tempContainer.style.top = '-9999px';
-  tempContainer.style.width = '1200px';
-  tempContainer.innerHTML = createStyledHTML(chartData, userData);
-  
-  document.body.appendChild(tempContainer);
-  
-  // Insert the chart SVG
-  const chartContainer = tempContainer.querySelector('#chart-container');
-  const originalChart = document.getElementById('birth-chart-svg');
-  if (chartContainer && originalChart) {
-    const chartClone = originalChart.cloneNode(true) as SVGSVGElement;
-    chartClone.setAttribute('width', '500');
-    chartClone.setAttribute('height', '500');
-    chartContainer.appendChild(chartClone);
-  }
+  let tempContainer: HTMLElement | null = null;
   
   try {
+    // Create a temporary container
+    tempContainer = document.createElement('div');
+    tempContainer.style.position = 'absolute';
+    tempContainer.style.left = '-9999px';
+    tempContainer.style.top = '-9999px';
+    tempContainer.style.width = '1200px';
+    tempContainer.style.visibility = 'hidden';
+    tempContainer.innerHTML = createStyledHTML(chartData, userData);
+    
+    document.body.appendChild(tempContainer);
+    
+    // Wait for fonts and styles to load
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Insert the chart SVG
+    const chartContainer = tempContainer.querySelector('#chart-container');
+    const originalChart = document.getElementById('birth-chart-svg');
+    if (chartContainer && originalChart) {
+      const chartClone = originalChart.cloneNode(true) as SVGSVGElement;
+      chartClone.setAttribute('width', '500');
+      chartClone.setAttribute('height', '500');
+      // Remove any problematic attributes
+      chartClone.removeAttribute('class');
+      chartContainer.appendChild(chartClone);
+    }
+    
+    // Wait a bit more for SVG to render
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
     const canvas = await html2canvas(tempContainer, {
       width: 1200,
       height: tempContainer.scrollHeight,
-      scale: 2, // Higher quality
+      scale: 1.5, // Reduced scale to avoid memory issues
       useCORS: true,
-      allowTaint: true,
-      backgroundColor: '#fef7cd'
+      allowTaint: false,
+      backgroundColor: '#fef7cd',
+      logging: false,
+      removeContainer: false,
+      foreignObjectRendering: false, // Disable foreign object rendering for better compatibility
+      ignoreElements: (element) => {
+        // Ignore elements that might cause issues
+        return element.tagName === 'SCRIPT' || element.tagName === 'STYLE';
+      }
     });
     
     // Convert to blob and download
-    canvas.toBlob((blob) => {
-      if (blob) {
-        const url = URL.createObjectURL(blob);
-        const downloadLink = document.createElement('a');
-        downloadLink.href = url;
-        
-        const fileName = userData?.name 
-          ? `vedic-chart-${userData.name.replace(/\s+/g, '-')}-${userData.birthDate || 'unknown'}.png`
-          : 'vedic-birth-chart.png';
-        
-        downloadLink.download = fileName;
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        document.body.removeChild(downloadLink);
-        URL.revokeObjectURL(url);
-      }
-    }, 'image/png', 0.95);
+    return new Promise((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const downloadLink = document.createElement('a');
+          downloadLink.href = url;
+          
+          const fileName = userData?.name 
+            ? `vedic-chart-${userData.name.replace(/\s+/g, '-')}-${userData.birthDate || 'unknown'}.png`
+            : 'vedic-birth-chart.png';
+          
+          downloadLink.download = fileName;
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+          document.body.removeChild(downloadLink);
+          URL.revokeObjectURL(url);
+          resolve();
+        } else {
+          reject(new Error('Failed to create blob from canvas'));
+        }
+      }, 'image/png', 0.9);
+    });
     
   } catch (error) {
     console.error('Error generating PNG:', error);
-    throw error;
+    throw new Error(`Không thể tạo file PNG: ${error.message || 'Lỗi không xác định'}. Vui lòng thử lại hoặc sử dụng tùy chọn SVG.`);
   } finally {
-    document.body.removeChild(tempContainer);
+    if (tempContainer && tempContainer.parentNode) {
+      document.body.removeChild(tempContainer);
+    }
   }
 }
 
@@ -475,37 +500,54 @@ export async function downloadAsPDF(
   chartData: VedicChartData,
   userData?: BirthDataFormValues | null
 ): Promise<void> {
-  // Create a temporary container
-  const tempContainer = document.createElement('div');
-  tempContainer.style.position = 'absolute';
-  tempContainer.style.left = '-9999px';
-  tempContainer.style.top = '-9999px';
-  tempContainer.style.width = '1200px';
-  tempContainer.innerHTML = createStyledHTML(chartData, userData);
-  
-  document.body.appendChild(tempContainer);
-  
-  // Insert the chart SVG
-  const chartContainer = tempContainer.querySelector('#chart-container');
-  const originalChart = document.getElementById('birth-chart-svg');
-  if (chartContainer && originalChart) {
-    const chartClone = originalChart.cloneNode(true) as SVGSVGElement;
-    chartClone.setAttribute('width', '500');
-    chartClone.setAttribute('height', '500');
-    chartContainer.appendChild(chartClone);
-  }
+  let tempContainer: HTMLElement | null = null;
   
   try {
+    // Create a temporary container
+    tempContainer = document.createElement('div');
+    tempContainer.style.position = 'absolute';
+    tempContainer.style.left = '-9999px';
+    tempContainer.style.top = '-9999px';
+    tempContainer.style.width = '1200px';
+    tempContainer.style.visibility = 'hidden';
+    tempContainer.innerHTML = createStyledHTML(chartData, userData);
+    
+    document.body.appendChild(tempContainer);
+    
+    // Wait for fonts and styles to load
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Insert the chart SVG
+    const chartContainer = tempContainer.querySelector('#chart-container');
+    const originalChart = document.getElementById('birth-chart-svg');
+    if (chartContainer && originalChart) {
+      const chartClone = originalChart.cloneNode(true) as SVGSVGElement;
+      chartClone.setAttribute('width', '500');
+      chartClone.setAttribute('height', '500');
+      // Remove any problematic attributes
+      chartClone.removeAttribute('class');
+      chartContainer.appendChild(chartClone);
+    }
+    
+    // Wait a bit more for SVG to render
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
     const canvas = await html2canvas(tempContainer, {
       width: 1200,
       height: tempContainer.scrollHeight,
-      scale: 1.5,
+      scale: 1.2, // Slightly lower scale for PDF
       useCORS: true,
-      allowTaint: true,
-      backgroundColor: '#fef7cd'
+      allowTaint: false,
+      backgroundColor: '#fef7cd',
+      logging: false,
+      removeContainer: false,
+      foreignObjectRendering: false,
+      ignoreElements: (element) => {
+        return element.tagName === 'SCRIPT' || element.tagName === 'STYLE';
+      }
     });
     
-    const imgData = canvas.toDataURL('image/png');
+    const imgData = canvas.toDataURL('image/png', 0.9);
     
     // Create PDF
     const pdf = new jsPDF({
@@ -544,8 +586,10 @@ export async function downloadAsPDF(
     
   } catch (error) {
     console.error('Error generating PDF:', error);
-    throw error;
+    throw new Error(`Không thể tạo file PDF: ${error.message || 'Lỗi không xác định'}`);
   } finally {
-    document.body.removeChild(tempContainer);
+    if (tempContainer && tempContainer.parentNode) {
+      document.body.removeChild(tempContainer);
+    }
   }
 } 
