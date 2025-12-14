@@ -1,37 +1,79 @@
 import { Planet, House, VedicChartData } from '@/components/VedicAstrology/VedicChart';
 
 // Divisional chart types
-export type DivisionalChartType = 'D1' | 'D2' | 'D3' | 'D4' | 'D9' | 'D10' | 'D12' | 'D16' | 'D20' | 'D24' | 'D27' | 'D30' | 'D60';
+export type DivisionalChartType = 'D1' | 'D2' | 'D3' | 'D4' | 'D7' | 'D9' | 'D10' | 'D12' | 'D16' | 'D20' | 'D24' | 'D27' | 'D30' | 'D40' | 'D45' | 'D60';
 
-// Divisional chart configuration
+// Divisional chart configuration based on Parashara system
 export interface DivisionalChartConfig {
   type: DivisionalChartType;
   name: string;
   description: string;
-  division: number; // Number of divisions per sign
+  divisions: number;
+  method: string;
 }
 
 export const DIVISIONAL_CHART_CONFIGS: Record<DivisionalChartType, DivisionalChartConfig> = {
-  D1: { type: 'D1', name: 'Rashi Chart', description: 'Bản đồ chính', division: 1 },
-  D2: { type: 'D2', name: 'Hora', description: 'Tài sản', division: 2 },
-  D3: { type: 'D3', name: 'Dreshkana', description: 'Anh chị em', division: 3 },
-  D4: { type: 'D4', name: 'Chaturthamsa', description: 'Bất động sản', division: 4 },
-  D9: { type: 'D9', name: 'Navamsa', description: 'Hôn nhân', division: 9 },
-  D10: { type: 'D10', name: 'Dashamsa', description: 'Sự nghiệp', division: 10 },
-  D12: { type: 'D12', name: 'Dwadashamsa', description: 'Cha mẹ', division: 12 },
-  D16: { type: 'D16', name: 'Shodashamsa', description: 'Xe cộ', division: 16 },
-  D20: { type: 'D20', name: 'Vimsamsa', description: 'Tôn giáo', division: 20 },
-  D24: { type: 'D24', name: 'Chaturvimsamsa', description: 'Học vấn', division: 24 },
-  D27: { type: 'D27', name: 'Saptavimsamsa', description: 'Sức mạnh', division: 27 },
-  D30: { type: 'D30', name: 'Trimsamsa', description: 'Bất hạnh', division: 30 },
-  D60: { type: 'D60', name: 'Shashtiamsa', description: 'Nghiệp quả', division: 60 }
+  D1: { type: 'D1', name: 'Rashi', description: 'Cung gốc (Root Chart), Thân thể', divisions: 1, method: 'simple' },
+  D2: { type: 'D2', name: 'Hora', description: 'Tài sản, Gia đình', divisions: 2, method: 'odd_even_fixed' },
+  D3: { type: 'D3', name: 'Drekkana', description: 'Anh chị em, lòng dũng cảm', divisions: 3, method: 'trine_jump' },
+  D4: { type: 'D4', name: 'Chaturthamsa', description: 'Nhà cửa, Bất động sản', divisions: 4, method: 'cycle_start_current' },
+  D7: { type: 'D7', name: 'Saptamsa', description: 'Con cái', divisions: 7, method: 'odd_even_start' },
+  D9: { type: 'D9', name: 'Navamsa', description: 'Hôn nhân, Sức mạnh chung', divisions: 9, method: 'modality_based' },
+  D10: { type: 'D10', name: 'Dasamsa', description: 'Sự nghiệp, Danh vọng', divisions: 10, method: 'odd_even_start' },
+  D12: { type: 'D12', name: 'Dwadasamsa', description: 'Cha mẹ', divisions: 12, method: 'cycle_start_current' },
+  D16: { type: 'D16', name: 'Shodasamsa', description: 'Xe cộ, Hạnh phúc', divisions: 16, method: 'modality_based_fixed_start' },
+  D20: { type: 'D20', name: 'Vimsamsa', description: 'Tâm linh, Sự sùng tín', divisions: 20, method: 'modality_based_fixed_start' },
+  D24: { type: 'D24', name: 'Siddhamsa', description: 'Học vấn, Kiến thức', divisions: 24, method: 'odd_even_fixed_start' },
+  D27: { type: 'D27', name: 'Bhamsa (Nakshatramsa)', description: 'Sức mạnh, Điểm yếu', divisions: 27, method: 'element_based_fixed_start' },
+  D30: { type: 'D30', name: 'Trimsamsa', description: 'Vận hạn, Bất hạnh', divisions: 30, method: 'custom_degrees_mapping' },
+  D40: { type: 'D40', name: 'Khavedamsa', description: 'May mắn/Bất hạnh (Chi tiết)', divisions: 40, method: 'odd_even_fixed_start' },
+  D45: { type: 'D45', name: 'Akshavedamsa', description: 'Tổng quát mọi vấn đề', divisions: 45, method: 'modality_based_fixed_start' },
+  D60: { type: 'D60', name: 'Shashtyamsa', description: 'Nghiệp quả (Quá khứ/Tương lai)', divisions: 60, method: 'calculation_formula' }
 };
 
+// Sign indices (0-11): Aries, Taurus, Gemini, Cancer, Leo, Virgo, Libra, Scorpio, Sagittarius, Capricorn, Aquarius, Pisces
+const SIGN_NAMES = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
+
+// Modality groups (0-indexed)
+const MOVABLE_SIGNS = [0, 3, 6, 9]; // Aries, Cancer, Libra, Capricorn
+const FIXED_SIGNS = [1, 4, 7, 10]; // Taurus, Leo, Scorpio, Aquarius
+const DUAL_SIGNS = [2, 5, 8, 11]; // Gemini, Virgo, Sagittarius, Pisces
+
+// Element groups (0-indexed)
+const FIRE_SIGNS = [0, 4, 8]; // Aries, Leo, Sagittarius
+const EARTH_SIGNS = [1, 5, 9]; // Taurus, Virgo, Capricorn
+const AIR_SIGNS = [2, 6, 10]; // Gemini, Libra, Aquarius
+const WATER_SIGNS = [3, 7, 11]; // Cancer, Scorpio, Pisces
+
 /**
- * Calculate divisional chart from base chart data
- * @param baseChartData - The D1 (Rashi) chart data
- * @param chartType - Type of divisional chart to calculate
- * @returns Divisional chart data
+ * Check if a sign is odd (1-indexed) or even
+ */
+function isOddSign(signIndex: number): boolean {
+  // Signs are 0-indexed, so we add 1 to check odd/even
+  return (signIndex + 1) % 2 === 1;
+}
+
+/**
+ * Get modality of a sign
+ */
+function getModality(signIndex: number): 'movable' | 'fixed' | 'dual' {
+  if (MOVABLE_SIGNS.includes(signIndex)) return 'movable';
+  if (FIXED_SIGNS.includes(signIndex)) return 'fixed';
+  return 'dual';
+}
+
+/**
+ * Get element of a sign
+ */
+function getElement(signIndex: number): 'fire' | 'earth' | 'air' | 'water' {
+  if (FIRE_SIGNS.includes(signIndex)) return 'fire';
+  if (EARTH_SIGNS.includes(signIndex)) return 'earth';
+  if (AIR_SIGNS.includes(signIndex)) return 'air';
+  return 'water';
+}
+
+/**
+ * Calculate divisional chart from base chart data using Parashara system
  */
 export function calculateDivisionalChart(
   baseChartData: VedicChartData,
@@ -46,7 +88,7 @@ export function calculateDivisionalChart(
 
   // Calculate divisional planets
   const divisionalPlanets: Planet[] = baseChartData.planets.map(planet => {
-    const divisionalPosition = calculateDivisionalPosition(planet.longitude, config.division);
+    const divisionalPosition = calculateDivisionalPosition(planet.longitude, config);
     
     return {
       ...planet,
@@ -57,10 +99,9 @@ export function calculateDivisionalChart(
   });
 
   // Calculate divisional ascendant
-  const divisionalAscendant = calculateDivisionalPosition(baseChartData.ascendant, config.division);
+  const divisionalAscendant = calculateDivisionalPosition(baseChartData.ascendant, config);
   
   // Recalculate house positions based on divisional ascendant
-  // Houses are calculated from the new ascendant, each house is 30 degrees apart
   const housesWithPlanets = recalculateHouses([], divisionalPlanets, divisionalAscendant.longitude);
   
   // Assign planets to houses
@@ -80,19 +121,16 @@ export function calculateDivisionalChart(
   return {
     ...baseChartData,
     ascendant: divisionalAscendant.longitude,
-    ascendantNakshatra: baseChartData.ascendantNakshatra, // Keep original nakshatra info
+    ascendantNakshatra: baseChartData.ascendantNakshatra,
     planets: planetsWithHouses,
     houses: housesWithPlanetIds
   };
 }
 
 /**
- * Calculate divisional position from longitude
- * @param longitude - Original longitude (0-360)
- * @param division - Number of divisions per sign
- * @returns New longitude and sign
+ * Calculate divisional position from longitude using Parashara methods
  */
-function calculateDivisionalPosition(longitude: number, division: number): { longitude: number; sign: number } {
+function calculateDivisionalPosition(longitude: number, config: DivisionalChartConfig): { longitude: number; sign: number } {
   // Normalize longitude to 0-360
   const normalizedLongitude = ((longitude % 360) + 360) % 360;
   
@@ -102,22 +140,297 @@ function calculateDivisionalPosition(longitude: number, division: number): { lon
   // Get position within the sign (0-30 degrees)
   const positionInSign = normalizedLongitude % 30;
   
-  // Calculate which division the position falls into
-  const divisionSize = 30 / division;
-  const divisionIndex = Math.floor(positionInSign / divisionSize);
+  let newSign: number;
+  let newPositionInSign: number;
   
-  // Calculate new sign in divisional chart
-  // Formula: (originalSign * division + divisionIndex) % 12
-  const newSign = (originalSign * division + divisionIndex) % 12;
+  switch (config.method) {
+    case 'simple':
+      // D1: Keep original
+      newSign = originalSign;
+      newPositionInSign = positionInSign;
+      break;
+      
+    case 'odd_even_fixed':
+      // D2: Hora
+      newSign = calculateHora(originalSign, positionInSign);
+      newPositionInSign = positionInSign * 2; // Scale up
+      break;
+      
+    case 'trine_jump':
+      // D3: Drekkana
+      newSign = calculateDrekkana(originalSign, positionInSign);
+      newPositionInSign = (positionInSign % 10) * 3; // Scale up
+      break;
+      
+    case 'cycle_start_current':
+      // D4, D12
+      newSign = calculateCycleStartCurrent(originalSign, positionInSign, config.divisions);
+      newPositionInSign = (positionInSign % (30 / config.divisions)) * config.divisions;
+      break;
+      
+    case 'odd_even_start':
+      // D7, D10
+      newSign = calculateOddEvenStart(originalSign, positionInSign, config.divisions, config.type);
+      newPositionInSign = (positionInSign % (30 / config.divisions)) * config.divisions;
+      break;
+      
+    case 'modality_based':
+      // D9: Navamsa
+      newSign = calculateNavamsa(originalSign, positionInSign);
+      newPositionInSign = (positionInSign % (30 / 9)) * 9;
+      break;
+      
+    case 'modality_based_fixed_start':
+      // D16, D20, D45
+      newSign = calculateModalityBasedFixedStart(originalSign, positionInSign, config.divisions, config.type);
+      newPositionInSign = (positionInSign % (30 / config.divisions)) * config.divisions;
+      break;
+      
+    case 'odd_even_fixed_start':
+      // D24, D40
+      newSign = calculateOddEvenFixedStart(originalSign, positionInSign, config.divisions, config.type);
+      newPositionInSign = (positionInSign % (30 / config.divisions)) * config.divisions;
+      break;
+      
+    case 'element_based_fixed_start':
+      // D27: Bhamsa
+      newSign = calculateBhamsa(originalSign, positionInSign);
+      newPositionInSign = (positionInSign % (30 / 27)) * 27;
+      break;
+      
+    case 'custom_degrees_mapping':
+      // D30: Trimsamsa
+      newSign = calculateTrimsamsa(originalSign, positionInSign);
+      newPositionInSign = positionInSign; // Keep original degree
+      break;
+      
+    case 'calculation_formula':
+      // D60: Shashtyamsa
+      newSign = calculateShashtyamsa(originalSign, positionInSign);
+      newPositionInSign = (positionInSign % (30 / 60)) * 60;
+      break;
+      
+    default:
+      // Fallback to simple calculation
+      const divisionSize = 30 / config.divisions;
+      const divisionIndex = Math.floor(positionInSign / divisionSize);
+      newSign = (originalSign * config.divisions + divisionIndex) % 12;
+      newPositionInSign = (positionInSign % divisionSize) * config.divisions;
+  }
   
-  // Calculate new longitude within the new sign
-  const newPositionInSign = (positionInSign % divisionSize) * division;
+  // Normalize new position
+  if (newPositionInSign >= 30) {
+    newSign = (newSign + 1) % 12;
+    newPositionInSign = newPositionInSign % 30;
+  }
+  
   const newLongitude = newSign * 30 + newPositionInSign;
   
   return {
     longitude: newLongitude,
     sign: newSign
   };
+}
+
+/**
+ * D2: Hora - Odd signs: 0-15° = Leo (4), 15-30° = Cancer (3)
+ * Even signs: 0-15° = Cancer (3), 15-30° = Leo (4)
+ * Note: Signs are 0-indexed, so Leo = 4, Cancer = 3
+ */
+function calculateHora(originalSign: number, positionInSign: number): number {
+  const isOdd = isOddSign(originalSign);
+  const isFirstHalf = positionInSign < 15;
+  
+  if (isOdd) {
+    // Odd signs: 0-15° = Leo (4), 15-30° = Cancer (3)
+    return isFirstHalf ? 4 : 3;
+  } else {
+    // Even signs: 0-15° = Cancer (3), 15-30° = Leo (4)
+    return isFirstHalf ? 3 : 4;
+  }
+}
+
+/**
+ * D3: Drekkana - Part 1: current sign, Part 2: 5th from current, Part 3: 9th from current
+ */
+function calculateDrekkana(originalSign: number, positionInSign: number): number {
+  const part = Math.floor(positionInSign / 10);
+  
+  if (part === 0) {
+    return originalSign; // Part 1: current sign
+  } else if (part === 1) {
+    return (originalSign + 4) % 12; // Part 2: 5th from current (offset 4)
+  } else {
+    return (originalSign + 8) % 12; // Part 3: 9th from current (offset 8)
+  }
+}
+
+/**
+ * D4, D12: Cycle starting from current sign
+ * D4: Parts go to signs 1, 4, 7, 10 from current (offsets 0, 3, 6, 9)
+ * D12: Each part goes to next sign sequentially (offset = part index)
+ */
+function calculateCycleStartCurrent(originalSign: number, positionInSign: number, divisions: number): number {
+  const divisionSize = 30 / divisions;
+  const partIndex = Math.floor(positionInSign / divisionSize);
+  
+  if (divisions === 4) {
+    // D4: sequence [0, 3, 6, 9] = [1st, 4th, 7th, 10th from current]
+    // This means: part 0 -> current sign, part 1 -> 4th from current, etc.
+    const offsets = [0, 3, 6, 9];
+    return (originalSign + offsets[partIndex]) % 12;
+  } else {
+    // D12: Each part goes to next sign sequentially
+    return (originalSign + partIndex) % 12;
+  }
+}
+
+/**
+ * D7, D10: Odd signs start from current, Even signs start from different position
+ * D7: Even signs start from opposite (7th)
+ * D10: Even signs start from 9th from current
+ */
+function calculateOddEvenStart(originalSign: number, positionInSign: number, divisions: number, chartType: DivisionalChartType): number {
+  const divisionSize = 30 / divisions;
+  const partIndex = Math.floor(positionInSign / divisionSize);
+  const isOdd = isOddSign(originalSign);
+  
+  if (isOdd) {
+    // Start from current sign
+    return (originalSign + partIndex) % 12;
+  } else {
+    // Even signs
+    if (chartType === 'D7') {
+      // Start from opposite sign (7th from current)
+      return (originalSign + 7 + partIndex) % 12;
+    } else {
+      // D10: Start from 9th from current
+      return (originalSign + 9 + partIndex) % 12;
+    }
+  }
+}
+
+/**
+ * D9: Navamsa - Modality based
+ * Movable: start from current sign
+ * Fixed: start from 9th from current
+ * Dual: start from 5th from current
+ */
+function calculateNavamsa(originalSign: number, positionInSign: number): number {
+  const divisionSize = 30 / 9;
+  const partIndex = Math.floor(positionInSign / divisionSize);
+  const modality = getModality(originalSign);
+  
+  let startOffset = 0;
+  if (modality === 'fixed') {
+    startOffset = 9; // 9th from current
+  } else if (modality === 'dual') {
+    startOffset = 5; // 5th from current
+  }
+  // movable: startOffset = 0 (current sign)
+  
+  return (originalSign + startOffset + partIndex) % 12;
+}
+
+/**
+ * D16, D20, D45: Modality based with fixed start signs
+ * The part index determines which sign in the sequence we use
+ */
+function calculateModalityBasedFixedStart(originalSign: number, positionInSign: number, divisions: number, chartType: DivisionalChartType): number {
+  const divisionSize = 30 / divisions;
+  const partIndex = Math.floor(positionInSign / divisionSize);
+  const modality = getModality(originalSign);
+  
+  let startSignId: number;
+  
+  if (chartType === 'D16' || chartType === 'D45') {
+    // D16, D45: Movable from Aries (1), Fixed from Leo (5), Dual from Sagittarius (9)
+    startSignId = modality === 'movable' ? 1 : modality === 'fixed' ? 5 : 9;
+  } else {
+    // D20: Movable from Aries (1), Fixed from Sagittarius (9), Dual from Leo (5)
+    startSignId = modality === 'movable' ? 1 : modality === 'fixed' ? 9 : 5;
+  }
+  
+  // Convert to 0-indexed (sign IDs in config are 1-indexed)
+  const startSign = startSignId - 1;
+  
+  // The part index tells us which sign in the sequence (starting from startSign)
+  // For example, if startSign = 0 (Aries) and partIndex = 5, we go 5 signs from Aries
+  return (startSign + partIndex) % 12;
+}
+
+/**
+ * D24, D40: Odd/Even with fixed start signs
+ * D24: Odd from Leo (5), Even from Cancer (4)
+ * D40: Odd from Aries (1), Even from Libra (7)
+ */
+function calculateOddEvenFixedStart(originalSign: number, positionInSign: number, divisions: number, chartType: DivisionalChartType): number {
+  const divisionSize = 30 / divisions;
+  const partIndex = Math.floor(positionInSign / divisionSize);
+  const isOdd = isOddSign(originalSign);
+  
+  let startSignId: number;
+  if (chartType === 'D24') {
+    startSignId = isOdd ? 5 : 4; // Leo : Cancer
+  } else {
+    // D40
+    startSignId = isOdd ? 1 : 7; // Aries : Libra
+  }
+  
+  const startSign = startSignId - 1; // Convert to 0-indexed
+  return (startSign + partIndex) % 12;
+}
+
+/**
+ * D27: Bhamsa - Element based with fixed start signs
+ * Fire from Aries (1), Earth from Cancer (4), Air from Libra (7), Water from Capricorn (10)
+ */
+function calculateBhamsa(originalSign: number, positionInSign: number): number {
+  const divisionSize = 30 / 27;
+  const partIndex = Math.floor(positionInSign / divisionSize);
+  const element = getElement(originalSign);
+  
+  const startSignIds: Record<string, number> = {
+    fire: 1,    // Aries
+    earth: 4,  // Cancer
+    air: 7,     // Libra
+    water: 10   // Capricorn
+  };
+  
+  const startSign = startSignIds[element] - 1; // Convert to 0-indexed
+  return (startSign + partIndex) % 12;
+}
+
+/**
+ * D30: Trimsamsa - Custom degree mapping based on rulers
+ */
+function calculateTrimsamsa(originalSign: number, positionInSign: number): number {
+  const isOdd = isOddSign(originalSign);
+  
+  if (isOdd) {
+    // Odd signs mapping
+    if (positionInSign <= 5) return 0;      // Aries (Mars)
+    if (positionInSign <= 10) return 10;    // Aquarius (Saturn)
+    if (positionInSign <= 18) return 8;     // Sagittarius (Jupiter)
+    if (positionInSign <= 25) return 2;     // Gemini (Mercury)
+    return 6;                                 // Libra (Venus)
+  } else {
+    // Even signs mapping
+    if (positionInSign <= 5) return 1;       // Taurus (Venus)
+    if (positionInSign <= 12) return 5;     // Virgo (Mercury)
+    if (positionInSign <= 20) return 11;    // Pisces (Jupiter)
+    if (positionInSign <= 25) return 9;     // Capricorn (Saturn)
+    return 7;                                 // Scorpio (Mars)
+  }
+}
+
+/**
+ * D60: Shashtyamsa - Formula: count_from_current = (floor(degree * 2) % 12) + 1
+ */
+function calculateShashtyamsa(originalSign: number, positionInSign: number): number {
+  // Formula: (floor(degree * 2) % 12) + 1, then count from current sign
+  const count = (Math.floor(positionInSign * 2) % 12) + 1;
+  return (originalSign + count - 1) % 12;
 }
 
 /**
@@ -128,8 +441,6 @@ function recalculateHouses(
   planets: Planet[],
   newAscendant: number
 ): House[] {
-  // Calculate house cusps based on new ascendant
-  // Each house is 30 degrees from the previous
   const houses: House[] = [];
   
   for (let i = 0; i < 12; i++) {
@@ -155,20 +466,15 @@ function getHouseForPlanet(
   houses: House[],
   ascendant: number
 ): number {
-  // Normalize longitudes
   const normalizedPlanet = ((planetLongitude % 360) + 360) % 360;
   const normalizedAsc = ((ascendant % 360) + 360) % 360;
   
-  // Calculate difference from ascendant
   let difference = normalizedPlanet - normalizedAsc;
   if (difference < 0) {
     difference += 360;
   }
   
-  // Each house is 30 degrees
   const houseNumber = Math.floor(difference / 30) + 1;
-  
-  // Return house number (1-12)
   return houseNumber > 12 ? houseNumber - 12 : houseNumber;
 }
 
@@ -178,4 +484,3 @@ function getHouseForPlanet(
 export function getAvailableDivisionalCharts(): DivisionalChartConfig[] {
   return Object.values(DIVISIONAL_CHART_CONFIGS).filter(config => config.type !== 'D1');
 }
-
