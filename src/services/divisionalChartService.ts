@@ -402,35 +402,45 @@ function calculateBhamsa(originalSign: number, positionInSign: number): number {
 }
 
 /**
- * D30: Trimsamsa - Custom degree mapping based on rulers
+ * D30: Trimsamsa - Custom degree mapping based on rulers (unequal divisions)
+ * Cung Lẻ: 0°-5° (Hỏa/Aries), 5°-10° (Thổ/Aquarius), 10°-18° (Mộc/Sagittarius), 
+ *          18°-25° (Thủy/Gemini), 25°-30° (Kim/Libra)
+ * Cung Chẵn: 0°-5° (Kim/Taurus), 5°-12° (Thủy/Virgo), 12°-20° (Mộc/Pisces),
+ *            20°-25° (Thổ/Capricorn), 25°-30° (Hỏa/Scorpio)
  */
 function calculateTrimsamsa(originalSign: number, positionInSign: number): number {
   const isOdd = isOddSign(originalSign);
   
   if (isOdd) {
-    // Odd signs mapping
-    if (positionInSign <= 5) return 0;      // Aries (Mars)
-    if (positionInSign <= 10) return 10;    // Aquarius (Saturn)
-    if (positionInSign <= 18) return 8;     // Sagittarius (Jupiter)
-    if (positionInSign <= 25) return 2;     // Gemini (Mercury)
-    return 6;                                 // Libra (Venus)
+    // Odd signs: 0°-5° (Hỏa), 5°-10° (Thổ), 10°-18° (Mộc), 18°-25° (Thủy), 25°-30° (Kim)
+    if (positionInSign <= 5) return 0;      // Aries (Mars/Hỏa)
+    if (positionInSign <= 10) return 10;    // Aquarius (Saturn/Thổ)
+    if (positionInSign <= 18) return 8;     // Sagittarius (Jupiter/Mộc)
+    if (positionInSign <= 25) return 2;     // Gemini (Mercury/Thủy)
+    return 6;                                 // Libra (Venus/Kim)
   } else {
-    // Even signs mapping
-    if (positionInSign <= 5) return 1;       // Taurus (Venus)
-    if (positionInSign <= 12) return 5;     // Virgo (Mercury)
-    if (positionInSign <= 20) return 11;    // Pisces (Jupiter)
-    if (positionInSign <= 25) return 9;     // Capricorn (Saturn)
-    return 7;                                 // Scorpio (Mars)
+    // Even signs: 0°-5° (Kim), 5°-12° (Thủy), 12°-20° (Mộc), 20°-25° (Thổ), 25°-30° (Hỏa)
+    if (positionInSign <= 5) return 1;       // Taurus (Venus/Kim)
+    if (positionInSign <= 12) return 5;     // Virgo (Mercury/Thủy)
+    if (positionInSign <= 20) return 11;    // Pisces (Jupiter/Mộc)
+    if (positionInSign <= 25) return 9;     // Capricorn (Saturn/Thổ)
+    return 7;                                 // Scorpio (Mars/Hỏa)
   }
 }
 
 /**
- * D60: Shashtyamsa - Formula: count_from_current = (floor(degree * 2) % 12) + 1
+ * D60: Shashtyamsa - Count sequentially from current sign
+ * Each 0.5 degree (30 minutes) corresponds to the next sign in sequence
+ * Starting from the current sign itself
  */
 function calculateShashtyamsa(originalSign: number, positionInSign: number): number {
-  // Formula: (floor(degree * 2) % 12) + 1, then count from current sign
-  const count = (Math.floor(positionInSign * 2) % 12) + 1;
-  return (originalSign + count - 1) % 12;
+  // Each division is 0.5 degrees (30 minutes)
+  // Count sequentially from current sign
+  const divisionSize = 30 / 60; // 0.5 degrees
+  const partIndex = Math.floor(positionInSign / divisionSize);
+  
+  // Count sequentially from current sign
+  return (originalSign + partIndex) % 12;
 }
 
 /**
