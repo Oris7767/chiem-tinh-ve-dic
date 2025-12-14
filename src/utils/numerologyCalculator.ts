@@ -2,31 +2,41 @@
 export const removeVietnameseAccents = (str: string): string => {
   // Map of Vietnamese characters with accents to their Latin equivalents
   const vietnameseMap: Record<string, string> = {
-    // A variants
+    // A variants - Vietnamese specific
     'Ă': 'A', 'ă': 'A', 'Ằ': 'A', 'ằ': 'A', 'Ẳ': 'A', 'ẳ': 'A', 
     'Ẵ': 'A', 'ẵ': 'A', 'Ắ': 'A', 'ắ': 'A', 'Ặ': 'A', 'ặ': 'A',
     'Â': 'A', 'â': 'A', 'Ầ': 'A', 'ầ': 'A', 'Ẩ': 'A', 'ẩ': 'A',
     'Ẫ': 'A', 'ẫ': 'A', 'Ấ': 'A', 'ấ': 'A', 'Ậ': 'A', 'ậ': 'A',
-    // E variants
+    // A variants - Standard Latin accents
+    'Á': 'A', 'á': 'A', 'À': 'A', 'à': 'A', 'Ả': 'A', 'ả': 'A',
+    'Ã': 'A', 'ã': 'A', 'Ạ': 'A', 'ạ': 'A',
+    // E variants - Vietnamese specific
     'Ê': 'E', 'ê': 'E', 'Ề': 'E', 'ề': 'E', 'Ể': 'E', 'ể': 'E',
     'Ễ': 'E', 'ễ': 'E', 'Ế': 'E', 'ế': 'E', 'Ệ': 'E', 'ệ': 'E',
-    // I variants
+    // E variants - Standard Latin accents
+    'É': 'E', 'é': 'E', 'È': 'E', 'è': 'E', 'Ẻ': 'E', 'ẻ': 'E',
+    'Ẽ': 'E', 'ẽ': 'E', 'Ẹ': 'E', 'ẹ': 'E',
+    // I variants - Vietnamese specific
     'Í': 'I', 'í': 'I', 'Ì': 'I', 'ì': 'I', 'Ỉ': 'I', 'ỉ': 'I',
     'Ĩ': 'I', 'ĩ': 'I', 'Ị': 'I', 'ị': 'I',
-    // O variants
+    // O variants - Vietnamese specific
     'Ô': 'O', 'ô': 'O', 'Ồ': 'O', 'ồ': 'O', 'Ổ': 'O', 'ổ': 'O',
     'Ỗ': 'O', 'ỗ': 'O', 'Ố': 'O', 'ố': 'O', 'Ộ': 'O', 'ộ': 'O',
     'Ơ': 'O', 'ơ': 'O', 'Ờ': 'O', 'ờ': 'O', 'Ở': 'O', 'ở': 'O',
     'Ỡ': 'O', 'ỡ': 'O', 'Ớ': 'O', 'ớ': 'O', 'Ợ': 'O', 'ợ': 'O',
-    // U variants
+    // O variants - Standard Latin accents (including Õ which was missing!)
+    'Ó': 'O', 'ó': 'O', 'Ò': 'O', 'ò': 'O', 'Ỏ': 'O', 'ỏ': 'O',
+    'Õ': 'O', 'õ': 'O', 'Ọ': 'O', 'ọ': 'O',
+    // U variants - Vietnamese specific
     'Ư': 'U', 'ư': 'U', 'Ừ': 'U', 'ừ': 'U', 'Ử': 'U', 'ử': 'U',
     'Ữ': 'U', 'ữ': 'U', 'Ứ': 'U', 'ứ': 'U', 'Ự': 'U', 'ự': 'U',
+    // U variants - Standard Latin accents
     'Ú': 'U', 'ú': 'U', 'Ù': 'U', 'ù': 'U', 'Ủ': 'U', 'ủ': 'U',
     'Ũ': 'U', 'ũ': 'U', 'Ụ': 'U', 'ụ': 'U',
-    // Y variants
+    // Y variants - Vietnamese specific
     'Ý': 'Y', 'ý': 'Y', 'Ỳ': 'Y', 'ỳ': 'Y', 'Ỷ': 'Y', 'ỷ': 'Y',
     'Ỹ': 'Y', 'ỹ': 'Y', 'Ỵ': 'Y', 'ỵ': 'Y',
-    // D variant
+    // D variant - Vietnamese specific
     'Đ': 'D', 'đ': 'D'
   };
 
