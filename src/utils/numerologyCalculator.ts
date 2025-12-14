@@ -1,7 +1,43 @@
+// Helper function to remove Vietnamese accents and convert to Latin characters
+export const removeVietnameseAccents = (str: string): string => {
+  // Map of Vietnamese characters with accents to their Latin equivalents
+  const vietnameseMap: Record<string, string> = {
+    // A variants
+    'Ă': 'A', 'ă': 'A', 'Ằ': 'A', 'ằ': 'A', 'Ẳ': 'A', 'ẳ': 'A', 
+    'Ẵ': 'A', 'ẵ': 'A', 'Ắ': 'A', 'ắ': 'A', 'Ặ': 'A', 'ặ': 'A',
+    'Â': 'A', 'â': 'A', 'Ầ': 'A', 'ầ': 'A', 'Ẩ': 'A', 'ẩ': 'A',
+    'Ẫ': 'A', 'ẫ': 'A', 'Ấ': 'A', 'ấ': 'A', 'Ậ': 'A', 'ậ': 'A',
+    // E variants
+    'Ê': 'E', 'ê': 'E', 'Ề': 'E', 'ề': 'E', 'Ể': 'E', 'ể': 'E',
+    'Ễ': 'E', 'ễ': 'E', 'Ế': 'E', 'ế': 'E', 'Ệ': 'E', 'ệ': 'E',
+    // I variants
+    'Í': 'I', 'í': 'I', 'Ì': 'I', 'ì': 'I', 'Ỉ': 'I', 'ỉ': 'I',
+    'Ĩ': 'I', 'ĩ': 'I', 'Ị': 'I', 'ị': 'I',
+    // O variants
+    'Ô': 'O', 'ô': 'O', 'Ồ': 'O', 'ồ': 'O', 'Ổ': 'O', 'ổ': 'O',
+    'Ỗ': 'O', 'ỗ': 'O', 'Ố': 'O', 'ố': 'O', 'Ộ': 'O', 'ộ': 'O',
+    'Ơ': 'O', 'ơ': 'O', 'Ờ': 'O', 'ờ': 'O', 'Ở': 'O', 'ở': 'O',
+    'Ỡ': 'O', 'ỡ': 'O', 'Ớ': 'O', 'ớ': 'O', 'Ợ': 'O', 'ợ': 'O',
+    // U variants
+    'Ư': 'U', 'ư': 'U', 'Ừ': 'U', 'ừ': 'U', 'Ử': 'U', 'ử': 'U',
+    'Ữ': 'U', 'ữ': 'U', 'Ứ': 'U', 'ứ': 'U', 'Ự': 'U', 'ự': 'U',
+    'Ú': 'U', 'ú': 'U', 'Ù': 'U', 'ù': 'U', 'Ủ': 'U', 'ủ': 'U',
+    'Ũ': 'U', 'ũ': 'U', 'Ụ': 'U', 'ụ': 'U',
+    // Y variants
+    'Ý': 'Y', 'ý': 'Y', 'Ỳ': 'Y', 'ỳ': 'Y', 'Ỷ': 'Y', 'ỷ': 'Y',
+    'Ỹ': 'Y', 'ỹ': 'Y', 'Ỵ': 'Y', 'ỵ': 'Y',
+    // D variant
+    'Đ': 'D', 'đ': 'D'
+  };
+
+  return str.split('').map(char => vietnameseMap[char] || char).join('');
+};
+
 // Core calculation functions
 export const calculateNameNumber = (name: string): { steps: string; totalBeforeReduction: number; total: number; finalNumber: number } => {
-  // Remove spaces and convert to uppercase
-  const cleanName = name.replace(/\s+/g, '').toUpperCase();
+  // Remove Vietnamese accents first, then remove spaces and convert to uppercase
+  const normalizedName = removeVietnameseAccents(name);
+  const cleanName = normalizedName.replace(/\s+/g, '').toUpperCase();
   
   // Mapping letters to numbers according to Pythagorean numerology
   const letterMap: Record<string, number> = {
