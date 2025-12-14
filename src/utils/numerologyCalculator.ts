@@ -1,7 +1,68 @@
+// Helper function to remove Vietnamese accents and convert to Latin characters
+export const removeVietnameseAccents = (str: string): string => {
+  // Map of Vietnamese characters with accents to their Latin equivalents
+  const vietnameseMap: Record<string, string> = {
+    // A variants - Vietnamese specific
+    'Ă': 'A', 'ă': 'A', 'Ằ': 'A', 'ằ': 'A', 'Ẳ': 'A', 'ẳ': 'A', 
+    'Ẵ': 'A', 'ẵ': 'A', 'Ắ': 'A', 'ắ': 'A', 'Ặ': 'A', 'ặ': 'A',
+    'Â': 'A', 'â': 'A', 'Ầ': 'A', 'ầ': 'A', 'Ẩ': 'A', 'ẩ': 'A',
+    'Ẫ': 'A', 'ẫ': 'A', 'Ấ': 'A', 'ấ': 'A', 'Ậ': 'A', 'ậ': 'A',
+    // A variants - Standard Latin accents
+    'Á': 'A', 'á': 'A', 'À': 'A', 'à': 'A', 'Ả': 'A', 'ả': 'A',
+    'Ã': 'A', 'ã': 'A', 'Ạ': 'A', 'ạ': 'A',
+    // E variants - Vietnamese specific
+    'Ê': 'E', 'ê': 'E', 'Ề': 'E', 'ề': 'E', 'Ể': 'E', 'ể': 'E',
+    'Ễ': 'E', 'ễ': 'E', 'Ế': 'E', 'ế': 'E', 'Ệ': 'E', 'ệ': 'E',
+    // E variants - Standard Latin accents
+    'É': 'E', 'é': 'E', 'È': 'E', 'è': 'E', 'Ẻ': 'E', 'ẻ': 'E',
+    'Ẽ': 'E', 'ẽ': 'E', 'Ẹ': 'E', 'ẹ': 'E',
+    // I variants - Vietnamese specific
+    'Í': 'I', 'í': 'I', 'Ì': 'I', 'ì': 'I', 'Ỉ': 'I', 'ỉ': 'I',
+    'Ĩ': 'I', 'ĩ': 'I', 'Ị': 'I', 'ị': 'I',
+    // O variants - Vietnamese specific
+    'Ô': 'O', 'ô': 'O', 'Ồ': 'O', 'ồ': 'O', 'Ổ': 'O', 'ổ': 'O',
+    'Ỗ': 'O', 'ỗ': 'O', 'Ố': 'O', 'ố': 'O', 'Ộ': 'O', 'ộ': 'O',
+    'Ơ': 'O', 'ơ': 'O', 'Ờ': 'O', 'ờ': 'O', 'Ở': 'O', 'ở': 'O',
+    'Ỡ': 'O', 'ỡ': 'O', 'Ớ': 'O', 'ớ': 'O', 'Ợ': 'O', 'ợ': 'O',
+    // O variants - Standard Latin accents (including Õ which was missing!)
+    'Ó': 'O', 'ó': 'O', 'Ò': 'O', 'ò': 'O', 'Ỏ': 'O', 'ỏ': 'O',
+    'Õ': 'O', 'õ': 'O', 'Ọ': 'O', 'ọ': 'O',
+    // U variants - Vietnamese specific
+    'Ư': 'U', 'ư': 'U', 'Ừ': 'U', 'ừ': 'U', 'Ử': 'U', 'ử': 'U',
+    'Ữ': 'U', 'ữ': 'U', 'Ứ': 'U', 'ứ': 'U', 'Ự': 'U', 'ự': 'U',
+    // U variants - Standard Latin accents
+    'Ú': 'U', 'ú': 'U', 'Ù': 'U', 'ù': 'U', 'Ủ': 'U', 'ủ': 'U',
+    'Ũ': 'U', 'ũ': 'U', 'Ụ': 'U', 'ụ': 'U',
+    // Y variants - Vietnamese specific
+    'Ý': 'Y', 'ý': 'Y', 'Ỳ': 'Y', 'ỳ': 'Y', 'Ỷ': 'Y', 'ỷ': 'Y',
+    'Ỹ': 'Y', 'ỹ': 'Y', 'Ỵ': 'Y', 'ỵ': 'Y',
+    // D variant - Vietnamese specific
+    'Đ': 'D', 'đ': 'D'
+  };
+
+  // Convert each character using the map
+  const result = str.split('').map(char => {
+    const mapped = vietnameseMap[char];
+    if (mapped) {
+      return mapped;
+    }
+    // If not in map, return original character (for regular letters, numbers, etc.)
+    return char;
+  }).join('');
+
+  return result;
+};
+
 // Core calculation functions
 export const calculateNameNumber = (name: string): { steps: string; totalBeforeReduction: number; total: number; finalNumber: number } => {
-  // Remove spaces and convert to uppercase
-  const cleanName = name.replace(/\s+/g, '').toUpperCase();
+  // Remove Vietnamese accents first, then remove spaces and convert to uppercase
+  const normalizedName = removeVietnameseAccents(name);
+  const cleanName = normalizedName.replace(/\s+/g, '').toUpperCase();
+  
+  // Debug logging
+  console.log('Original name:', name);
+  console.log('Normalized name (after accent removal):', normalizedName);
+  console.log('Clean name (after removing spaces and uppercase):', cleanName);
   
   // Mapping letters to numbers according to Pythagorean numerology
   const letterMap: Record<string, number> = {
@@ -18,13 +79,24 @@ export const calculateNameNumber = (name: string): { steps: string; totalBeforeR
   // Calculate the total value of the name and track steps
   let total = 0;
   let letterValues: string[] = [];
+  const skippedChars: string[] = [];
   
   for (const char of cleanName) {
     if (letterMap[char]) {
       total += letterMap[char];
       letterValues.push(`${char}=${letterMap[char]}`);
+    } else {
+      // Track characters that are skipped (not in letterMap)
+      skippedChars.push(char);
     }
   }
+  
+  // Debug logging
+  if (skippedChars.length > 0) {
+    console.log('Characters skipped (not in letterMap):', skippedChars);
+  }
+  console.log('Letter values:', letterValues);
+  console.log('Total before reduction:', total);
   
   // Join the steps
   const steps = letterValues.join(' + ');
