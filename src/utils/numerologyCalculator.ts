@@ -30,7 +30,17 @@ export const removeVietnameseAccents = (str: string): string => {
     'Đ': 'D', 'đ': 'D'
   };
 
-  return str.split('').map(char => vietnameseMap[char] || char).join('');
+  // Convert each character using the map
+  const result = str.split('').map(char => {
+    const mapped = vietnameseMap[char];
+    if (mapped) {
+      return mapped;
+    }
+    // If not in map, return original character (for regular letters, numbers, etc.)
+    return char;
+  }).join('');
+
+  return result;
 };
 
 // Core calculation functions
@@ -38,6 +48,11 @@ export const calculateNameNumber = (name: string): { steps: string; totalBeforeR
   // Remove Vietnamese accents first, then remove spaces and convert to uppercase
   const normalizedName = removeVietnameseAccents(name);
   const cleanName = normalizedName.replace(/\s+/g, '').toUpperCase();
+  
+  // Debug logging
+  console.log('Original name:', name);
+  console.log('Normalized name (after accent removal):', normalizedName);
+  console.log('Clean name (after removing spaces and uppercase):', cleanName);
   
   // Mapping letters to numbers according to Pythagorean numerology
   const letterMap: Record<string, number> = {
@@ -54,13 +69,24 @@ export const calculateNameNumber = (name: string): { steps: string; totalBeforeR
   // Calculate the total value of the name and track steps
   let total = 0;
   let letterValues: string[] = [];
+  const skippedChars: string[] = [];
   
   for (const char of cleanName) {
     if (letterMap[char]) {
       total += letterMap[char];
       letterValues.push(`${char}=${letterMap[char]}`);
+    } else {
+      // Track characters that are skipped (not in letterMap)
+      skippedChars.push(char);
     }
   }
+  
+  // Debug logging
+  if (skippedChars.length > 0) {
+    console.log('Characters skipped (not in letterMap):', skippedChars);
+  }
+  console.log('Letter values:', letterValues);
+  console.log('Total before reduction:', total);
   
   // Join the steps
   const steps = letterValues.join(' + ');
