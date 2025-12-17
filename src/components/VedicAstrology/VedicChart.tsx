@@ -18,6 +18,7 @@ import PlanetAspectsTable from './PlanetAspectsTable';
 import PlanetDetailsTable from './PlanetDetailsTable';
 import HouseDetailsTable from './HouseDetailsTable';
 import { birthChartService } from '@/services/birthChartService';
+import { calculateDivisionalChart, getAvailableDivisionalCharts, DivisionalChartType, DIVISIONAL_CHART_CONFIGS } from '@/services/divisionalChartService';
 
 // Types
 export interface Aspect {
@@ -145,6 +146,7 @@ const VedicChart = () => {
   const [formData, setFormData] = useState<BirthDataFormValues | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [savedCharts, setSavedCharts] = useState<any[]>([]);
+  const [selectedDivisionalChart, setSelectedDivisionalChart] = useState<DivisionalChartType>('D9');
 
   // Fetch saved charts when user logs in
   const fetchSavedCharts = async (userId: string) => {
@@ -533,8 +535,9 @@ const VedicChart = () => {
 
       {chartData && (
         <Tabs defaultValue="chart">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="chart">Bản đồ sao</TabsTrigger>
+            <TabsTrigger value="divisional">Bản đồ phân chia</TabsTrigger>
             <TabsTrigger value="dasha">Vimshottari Dasha</TabsTrigger>
           </TabsList>
 
@@ -543,6 +546,15 @@ const VedicChart = () => {
               chartData={chartData} 
               userData={formData} 
               onDownload={downloadChartAsSVG} 
+            />
+          </TabsContent>
+
+          <TabsContent value="divisional">
+            <DivisionalChartDisplay 
+              baseChartData={chartData}
+              selectedChart={selectedDivisionalChart}
+              onChartChange={setSelectedDivisionalChart}
+              userData={formData}
             />
           </TabsContent>
 
@@ -608,6 +620,90 @@ const ChartDisplay = ({ chartData, userData, onDownload }: ChartDisplayProps) =>
       </div>
 
       <PlanetAspectsTable planets={chartData.planets} />
+    </div>
+  );
+};
+
+interface DivisionalChartDisplayProps {
+  baseChartData: VedicChartData;
+  selectedChart: DivisionalChartType;
+  onChartChange: (chartType: DivisionalChartType) => void;
+  userData?: BirthDataFormValues | null;
+}
+
+const DivisionalChartDisplay = ({ 
+  baseChartData, 
+  selectedChart, 
+  onChartChange,
+  userData 
+}: DivisionalChartDisplayProps) => {
+  // Calculate divisional chart
+  const divisionalChartData = calculateDivisionalChart(baseChartData, selectedChart);
+  const chartConfig = DIVISIONAL_CHART_CONFIGS[selectedChart];
+  const availableCharts = getAvailableDivisionalCharts();
+
+  // Format birth info for display
+  const getBirthInfo = () => {
+    if (!userData) return '';
+
+    const birthDate = userData.birthDate ? 
+      DateTime.fromISO(userData.birthDate).toFormat('dd/MM/yyyy') : '';
+
+    const birthTime = userData.birthTime || '';
+
+    return `${birthDate} ${birthTime} - ${userData.location}`;
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Chart Type Selector */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Chọn loại bản đồ phân chia</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+            {availableCharts.map((config) => (
+              <Button
+                key={config.type}
+                variant={selectedChart === config.type ? "default" : "outline"}
+                className="h-auto py-3 flex flex-col items-center justify-center"
+                onClick={() => onChartChange(config.type)}
+              >
+                <span className="font-bold text-lg">{config.type}</span>
+                <span className="text-xs mt-1">{config.name}</span>
+                <span className="text-xs text-muted-foreground">{config.description}</span>
+              </Button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Divisional Chart Display */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>{chartConfig.name} ({chartConfig.type})</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">{chartConfig.description}</p>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="aspect-square max-w-full md:max-w-2xl mx-auto">
+            <SouthIndianChart 
+              chartData={divisionalChartData} 
+              showDetails={true}
+              userName={userData?.name}
+              birthInfo={getBirthInfo()}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Planet and House Details */}
+      <div className="grid gap-6 md:grid-cols-2">
+        <PlanetDetailsTable planets={divisionalChartData.planets} />
+        <HouseDetailsTable houses={divisionalChartData.houses} planets={divisionalChartData.planets} />
+      </div>
     </div>
   );
 };
