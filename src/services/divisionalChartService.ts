@@ -294,27 +294,26 @@ function calculateOddEvenStart(originalSign: number, positionInSign: number, div
   const divisionSize = 30 / divisions;
   const partIndex = Math.floor(positionInSign / divisionSize);
   const isOdd = isOddSign(originalSign);
-  
+
   if (isOdd) {
     // Start from current sign
     return (originalSign + partIndex) % 12;
   } else {
     // Even signs
     if (chartType === 'D7') {
-      // Start from opposite sign (7th from current)
-      return (originalSign + 7 + partIndex) % 12;
+      // SỬA: Start from opposite sign (7th) = current + 6
+      return (originalSign + 6 + partIndex) % 12; 
     } else {
-      // D10: Start from 9th from current
-      return (originalSign + 9 + partIndex) % 12;
+      // D10: SỬA: Start from 9th = current + 8
+      return (originalSign + 8 + partIndex) % 12;
     }
   }
 }
 
 /**
- * D9: Navamsa - Modality based
- * Movable: start from current sign
- * Fixed: start from 9th from current
- * Dual: start from 5th from current
+ * FIXED: Subtract 1 from the offset because counting includes the starting sign
+ * Fixed signs start from 9th (offset +8)
+ * Dual signs start from 5th (offset +4)
  */
 function calculateNavamsa(originalSign: number, positionInSign: number): number {
   const divisionSize = 30 / 9;
@@ -323,9 +322,9 @@ function calculateNavamsa(originalSign: number, positionInSign: number): number 
   
   let startOffset = 0;
   if (modality === 'fixed') {
-    startOffset = 9; // 9th from current
+    startOffset = 8; // SỬA: 9th from current = current + 8
   } else if (modality === 'dual') {
-    startOffset = 5; // 5th from current
+    startOffset = 4; // SỬA: 5th from current = current + 4
   }
   // movable: startOffset = 0 (current sign)
   
