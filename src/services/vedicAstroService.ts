@@ -157,58 +157,19 @@ async function fetchSavedChart(email: string): Promise<VedicChartData | null> {
     const chartData = charts[0] as DbBirthChart;
 
     // Parse the stored JSON data properly
-    const planets = safeParseJson<Planet[]>(chartData.planets, []);
-    const houses = safeParseJson<House[]>(chartData.houses, []);
-    const nakshatras = safeParseJson<{
-      moonNakshatra: string;
-      ascendantNakshatra: NakshatraInfo;
-    }>(chartData.nakshatras, {
-      moonNakshatra: '',
-      ascendantNakshatra: {
-        name: '',
-        lord: '',
-        startDegree: 0,
-        endDegree: 0,
-        pada: 1
-      }
-    });
-    const metadata = safeParseJson<ChartMetadata>(chartData.metadata || null, {
-      ayanamsa: 24,
-      date: '',
-      time: '',
-      latitude: 0,
-      longitude: 0,
-      timezone: 'UTC',
-      houseSystem: 'W'
-    });
-    const dashas = safeParseJson<DashaData>(chartData.dashas || null, {
-      current: {
-        planet: '',
-        startDate: '',
-        endDate: '',
-        elapsed: { years: 0, months: 0, days: 0 },
-        remaining: { years: 0, months: 0, days: 0 },
-        antardasha: {
-          current: {
-            planet: '',
-            startDate: '',
-            endDate: '',
-            elapsed: { years: 0, months: 0, days: 0 },
-            remaining: { years: 0, months: 0, days: 0 }
-          },
-          sequence: []
-        }
-      },
-      sequence: []
-    });
+    const planets = typeof chartData.planets === 'string' ? JSON.parse(chartData.planets) : chartData.planets;
+    const houses = typeof chartData.houses === 'string' ? JSON.parse(chartData.houses) : chartData.houses;
+    const nakshatras = typeof chartData.nakshatras === 'string' ? JSON.parse(chartData.nakshatras) : chartData.nakshatras;
+    const metadata = typeof chartData.metadata === 'string' ? JSON.parse(chartData.metadata) : chartData.metadata;
+    const dashas = typeof chartData.dashas === 'string' ? JSON.parse(chartData.dashas) : chartData.dashas;
 
     return {
-      ascendant: houses[0]?.longitude || 0,
+      ascendant: Number(('ascendant' in chartData && chartData.ascendant !== undefined && chartData.ascendant !== null) ? chartData.ascendant : (houses[0]?.longitude || 0)),
       ascendantNakshatra: nakshatras.ascendantNakshatra,
       planets,
       houses,
       moonNakshatra: nakshatras.moonNakshatra,
-      lunarDay: 1,
+      lunarDay: Number(('lunarDay' in chartData && chartData.lunarDay !== undefined && chartData.lunarDay !== null) ? chartData.lunarDay : 1),
       metadata,
       dashas
     };
@@ -287,6 +248,9 @@ export async function calculateVedicChart(formData: {
       email: formData.email
     });
 
+    // Bỏ đoạn kiểm tra và trả về bản đồ đã lưu
+    // Luôn tính toán lại từ API khi người dùng nhấn nút "Tính toán bản đồ sao"
+    /*
     // Check if user is logged in and has a saved chart
     if (formData.email) {
       const savedChart = await fetchSavedChart(formData.email);
@@ -294,6 +258,7 @@ export async function calculateVedicChart(formData: {
         return savedChart;
       }
     }
+    */
 
     // Format the payload according to the specified format
     const apiPayload = {
@@ -354,6 +319,20 @@ export async function calculateVedicChart(formData: {
 
       // Convert API response to VedicChartData format
       const data = convertApiResponseToChartData(apiData);
+      
+      // Bổ sung thông tin từ formData vào metadata
+      data.metadata = {
+        ...data.metadata,
+        name: formData.name || '',
+        location: formData.location || '',
+        date: formData.birthDate || data.metadata.date,
+        time: formData.birthTime || data.metadata.time,
+        latitude: formData.latitude || data.metadata.latitude,
+        longitude: formData.longitude || data.metadata.longitude,
+        timezone: formData.timezone || data.metadata.timezone
+      };
+      
+      console.log("Final chart data with metadata:", data);
 
       // Save the chart data for logged in users
       const { data: { user } } = await supabase.auth.getUser();
@@ -389,7 +368,11 @@ export async function calculateVedicChart(formData: {
  * Convert API response format to app's VedicChartData format
  */
 function convertApiResponseToChartData(apiData: VedicChartResponse): VedicChartData {
-  // Ascendant
+  // Giữ nguyên dữ liệu ascendant từ API thay vì chỉ lấy longitude
+  const ascendantData = apiData.ascendant;
+  console.log("Original ascendant data from API:", JSON.stringify(ascendantData));
+  
+  // Tính toán ascendant longitude để tương thích với mã cũ
   const ascSignIdx = SIGN_TO_INDEX[apiData.ascendant.sign.name] || 0;
   const ascDeg = apiData.ascendant.sign.degree || 0;
   const ascLongitude = ascSignIdx * 30 + ascDeg;
@@ -456,14 +439,33 @@ function convertApiResponseToChartData(apiData: VedicChartResponse): VedicChartD
     }
   };
 
+  // Đảm bảo metadata luôn đầy đủ
+  const metadata = {
+    ayanamsa: apiData.metadata?.ayanamsa || 24,
+    date: apiData.metadata?.date || new Date().toISOString().split('T')[0],
+    time: apiData.metadata?.time || new Date().toTimeString().split(' ')[0].substring(0, 5),
+    latitude: apiData.metadata?.latitude || 0,
+    longitude: apiData.metadata?.longitude || 0,
+    timezone: apiData.metadata?.timezone || 'UTC',
+    houseSystem: apiData.metadata?.houseSystem || 'W',
+    // Thêm các trường khác nếu cần
+    name: '',
+    location: ''
+  };
+
+  console.log("Processed metadata:", metadata);
+  console.log("Original ascendant:", ascendantData);
+
   return {
+    // Giữ cả đối tượng ascendant và ascendant longitude
     ascendant: ascLongitude,
+    ascendantFull: ascendantData, // Thêm trường mới để lưu đối tượng đầy đủ
     ascendantNakshatra: apiData.ascendant.nakshatra,
     planets,
     houses,
     moonNakshatra,
     lunarDay: calculateLunarDay(apiData.planets),
-    metadata: apiData.metadata,
+    metadata: metadata,
     dashas: {
       current: normalizedCurrentDasha,
       sequence: apiData.dashas.sequence
