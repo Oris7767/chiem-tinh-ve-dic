@@ -74,6 +74,12 @@ const NavBar = () => {
                     {language === 'vi' ? 'Chiêm Tinh Vệ Đà' : 'Vedic Astrology'}
                   </Link>
                 </li>
+                {/* Panchang menu item */}
+                <li>
+                  <Link to="/panchang" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
+                    {language === 'vi' ? 'Lịch Panchang' : 'Panchang Calendar'}
+                  </Link>
+                </li>
               </>
             ) : (
               <>
@@ -91,6 +97,12 @@ const NavBar = () => {
                 <li>
                   <Link to="/vedic-chart" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
                     {language === 'vi' ? 'Chiêm Tinh Vệ Đà' : 'Vedic Astrology'}
+                  </Link>
+                </li>
+                {/* Panchang menu item */}
+                <li>
+                  <Link to="/panchang" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
+                    {language === 'vi' ? 'Lịch Panchang' : 'Panchang Calendar'}
                   </Link>
                 </li>
               </>
