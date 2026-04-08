@@ -2,6 +2,7 @@ User-agent: *
 Allow: /
 Allow: /blog/
 Allow: /vedic-chart/
+Allow: /luc-nham/
 Disallow: /blog/admin
 Disallow: /subscribers
 Disallow: /numerology/admin
