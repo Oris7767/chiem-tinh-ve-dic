@@ -45,6 +45,7 @@ const LucNhamPage: React.FC = () => {
     return `${now.getFullYear()}-${`${now.getMonth() + 1}`.padStart(2, '0')}`;
   });
   const [purpose, setPurpose] = useState<LucNhamPurpose>('xuat-hanh');
+  const [gender, setGender] = useState<'male' | 'female'>('female');
   const [submitted, setSubmitted] = useState(false);
   const [filter, setFilter] = useState<ForecastFilter>('all');
   const [layout, setLayout] = useState<ForecastLayout>('grid');
@@ -62,8 +63,9 @@ const LucNhamPage: React.FC = () => {
       month,
       purpose,
       birthDate,
+      gender,
     });
-  }, [submitted, targetMonth, purpose, birthDate]);
+  }, [submitted, targetMonth, purpose, birthDate, gender]);
 
   const filteredForecast = useMemo(() => {
     if (filter === 'good') return forecast.filter((item) => item.isGood);
@@ -150,7 +152,7 @@ const LucNhamPage: React.FC = () => {
                 <span className="text-sm md:text-base">Lịch tham khảo Lục Nhâm cho 30 ngày trong tháng</span>
               </div>
 
-              <div className="grid gap-3 md:grid-cols-3">
+              <div className="grid gap-3 md:grid-cols-4">
                 <Input
                   type="date"
                   value={birthDate}
@@ -173,6 +175,15 @@ const LucNhamPage: React.FC = () => {
                         {PURPOSE_LABELS[item]}
                       </SelectItem>
                     ))}
+                  </SelectContent>
+                </Select>
+                <Select value={gender} onValueChange={(value) => setGender(value as 'male' | 'female')}>
+                  <SelectTrigger className="border-amber-300 bg-white text-amber-900">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="female">Nữ</SelectItem>
+                    <SelectItem value="male">Nam</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

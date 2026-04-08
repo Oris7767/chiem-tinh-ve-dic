@@ -96,6 +96,14 @@ function getYearBranch(date: Date): EarthBranch {
   return BRANCHES[idx];
 }
 
+function getYearCanChi(date: Date): { can: HeavenlyStem; chi: EarthBranch } {
+  // 1984 = Giáp Tý year
+  const offset = date.getFullYear() - 1984;
+  const stemIndex = ((offset % 10) + 10) % 10;
+  const branchIndex = ((offset % 12) + 12) % 12;
+  return { can: STEMS[stemIndex], chi: BRANCHES[branchIndex] };
+}
+
 function rotateFrom<T>(arr: T[], startValue: T): T[] {
   const startIdx = arr.indexOf(startValue);
   if (startIdx < 0) return [...arr];
@@ -265,17 +273,15 @@ export function buildThirtyDayForecast(params: {
   month: number; // 1-12
   purpose: LucNhamPurpose;
   birthDate: string; // yyyy-mm-dd
+  gender?: 'male' | 'female';
 }): LucNhamDayResult[] {
-  const { year, month, purpose, birthDate } = params;
-  const defaultProfile = {
-    birthYear: 1998,
-    birthCan: 'Mậu' as HeavenlyStem,
-    birthChi: 'Dần' as EarthBranch,
-    gender: 'female' as const,
-  };
+  const { year, month, purpose, birthDate, gender = 'female' } = params;
+  const birth = new Date(birthDate);
+  const birthYear = birth.getFullYear();
+  const birthCanChi = getYearCanChi(birth);
   const safeMonth = Math.max(1, Math.min(12, month));
   const hourBranch: EarthBranch = 'Ngọ';
-  const birthYearChi = getYearBranch(new Date(birthDate));
+  const birthYearChi = getYearBranch(birth);
 
   const result: LucNhamDayResult[] = [];
   for (let day = 1; day <= 30; day += 1) {
@@ -298,10 +304,10 @@ export function buildThirtyDayForecast(params: {
     });
     // NOTE: lunar values are temporarily mocked from solar month/day until lunar conversion helper is added.
     const lucDieu = getLucDieu(safeMonth, day);
-    const hanhNien = getHanhNien(defaultProfile.birthYear, year, defaultProfile.gender);
+    const hanhNien = getHanhNien(birthYear, year, gender);
     const quyNhan = getQuyNhan(can, 'day');
     const quyNhanDangThienMon = isQuyNhanDangThienMon(can, monthTuo, 'day');
-    const nguHanhTuongSinh = getNguHanhTuongSinh(can, defaultProfile.birthCan);
+    const nguHanhTuongSinh = getNguHanhTuongSinh(can, birthCanChi.can);
 
     result.push({
       isoDate: toIsoDate(date),
@@ -319,10 +325,10 @@ export function buildThirtyDayForecast(params: {
         isQuyNhanDangThienMon: quyNhanDangThienMon,
         lucDieu,
         nguHanhTuongSinh,
-        birthCan: defaultProfile.birthCan,
-        birthChi: defaultProfile.birthChi,
-        birthYear: defaultProfile.birthYear,
-        gender: defaultProfile.gender,
+        birthCan: birthCanChi.can,
+        birthChi: birthCanChi.chi,
+        birthYear,
+        gender,
       },
     });
   }
