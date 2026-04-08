@@ -341,6 +341,11 @@ const LucNhamPage: React.FC = () => {
                 <DialogDescription className="text-gray-600">
                   Tổng hợp tham số cá nhân hóa theo Đại Lục Nhâm.
                 </DialogDescription>
+                <div className="mt-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+                  Ngày sinh âm lịch: {selectedDay.personalContext?.lunarDateString} (Năm{' '}
+                  {selectedDay.personalContext?.birthCan} {selectedDay.personalContext?.birthChi} - Tuổi âm lịch:{' '}
+                  {selectedDay.personalContext?.lunarAge})
+                </div>
               </DialogHeader>
 
               <div className="space-y-4 text-sm md:text-base">
@@ -408,6 +413,13 @@ const LucNhamPage: React.FC = () => {
                       {selectedDay.personalContext?.tuoiTuongTac.status}
                     </Badge>
                   </div>
+                </div>
+
+                <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+                  <p className="text-sm italic text-amber-800">
+                    *Lưu ý: Năng lượng chung của ngày (Lục Nhâm) luôn giữ vai trò quyết định. Chỉ số phụ trợ chỉ
+                    dùng để tham khảo thêm.*
+                  </p>
                 </div>
               </div>
             </>

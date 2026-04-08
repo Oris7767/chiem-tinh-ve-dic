@@ -2,6 +2,9 @@ import {
   BRANCHES,
   STEMS,
   STEM_KY_CUNG,
+  BRANCH_ELEMENT,
+  STEM_ELEMENT,
+  FIVE_ELEMENT_OVERCOMES,
   EarthBranch,
   HeavenlyStem,
   isKhacByFiveElement,
@@ -30,6 +33,16 @@ type FourKhoaItem = {
   label: 'K1' | 'K2' | 'K3' | 'K4';
 };
 
+type EvaluationContext = {
+  so: EarthBranch;
+  trung: EarthBranch;
+  mat: EarthBranch;
+  dayCan: HeavenlyStem;
+  dayChi: EarthBranch;
+  birthYearChi: EarthBranch;
+  board: Record<EarthBranch, EarthBranch>;
+};
+
 export type LucNhamDayResult = {
   isoDate: string;
   day: number;
@@ -45,6 +58,8 @@ export type LucNhamDayResult = {
     quyNhan: EarthBranch;
     isQuyNhanDangThienMon: boolean;
     lucDieu: string;
+    lunarDateString: string;
+    lunarAge: number;
     tuoiTuongTac: {
       status: 'Đại Hung' | 'Hung' | 'Xấu' | 'Tốt' | 'Bình';
       message: string;
@@ -91,13 +106,6 @@ function getDayCanChi(date: Date): { can: HeavenlyStem; chi: EarthBranch } {
   const stemIndex = ((diff % 10) + 10) % 10;
   const branchIndex = ((diff % 12) + 12) % 12;
   return { can: STEMS[stemIndex], chi: BRANCHES[branchIndex] };
-}
-
-function getYearBranch(date: Date): EarthBranch {
-  // 1984 = Giáp Tý year => index 0 at Tý
-  const offset = date.getFullYear() - 1984;
-  const idx = ((offset % 12) + 12) % 12;
-  return BRANCHES[idx];
 }
 
 function rotateFrom<T>(arr: T[], startValue: T): T[] {
@@ -264,6 +272,92 @@ function evaluateForXuatHanh(input: {
   return score >= 1;
 }
 
+function isElementGenerate(from: keyof typeof FIVE_ELEMENT_OVERCOMES, to: keyof typeof FIVE_ELEMENT_OVERCOMES): boolean {
+  return (
+    (from === 'Mộc' && to === 'Hỏa') ||
+    (from === 'Hỏa' && to === 'Thổ') ||
+    (from === 'Thổ' && to === 'Kim') ||
+    (from === 'Kim' && to === 'Thủy') ||
+    (from === 'Thủy' && to === 'Mộc')
+  );
+}
+
+function isLucXung(a: EarthBranch, b: EarthBranch): boolean {
+  const opposite = BRANCHES[(BRANCHES.indexOf(a) + 6) % 12];
+  return opposite === b;
+}
+
+function isTamHop(a: EarthBranch, b: EarthBranch): boolean {
+  const groups: EarthBranch[][] = [
+    ['Thân', 'Tý', 'Thìn'],
+    ['Hợi', 'Mão', 'Mùi'],
+    ['Dần', 'Ngọ', 'Tuất'],
+    ['Tỵ', 'Dậu', 'Sửu'],
+  ];
+  return groups.some((g) => g.includes(a) && g.includes(b));
+}
+
+function isTuHinh(a: EarthBranch, b: EarthBranch): boolean {
+  const tuHinh: EarthBranch[] = ['Thìn', 'Ngọ', 'Dậu', 'Hợi'];
+  return a === b && tuHinh.includes(a);
+}
+
+function evaluateBoardByPurpose(purpose: LucNhamPurpose, context: EvaluationContext): boolean {
+  const { so, trung, mat, dayCan, dayChi, birthYearChi, board } = context;
+  const trio = [so, trung, mat];
+  const [voidA, voidB] = getTuanKhong(dayCan, dayChi);
+  const hasVoid = trio.includes(voidA) || trio.includes(voidB);
+  const isPhuc = isPhucNgamBoard(board);
+  const isPhan = isPhanNgamBoard(board);
+
+  switch (purpose) {
+    case 'xuat-hanh':
+    case 'thi-dau':
+      return evaluateForXuatHanh({ so, trung, mat, dayCan, dayChi, birthYearChi });
+
+    case 'xay-dung-nhap-trach':
+    case 'xay-bep-chuong-trai': {
+      const dayCanEl = STEM_ELEMENT[dayCan];
+      const dayChiEl = BRANCH_ELEMENT[dayChi];
+      const sinhNhap = isElementGenerate(dayChiEl, dayCanEl);
+      const dayChiKhacDayCan = FIVE_ELEMENT_OVERCOMES[dayChiEl] === dayCanEl;
+      const dayCanKhacDayChi = FIVE_ELEMENT_OVERCOMES[dayCanEl] === dayChiEl;
+
+      const clashesWithDay = trio.some((b) => isLucXung(b, dayChi));
+      const khacWithDay = trio.some((b) => {
+        const el = BRANCH_ELEMENT[b];
+        return FIVE_ELEMENT_OVERCOMES[el] === dayCanEl || FIVE_ELEMENT_OVERCOMES[dayCanEl] === el;
+      });
+
+      if (hasVoid || dayChiKhacDayCan || dayCanKhacDayChi) return false;
+      if (sinhNhap) return true;
+      return !clashesWithDay && !khacWithDay;
+    }
+
+    case 'ket-hon': {
+      const dayCanEl = STEM_ELEMENT[dayCan];
+      const dayChiEl = BRANCH_ELEMENT[dayChi];
+      const tuongSinh = isElementGenerate(dayCanEl, dayChiEl) || isElementGenerate(dayChiEl, dayCanEl);
+      const tamHop = isTamHop(dayChi, so) || isTamHop(dayChi, trung) || isTamHop(dayChi, mat);
+      const chiBad = isTuHinh(dayChi, dayChi) || trio.some((b) => isLucXung(dayChi, b));
+
+      if (isPhan || isPhuc || chiBad) return false;
+      return tuongSinh || tamHop;
+    }
+
+    case 'khai-truong-khac':
+    case 'an-tang-than-su': {
+      if (isPhan || isPhuc) return false;
+      const voidCount = trio.filter((b) => b === voidA || b === voidB).length;
+      if (voidCount >= 2) return false;
+      return true;
+    }
+
+    default:
+      return evaluateForXuatHanh({ so, trung, mat, dayCan, dayChi, birthYearChi });
+  }
+}
+
 export function buildThirtyDayForecast(params: {
   year: number;
   month: number; // 1-12
@@ -272,12 +366,12 @@ export function buildThirtyDayForecast(params: {
   gender?: 'male' | 'female';
 }): LucNhamDayResult[] {
   const { year, month, purpose, birthDate, gender = 'female' } = params;
-  const birth = new Date(birthDate);
-  const birthYear = birth.getFullYear();
   const birthCanChi = getYearCanChi(birthDate);
+  const birthYear = birthCanChi.lunarYear;
   const safeMonth = Math.max(1, Math.min(12, month));
   const hourBranch: EarthBranch = 'Ngọ';
-  const birthYearChi = getYearBranch(birth);
+  const birthYearChi = birthCanChi.chi;
+  const lunarAge = year - birthCanChi.lunarYear + 1;
 
   const result: LucNhamDayResult[] = [];
   for (let day = 1; day <= 30; day += 1) {
@@ -290,17 +384,18 @@ export function buildThirtyDayForecast(params: {
     const trung = board[so];
     const mat = board[trung];
 
-    const isGood = evaluateForXuatHanh({
+    const isGood = evaluateBoardByPurpose(purpose, {
       so,
       trung,
       mat,
       dayCan: can,
       dayChi: chi,
       birthYearChi,
+      board,
     });
     // NOTE: lunar values are temporarily mocked from solar month/day until lunar conversion helper is added.
     const lucDieu = getLucDieu(safeMonth, day);
-    const hanhNien = getHanhNien(birthYear, year, gender);
+    const hanhNien = getHanhNien(birthCanChi.lunarYear, year, gender);
     const quyNhan = getQuyNhan(can, 'day');
     const quyNhanDangThienMon = isQuyNhanDangThienMon(can, monthTuo, 'day');
     const tuoiTuongTac = getTuoiTuongTac(can, chi, birthCanChi.can, birthCanChi.chi);
@@ -320,6 +415,8 @@ export function buildThirtyDayForecast(params: {
         quyNhan,
         isQuyNhanDangThienMon: quyNhanDangThienMon,
         lucDieu,
+        lunarDateString: birthCanChi.lunarDateString,
+        lunarAge,
         tuoiTuongTac,
         birthCan: birthCanChi.can,
         birthChi: birthCanChi.chi,

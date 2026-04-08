@@ -81,7 +81,12 @@ export function getNguHanhTuongSinh(dayCan: HeavenlyStem, birthCan: HeavenlyStem
   return 'Được Sinh (Tốt)';
 }
 
-export function getYearCanChi(birthDate: string): { can: HeavenlyStem; chi: EarthBranch } {
+export function getYearCanChi(birthDate: string): {
+  can: HeavenlyStem;
+  chi: EarthBranch;
+  lunarYear: number;
+  lunarDateString: string;
+} {
   const date = new Date(birthDate);
   if (Number.isNaN(date.getTime())) {
     throw new Error(`Invalid birthDate: ${birthDate}`);
@@ -91,6 +96,10 @@ export function getYearCanChi(birthDate: string): { can: HeavenlyStem; chi: Eart
   const lunar = solar.getLunar();
   // Use exact Li Chun boundary from astronomical data.
   const gz = lunar.getYearInGanZhiExact(); // e.g. "癸酉"
+  const lunarYear = lunar.getYear();
+  const lunarMonth = Math.abs(lunar.getMonth());
+  const lunarDay = lunar.getDay();
+  const lunarDateString = `Ngày ${lunarDay} tháng ${lunarMonth} năm ${lunarYear}`;
 
   const stemMap: Record<string, HeavenlyStem> = {
     甲: 'Giáp',
@@ -126,7 +135,7 @@ export function getYearCanChi(birthDate: string): { can: HeavenlyStem; chi: Eart
   if (!can || !chi) {
     throw new Error(`Cannot map Ganzhi '${gz}' to Vietnamese Can Chi`);
   }
-  return { can, chi };
+  return { can, chi, lunarYear, lunarDateString };
 }
 
 export type TuoiTuongTacResult = {
