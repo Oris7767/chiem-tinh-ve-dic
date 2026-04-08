@@ -6,6 +6,7 @@ import {
   STEMS,
   STEM_ELEMENT,
 } from '@/data/lucNham';
+import { Solar } from 'lunar-javascript';
 
 const LUC_DIEU_MAP = ['Đại An', 'Lưu Liên', 'Tốc Hỷ', 'Xích Khẩu', 'Tiểu Cát', 'Không Vong'] as const;
 
@@ -86,16 +87,46 @@ export function getYearCanChi(birthDate: string): { can: HeavenlyStem; chi: Eart
     throw new Error(`Invalid birthDate: ${birthDate}`);
   }
 
-  // In traditional calendrical practice, birth-year Ganzhi for Bazi switches at Lập Xuân.
-  // Approximate Li Chun boundary at Feb 4 in local timezone.
-  const y = date.getFullYear();
-  const liChun = new Date(y, 1, 4, 0, 0, 0, 0);
-  const effectiveYear = date < liChun ? y - 1 : y;
+  const solar = Solar.fromYmd(date.getFullYear(), date.getMonth() + 1, date.getDate());
+  const lunar = solar.getLunar();
+  // Use exact Li Chun boundary from astronomical data.
+  const gz = lunar.getYearInGanZhiExact(); // e.g. "癸酉"
 
-  const offset = effectiveYear - 1984; // 1984 = Giáp Tý
-  const stemIndex = ((offset % 10) + 10) % 10;
-  const branchIndex = ((offset % 12) + 12) % 12;
-  return { can: STEMS[stemIndex], chi: BRANCHES[branchIndex] };
+  const stemMap: Record<string, HeavenlyStem> = {
+    甲: 'Giáp',
+    乙: 'Ất',
+    丙: 'Bính',
+    丁: 'Đinh',
+    戊: 'Mậu',
+    己: 'Kỷ',
+    庚: 'Canh',
+    辛: 'Tân',
+    壬: 'Nhâm',
+    癸: 'Quý',
+  };
+  const branchMap: Record<string, EarthBranch> = {
+    子: 'Tý',
+    丑: 'Sửu',
+    寅: 'Dần',
+    卯: 'Mão',
+    辰: 'Thìn',
+    巳: 'Tỵ',
+    午: 'Ngọ',
+    未: 'Mùi',
+    申: 'Thân',
+    酉: 'Dậu',
+    戌: 'Tuất',
+    亥: 'Hợi',
+  };
+
+  const stemHan = gz.charAt(0);
+  const branchHan = gz.charAt(1);
+  const can = stemMap[stemHan];
+  const chi = branchMap[branchHan];
+  if (!can || !chi) {
+    throw new Error(`Cannot map Ganzhi '${gz}' to Vietnamese Can Chi`);
+  }
+  return { can, chi };
 }
 
 export type TuoiTuongTacResult = {
