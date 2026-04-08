@@ -306,7 +306,7 @@ function evaluateBoardByPurpose(purpose: LucNhamPurpose, context: EvaluationCont
   const { so, trung, mat, dayCan, dayChi, birthYearChi, board } = context;
   const trio = [so, trung, mat];
   const [voidA, voidB] = getTuanKhong(dayCan, dayChi);
-  const hasVoid = trio.includes(voidA) || trio.includes(voidB);
+  const hasTuanKhong = trio.some((b) => b === voidA || b === voidB);
   const isPhuc = isPhucNgamBoard(board);
   const isPhan = isPhanNgamBoard(board);
 
@@ -329,7 +329,7 @@ function evaluateBoardByPurpose(purpose: LucNhamPurpose, context: EvaluationCont
         return FIVE_ELEMENT_OVERCOMES[el] === dayCanEl || FIVE_ELEMENT_OVERCOMES[dayCanEl] === el;
       });
 
-      if (hasVoid || dayChiKhacDayCan || dayCanKhacDayChi) return false;
+      if (hasTuanKhong || dayChiKhacDayCan || dayCanKhacDayChi) return false;
       if (sinhNhap) return true;
       return !clashesWithDay && !khacWithDay;
     }
@@ -337,19 +337,39 @@ function evaluateBoardByPurpose(purpose: LucNhamPurpose, context: EvaluationCont
     case 'ket-hon': {
       const dayCanEl = STEM_ELEMENT[dayCan];
       const dayChiEl = BRANCH_ELEMENT[dayChi];
+      const canChiKhacNhap = FIVE_ELEMENT_OVERCOMES[dayChiEl] === dayCanEl;
+      const canChiKhacXuat = FIVE_ELEMENT_OVERCOMES[dayCanEl] === dayChiEl;
       const tuongSinh = isElementGenerate(dayCanEl, dayChiEl) || isElementGenerate(dayChiEl, dayCanEl);
-      const tamHop = isTamHop(dayChi, so) || isTamHop(dayChi, trung) || isTamHop(dayChi, mat);
-      const chiBad = isTuHinh(dayChi, dayChi) || trio.some((b) => isLucXung(dayChi, b));
+      const tyHoa = dayCanEl === dayChiEl;
 
-      if (isPhan || isPhuc || chiBad) return false;
-      return tuongSinh || tamHop;
+      if (hasTuanKhong || isPhan || isPhuc) return false;
+      if (canChiKhacNhap || canChiKhacXuat) return false;
+      return tuongSinh || tyHoa;
     }
 
     case 'khai-truong-khac':
+      if (isPhuc || hasTuanKhong) return false;
+      return (
+        isElementGenerate(BRANCH_ELEMENT[dayChi], STEM_ELEMENT[dayCan]) ||
+        isElementGenerate(BRANCH_ELEMENT[so], STEM_ELEMENT[dayCan])
+      );
+
     case 'an-tang-than-su': {
-      if (isPhan || isPhuc) return false;
-      const voidCount = trio.filter((b) => b === voidA || b === voidB).length;
-      if (voidCount >= 2) return false;
+      if (isPhan || isPhuc || hasTuanKhong) return false;
+
+      // Sơ truyền must not attack day branch/day stem.
+      const soTacDayChi = isTặcByFiveElement(dayChi, so);
+      const soKhacDayChi = isKhacByFiveElement(so, dayChi);
+      const soKhacDayCan = FIVE_ELEMENT_OVERCOMES[BRANCH_ELEMENT[so]] === STEM_ELEMENT[dayCan];
+      if (soTacDayChi || soKhacDayChi || soKhacDayCan) return false;
+
+      // Prefer stable non-attacking flow among Tam truyền.
+      const attacksInsideTamTruyen =
+        isKhacByFiveElement(so, trung) ||
+        isKhacByFiveElement(trung, mat) ||
+        isKhacByFiveElement(mat, so);
+      if (attacksInsideTamTruyen) return false;
+
       return true;
     }
 
