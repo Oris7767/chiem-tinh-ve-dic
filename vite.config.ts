@@ -19,4 +19,14 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      external: [],
+      output: {
+        manualChunks: {
+          'date-fns': ['date-fns', 'date-fns-tz']
+        }
+      }
+    }
+  }
 }));

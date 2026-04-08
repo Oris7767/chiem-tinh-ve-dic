@@ -7,7 +7,8 @@
     "start": "Bắt đầu",
     "home": "Trang chủ",
     "blog": "Blog",
-    "numerology": "Số học"
+    "numerology": "Số học",
+    "lucNham": "Lục Nhâm"
   },
   "hero": {
     "title": "Số học Vệ Đà",
@@ -70,6 +71,15 @@
   "meanings": {
     "title": "Ý nghĩa các con số",
     "subtitle": "Mỗi con số từ 1 đến 9 đều mang những ý nghĩa và năng lượng riêng biệt, gắn liền với các hành tinh."
+  },
+  "lucNham": {
+    "seoTitle": "Lục Nhâm – Chọn ngày giờ tốt | chiemtinhvedavn",
+    "seoDescription": "Công cụ tham khảo ngày giờ lành theo Đại Lục Nhâm.",
+    "title": "Lục Nhâm – Chọn ngày giờ tốt",
+    "subtitle": "Công cụ Votive giúp bạn tham khảo ngày giờ lành theo logic Đại Lục Nhâm cổ truyền.",
+    "localDataTitle": "Dữ liệu cục bộ, riêng tư",
+    "calculatorTitle": "Máy tính Lục Nhâm",
+    "calculatorPlaceholder": "Quy trình Lục Nhâm tại đây: nhập ngày giờ, suy ra can chi – môn tướng thần, và kết luận ngày/giờ tốt hay cần thận trọng."
   },
   "birthChart": {
     "title": "Bản đồ Sao Chiêm tinh Vệ Đà",

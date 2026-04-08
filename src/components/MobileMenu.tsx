@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
-import { Menu, X, BookOpen, Star, Globe } from 'lucide-react';
+import { Menu, BookOpen, Star, Globe, Sparkles } from 'lucide-react';
 import { 
   Sheet, 
   SheetContent, 
@@ -28,6 +28,11 @@ const MobileMenu = () => {
       label: language === 'vi' ? 'Chiêm Tinh Vệ Đà' : 'Vedic Astrology', 
       icon: Star, 
       highlight: true 
+    },
+    {
+      to: '/luc-nham',
+      label: language === 'vi' ? 'Lục Nhâm' : 'Liu Ren (Lục Nhâm)',
+      icon: Sparkles,
     },
     { to: '/blog', label: 'nav.blog', icon: BookOpen, badge: 'New' }
   ];

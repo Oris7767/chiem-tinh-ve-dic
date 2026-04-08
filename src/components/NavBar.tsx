@@ -74,6 +74,11 @@ const NavBar = () => {
                     {language === 'vi' ? 'Chiêm Tinh Vệ Đà' : 'Vedic Astrology'}
                   </Link>
                 </li>
+                <li>
+                  <Link to="/luc-nham" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
+                    {t('nav.lucNham')}
+                  </Link>
+                </li>
               </>
             ) : (
               <>
@@ -91,6 +96,11 @@ const NavBar = () => {
                 <li>
                   <Link to="/vedic-chart" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
                     {language === 'vi' ? 'Chiêm Tinh Vệ Đà' : 'Vedic Astrology'}
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/luc-nham" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
+                    {t('nav.lucNham')}
                   </Link>
                 </li>
               </>

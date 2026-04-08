@@ -18,6 +18,33 @@ export const calculatorSchema = {
   ]
 };
 
+// Schema for Lục Nhâm (auspicious dates) page — local calculator, no server dependency
+export const lucNhamSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Lục Nhâm – Chọn ngày giờ tốt",
+  "applicationCategory": "LifestyleApplication",
+  "description":
+    "Công cụ tham khảo ngày giờ tốt theo phương pháp Lục Nhâm, chạy hoàn toàn trên trình duyệt với dữ liệu cục bộ.",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "VND"
+  },
+  "featureList": [
+    "Tra cứu và phân tích theo Lục Nhâm",
+    "Dữ liệu bảng tra cứu cục bộ, không gửi dữ liệu cá nhân lên máy chủ cho phần tính toán này"
+  ],
+  "publisher": {
+    "@type": "Organization",
+    "name": "chiemtinhvedavn",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://vedicvn.com/lovable-uploads/97fa6e16-3fd9-42cd-887d-d6d1d4d3ee6b.png"
+    }
+  }
+};
+
 // Schema for Vedic Chart page
 export const vedicChartSchema = {
   "@context": "https://schema.org",

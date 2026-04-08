@@ -8,7 +8,8 @@
     "home": "Home",
     "numerology": "Numerology",
     "birthChart": "Birth Chart",
-    "blog": "Blog"
+    "blog": "Blog",
+    "lucNham": "Liu Ren (Lục Nhâm)"
   },
   "hero": {
     "title": "Vedic Numerology",
@@ -86,6 +87,15 @@
     "calculationSuccess": "Chart calculated successfully",
     "calculationError": "Error calculating chart",
     "comingSoon": "Coming Soon"
+  },
+  "lucNham": {
+    "seoTitle": "Liu Ren (Lục Nhâm) – Auspicious dates & hours | chiemtinhvedavn",
+    "title": "Liu Ren (Lục Nhâm) – Auspicious dates",
+    "subtitle": "A Votive tool to study favorable days and hours using classical Lục Nhâm logic. Numbers and tables ship with the page for privacy and speed.",
+    "localDataTitle": "Local, private data",
+    "dataVersionLabel": "Reference data bundle",
+    "calculatorTitle": "Calculator",
+    "calculatorPlaceholder": "The step-by-step Lục Nhâm workflow from your documentation will appear here: date and time inputs, derived stems and branches, doors and omens, and a clear \"auspicious / caution\" readout aligned with your tradition."
   },
   "blog": {
     "title": "Vedic Wisdom Blog",
