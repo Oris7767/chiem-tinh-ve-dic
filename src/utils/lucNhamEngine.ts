@@ -404,7 +404,7 @@ export function buildThirtyDayForecast(params: {
     const trung = board[so];
     const mat = board[trung];
 
-    const isGood = evaluateBoardByPurpose(purpose, {
+    const baseIsGood = evaluateBoardByPurpose(purpose, {
       so,
       trung,
       mat,
@@ -420,6 +420,17 @@ export function buildThirtyDayForecast(params: {
     const quyNhanDangThienMon = isQuyNhanDangThienMon(can, monthTuo, 'day');
     const tuoiTuongTac = getTuoiTuongTac(can, chi, birthCanChi.can, birthCanChi.chi);
 
+    let isGood = baseIsGood;
+    let reason = getMessage(purpose, baseIsGood, day);
+    // Personal veto: strong personal clashes override general day quality.
+    if (
+      baseIsGood &&
+      (tuoiTuongTac.status === 'Đại Hung' || tuoiTuongTac.status === 'Hung')
+    ) {
+      isGood = false;
+      reason = 'Ngày có năng lượng tốt nhưng phạm xung khắc (Lục Xung/Hại/Hình) với Bản mệnh, cần tránh làm việc lớn.';
+    }
+
     result.push({
       isoDate: toIsoDate(date),
       day,
@@ -429,7 +440,7 @@ export function buildThirtyDayForecast(params: {
       trungTruyen: trung,
       matTruyen: mat,
       isGood,
-      reason: getMessage(purpose, isGood, day),
+      reason,
       personalContext: {
         hanhNien,
         quyNhan,
