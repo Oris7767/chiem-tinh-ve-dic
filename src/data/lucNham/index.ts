@@ -4,3 +4,5 @@
  */
 
 export const LUC_NHAM_DATA_VERSION = '0.1.0';
+
+export * from './lucNhamRules';
