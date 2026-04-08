@@ -15,6 +15,13 @@ import {
   LucNhamPurpose,
   PURPOSE_INTERPRETATIONS,
 } from '@/data/lucNham/interpretations';
+import {
+  getHanhNien,
+  getLucDieu,
+  getNguHanhTuongSinh,
+  getQuyNhan,
+  isQuyNhanDangThienMon,
+} from './lucNhamPersonalLogic';
 
 type FourKhoaItem = {
   upper: EarthBranch;
@@ -32,6 +39,17 @@ export type LucNhamDayResult = {
   matTruyen: EarthBranch;
   isGood: boolean;
   reason: string;
+  personalContext?: {
+    hanhNien: EarthBranch;
+    quyNhan: EarthBranch;
+    isQuyNhanDangThienMon: boolean;
+    lucDieu: string;
+    nguHanhTuongSinh: string;
+    birthCan: HeavenlyStem;
+    birthChi: EarthBranch;
+    birthYear: number;
+    gender: 'male' | 'female';
+  };
 };
 
 const MẠNH = new Set<EarthBranch>(['Dần', 'Thân', 'Tỵ', 'Hợi']);
@@ -249,6 +267,12 @@ export function buildThirtyDayForecast(params: {
   birthDate: string; // yyyy-mm-dd
 }): LucNhamDayResult[] {
   const { year, month, purpose, birthDate } = params;
+  const defaultProfile = {
+    birthYear: 1998,
+    birthCan: 'Mậu' as HeavenlyStem,
+    birthChi: 'Dần' as EarthBranch,
+    gender: 'female' as const,
+  };
   const safeMonth = Math.max(1, Math.min(12, month));
   const hourBranch: EarthBranch = 'Ngọ';
   const birthYearChi = getYearBranch(new Date(birthDate));
@@ -272,6 +296,12 @@ export function buildThirtyDayForecast(params: {
       dayChi: chi,
       birthYearChi,
     });
+    // NOTE: lunar values are temporarily mocked from solar month/day until lunar conversion helper is added.
+    const lucDieu = getLucDieu(safeMonth, day);
+    const hanhNien = getHanhNien(defaultProfile.birthYear, year, defaultProfile.gender);
+    const quyNhan = getQuyNhan(can, 'day');
+    const quyNhanDangThienMon = isQuyNhanDangThienMon(can, monthTuo, 'day');
+    const nguHanhTuongSinh = getNguHanhTuongSinh(can, defaultProfile.birthCan);
 
     result.push({
       isoDate: toIsoDate(date),
@@ -283,6 +313,17 @@ export function buildThirtyDayForecast(params: {
       matTruyen: mat,
       isGood,
       reason: getMessage(purpose, isGood, day),
+      personalContext: {
+        hanhNien,
+        quyNhan,
+        isQuyNhanDangThienMon: quyNhanDangThienMon,
+        lucDieu,
+        nguHanhTuongSinh,
+        birthCan: defaultProfile.birthCan,
+        birthChi: defaultProfile.birthChi,
+        birthYear: defaultProfile.birthYear,
+        gender: defaultProfile.gender,
+      },
     });
   }
 

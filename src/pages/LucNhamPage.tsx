@@ -15,6 +15,14 @@ import { buildThirtyDayForecast } from '@/utils/lucNhamEngine';
 import { LucNhamPurpose, PURPOSE_LABELS } from '@/data/lucNham/interpretations';
 import { CheckCircle2, AlertTriangle, LayoutGrid, CalendarDays } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { LucNhamDayResult } from '@/utils/lucNhamEngine';
 
 const PURPOSE_OPTIONS: LucNhamPurpose[] = [
   'xay-dung-nhap-trach',
@@ -40,6 +48,7 @@ const LucNhamPage: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
   const [filter, setFilter] = useState<ForecastFilter>('all');
   const [layout, setLayout] = useState<ForecastLayout>('grid');
+  const [selectedDay, setSelectedDay] = useState<LucNhamDayResult | null>(null);
 
   const forecast = useMemo(() => {
     if (!submitted) return [];
@@ -255,8 +264,9 @@ const LucNhamPage: React.FC = () => {
                       {filteredForecast.map((item) => (
                         <div
                           key={item.isoDate}
+                          onClick={() => setSelectedDay(item)}
                           className={cn(
-                            'rounded-xl border border-amber-100 bg-white p-4 shadow-sm border-l-4',
+                            'rounded-xl border border-amber-100 bg-white p-4 shadow-sm border-l-4 cursor-pointer transition hover:shadow-md',
                             item.isGood ? 'border-l-emerald-500' : 'border-l-red-500'
                           )}
                         >
@@ -292,8 +302,9 @@ const LucNhamPage: React.FC = () => {
                       {filteredForecast.map((item) => (
                         <div
                           key={item.isoDate}
+                          onClick={() => setSelectedDay(item)}
                           className={cn(
-                            'rounded-lg border bg-white px-2 py-2 text-center shadow-sm',
+                            'rounded-lg border bg-white px-2 py-2 text-center shadow-sm cursor-pointer transition hover:shadow-md',
                             item.isGood ? 'border-emerald-200' : 'border-red-200'
                           )}
                           title={`${item.dayCan} ${item.dayChi} - ${item.reason}`}
@@ -319,6 +330,66 @@ const LucNhamPage: React.FC = () => {
           </Card>
         </div>
       </main>
+
+      <Dialog open={Boolean(selectedDay)} onOpenChange={(open) => !open && setSelectedDay(null)}>
+        <DialogContent className="max-w-xl border-gray-200 bg-white">
+          {selectedDay && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-xl text-gray-900">
+                  Báo cáo chi tiết ngày {selectedDay.day} ({selectedDay.dayCan} {selectedDay.dayChi})
+                </DialogTitle>
+                <DialogDescription className="text-gray-600">
+                  Tổng hợp tham số cá nhân hóa theo Đại Lục Nhâm (không dùng AI diễn giải).
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4 text-sm md:text-base">
+                <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                  <p className="font-medium text-gray-800">- Hành Niên:</p>
+                  <p className="text-gray-700 mt-1">
+                    Hành niên năm nay: cung <span className="font-semibold">{selectedDay.personalContext?.hanhNien}</span>
+                  </p>
+                </div>
+
+                {selectedDay.personalContext?.isQuyNhanDangThienMon && (
+                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                    <p className="font-medium text-amber-900">🌟 Quý nhân đăng thiên môn</p>
+                    <p className="text-amber-800 mt-1">
+                      Dễ gặp quý nhân giúp đỡ, đi đường bình an.
+                    </p>
+                    <div className="mt-2">
+                      <Badge variant="secondary" className="bg-white text-amber-900 border border-amber-200">
+                        Quý Nhân: {selectedDay.personalContext?.quyNhan}
+                      </Badge>
+                    </div>
+                  </div>
+                )}
+
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+                  <p className="font-medium text-emerald-900">
+                    🍀 Lục Diệu: {selectedDay.personalContext?.lucDieu}
+                  </p>
+                  <p className="text-emerald-800 mt-1">
+                    {selectedDay.personalContext?.lucDieu === 'Tiểu Cát'
+                      ? 'Tiểu Cát - Mọi việc hanh thông nhỏ.'
+                      : 'Chỉ dấu tham khảo để cân nhắc hành sự trong ngày.'}
+                  </p>
+                </div>
+
+                <div className="rounded-lg border border-sky-200 bg-sky-50 p-3">
+                  <p className="font-medium text-sky-900">
+                    👤 Tương tác tuổi ({selectedDay.personalContext?.birthCan} {selectedDay.personalContext?.birthChi}):
+                  </p>
+                  <p className="text-sky-800 mt-1">
+                    {selectedDay.personalContext?.nguHanhTuongSinh}
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <Footer />
     </div>
