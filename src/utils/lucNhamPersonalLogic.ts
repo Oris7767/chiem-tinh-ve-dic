@@ -3,6 +3,7 @@ import {
   EarthBranch,
   FIVE_ELEMENT_OVERCOMES,
   HeavenlyStem,
+  STEMS,
   STEM_ELEMENT,
 } from '@/data/lucNham';
 
@@ -77,5 +78,145 @@ export function getNguHanhTuongSinh(dayCan: HeavenlyStem, birthCan: HeavenlyStem
 
   if (isDayGeneratesBirth) return 'Tương Sinh (Tốt)';
   return 'Được Sinh (Tốt)';
+}
+
+export function getYearCanChi(birthDate: string): { can: HeavenlyStem; chi: EarthBranch } {
+  const date = new Date(birthDate);
+  if (Number.isNaN(date.getTime())) {
+    throw new Error(`Invalid birthDate: ${birthDate}`);
+  }
+
+  // In traditional calendrical practice, birth-year Ganzhi for Bazi switches at Lập Xuân.
+  // Approximate Li Chun boundary at Feb 4 in local timezone.
+  const y = date.getFullYear();
+  const liChun = new Date(y, 1, 4, 0, 0, 0, 0);
+  const effectiveYear = date < liChun ? y - 1 : y;
+
+  const offset = effectiveYear - 1984; // 1984 = Giáp Tý
+  const stemIndex = ((offset % 10) + 10) % 10;
+  const branchIndex = ((offset % 12) + 12) % 12;
+  return { can: STEMS[stemIndex], chi: BRANCHES[branchIndex] };
+}
+
+export type TuoiTuongTacResult = {
+  status: 'Đại Hung' | 'Hung' | 'Xấu' | 'Tốt' | 'Bình';
+  message: string;
+};
+
+const LUC_XUNG: Array<[EarthBranch, EarthBranch]> = [
+  ['Tý', 'Ngọ'],
+  ['Sửu', 'Mùi'],
+  ['Dần', 'Thân'],
+  ['Mão', 'Dậu'],
+  ['Thìn', 'Tuất'],
+  ['Tỵ', 'Hợi'],
+];
+
+const LUC_HAI: Array<[EarthBranch, EarthBranch]> = [
+  ['Tý', 'Mùi'],
+  ['Sửu', 'Ngọ'],
+  ['Dần', 'Tỵ'],
+  ['Mão', 'Thìn'],
+  ['Thân', 'Hợi'],
+  ['Dậu', 'Tuất'],
+];
+
+const LUC_HINH_GROUPS: EarthBranch[][] = [
+  ['Dần', 'Tỵ', 'Thân'],
+  ['Sửu', 'Tuất', 'Mùi'],
+  ['Tý', 'Mão'],
+];
+
+const TU_HINH: EarthBranch[] = ['Thìn', 'Ngọ', 'Dậu', 'Hợi'];
+
+function pairMatch(a: EarthBranch, b: EarthBranch, pairs: Array<[EarthBranch, EarthBranch]>): boolean {
+  return pairs.some(([x, y]) => (a === x && b === y) || (a === y && b === x));
+}
+
+function inSameHinhGroup(a: EarthBranch, b: EarthBranch): boolean {
+  if (a === b && TU_HINH.includes(a)) return true;
+  return LUC_HINH_GROUPS.some((g) => g.includes(a) && g.includes(b));
+}
+
+function isDayGeneratesBirth(dayCan: HeavenlyStem, birthCan: HeavenlyStem): boolean {
+  const dayElement = STEM_ELEMENT[dayCan];
+  const birthElement = STEM_ELEMENT[birthCan];
+  return (
+    (dayElement === 'Mộc' && birthElement === 'Hỏa') ||
+    (dayElement === 'Hỏa' && birthElement === 'Thổ') ||
+    (dayElement === 'Thổ' && birthElement === 'Kim') ||
+    (dayElement === 'Kim' && birthElement === 'Thủy') ||
+    (dayElement === 'Thủy' && birthElement === 'Mộc')
+  );
+}
+
+function isBirthGeneratesDay(dayCan: HeavenlyStem, birthCan: HeavenlyStem): boolean {
+  return isDayGeneratesBirth(birthCan, dayCan);
+}
+
+export function getTuoiTuongTac(
+  dayCan: HeavenlyStem,
+  dayChi: EarthBranch,
+  birthCan: HeavenlyStem,
+  birthChi: EarthBranch
+): TuoiTuongTacResult {
+  // 1) Chi first (stronger physical interaction)
+  if (pairMatch(dayChi, birthChi, LUC_XUNG)) {
+    return {
+      status: 'Đại Hung',
+      message: 'Địa chi Lục Xung (Rất Xấu) - Tránh làm việc lớn.',
+    };
+  }
+
+  if (pairMatch(dayChi, birthChi, LUC_HAI)) {
+    return {
+      status: 'Hung',
+      message: 'Địa chi Lục Hại (Xấu) - Dễ phát sinh trục trặc, hao tổn.',
+    };
+  }
+
+  if (inSameHinhGroup(dayChi, birthChi)) {
+    return {
+      status: 'Hung',
+      message: 'Địa chi Hình phạt (Xấu) - Đề phòng thị phi, rắc rối.',
+    };
+  }
+
+  // 2) Can Ngũ Hành Sinh Khắc
+  const dayElement = STEM_ELEMENT[dayCan];
+  const birthElement = STEM_ELEMENT[birthCan];
+
+  if (FIVE_ELEMENT_OVERCOMES[dayElement] === birthElement) {
+    return {
+      status: 'Xấu',
+      message: 'Thiên can ngày khắc Can tuổi (Khắc nhập).',
+    };
+  }
+
+  if (isDayGeneratesBirth(dayCan, birthCan)) {
+    return {
+      status: 'Tốt',
+      message: 'Thiên can ngày sinh Can tuổi (Sinh nhập - Rất tốt).',
+    };
+  }
+
+  if (isBirthGeneratesDay(dayCan, birthCan)) {
+    return {
+      status: 'Bình',
+      message: 'Can tuổi sinh Can ngày (Sinh xuất - Hơi hao tổn).',
+    };
+  }
+
+  if (dayElement === birthElement) {
+    return {
+      status: 'Bình',
+      message: 'Thiên can Tỷ Hòa.',
+    };
+  }
+
+  return {
+    status: 'Bình',
+    message: 'Không xung khắc mạnh.',
+  };
 }
 

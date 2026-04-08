@@ -380,9 +380,34 @@ const LucNhamPage: React.FC = () => {
                   <p className="font-medium text-sky-900">
                     👤 Tương tác tuổi ({selectedDay.personalContext?.birthCan} {selectedDay.personalContext?.birthChi}):
                   </p>
-                  <p className="text-sky-800 mt-1">
-                    {selectedDay.personalContext?.nguHanhTuongSinh}
+                  <p
+                    className={cn(
+                      'mt-1',
+                      selectedDay.personalContext?.tuoiTuongTac.status === 'Đại Hung' ||
+                        selectedDay.personalContext?.tuoiTuongTac.status === 'Hung'
+                        ? 'text-red-700 font-semibold'
+                        : 'text-sky-800'
+                    )}
+                  >
+                    {selectedDay.personalContext?.tuoiTuongTac.message}
                   </p>
+                  <div className="mt-2">
+                    <Badge
+                      variant="secondary"
+                      className={cn(
+                        'border',
+                        selectedDay.personalContext?.tuoiTuongTac.status === 'Đại Hung'
+                          ? 'bg-red-100 text-red-800 border-red-200'
+                          : selectedDay.personalContext?.tuoiTuongTac.status === 'Hung'
+                          ? 'bg-rose-100 text-rose-800 border-rose-200'
+                          : selectedDay.personalContext?.tuoiTuongTac.status === 'Tốt'
+                          ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                          : 'bg-slate-100 text-slate-800 border-slate-200'
+                      )}
+                    >
+                      {selectedDay.personalContext?.tuoiTuongTac.status}
+                    </Badge>
+                  </div>
                 </div>
               </div>
             </>

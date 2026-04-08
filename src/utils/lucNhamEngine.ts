@@ -17,8 +17,9 @@ import {
 } from '@/data/lucNham/interpretations';
 import {
   getHanhNien,
+  getTuoiTuongTac,
+  getYearCanChi,
   getLucDieu,
-  getNguHanhTuongSinh,
   getQuyNhan,
   isQuyNhanDangThienMon,
 } from './lucNhamPersonalLogic';
@@ -44,7 +45,10 @@ export type LucNhamDayResult = {
     quyNhan: EarthBranch;
     isQuyNhanDangThienMon: boolean;
     lucDieu: string;
-    nguHanhTuongSinh: string;
+    tuoiTuongTac: {
+      status: 'Đại Hung' | 'Hung' | 'Xấu' | 'Tốt' | 'Bình';
+      message: string;
+    };
     birthCan: HeavenlyStem;
     birthChi: EarthBranch;
     birthYear: number;
@@ -94,14 +98,6 @@ function getYearBranch(date: Date): EarthBranch {
   const offset = date.getFullYear() - 1984;
   const idx = ((offset % 12) + 12) % 12;
   return BRANCHES[idx];
-}
-
-function getYearCanChi(date: Date): { can: HeavenlyStem; chi: EarthBranch } {
-  // 1984 = Giáp Tý year
-  const offset = date.getFullYear() - 1984;
-  const stemIndex = ((offset % 10) + 10) % 10;
-  const branchIndex = ((offset % 12) + 12) % 12;
-  return { can: STEMS[stemIndex], chi: BRANCHES[branchIndex] };
 }
 
 function rotateFrom<T>(arr: T[], startValue: T): T[] {
@@ -278,7 +274,7 @@ export function buildThirtyDayForecast(params: {
   const { year, month, purpose, birthDate, gender = 'female' } = params;
   const birth = new Date(birthDate);
   const birthYear = birth.getFullYear();
-  const birthCanChi = getYearCanChi(birth);
+  const birthCanChi = getYearCanChi(birthDate);
   const safeMonth = Math.max(1, Math.min(12, month));
   const hourBranch: EarthBranch = 'Ngọ';
   const birthYearChi = getYearBranch(birth);
@@ -307,7 +303,7 @@ export function buildThirtyDayForecast(params: {
     const hanhNien = getHanhNien(birthYear, year, gender);
     const quyNhan = getQuyNhan(can, 'day');
     const quyNhanDangThienMon = isQuyNhanDangThienMon(can, monthTuo, 'day');
-    const nguHanhTuongSinh = getNguHanhTuongSinh(can, birthCanChi.can);
+    const tuoiTuongTac = getTuoiTuongTac(can, chi, birthCanChi.can, birthCanChi.chi);
 
     result.push({
       isoDate: toIsoDate(date),
@@ -324,7 +320,7 @@ export function buildThirtyDayForecast(params: {
         quyNhan,
         isQuyNhanDangThienMon: quyNhanDangThienMon,
         lucDieu,
-        nguHanhTuongSinh,
+        tuoiTuongTac,
         birthCan: birthCanChi.can,
         birthChi: birthCanChi.chi,
         birthYear,
