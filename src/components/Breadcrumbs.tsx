@@ -8,9 +8,15 @@ interface BreadcrumbItem {
   path: string;
 }
 
+const DARK_HERO_ROUTES = ['/vedic-chart', '/luc-nham'];
+
 const Breadcrumbs = () => {
   const location = useLocation();
   const { t, language } = useLanguage();
+
+  const isOnDarkHero = DARK_HERO_ROUTES.some(
+    (r) => location.pathname === r || location.pathname.startsWith(`${r}/`)
+  );
 
   const generateBreadcrumbs = (): BreadcrumbItem[] => {
     const paths = location.pathname.split('/').filter(Boolean);
@@ -32,6 +38,9 @@ const Breadcrumbs = () => {
           break;
         case 'numerology':
           label = language === 'vi' ? 'Số học Vệ Đà' : 'Vedic Numerology';
+          break;
+        case 'luc-nham':
+          label = t('nav.lucNham');
           break;
         default:
           label = path;
@@ -68,14 +77,24 @@ const Breadcrumbs = () => {
           {breadcrumbs.map((item, index) => (
             <li key={item.path} className="inline-flex items-center">
               {index > 0 && (
-                <ChevronRight className="w-4 h-4 text-amber-600 mx-1" />
+                <ChevronRight
+                  className={`w-4 h-4 mx-1 ${isOnDarkHero ? 'text-amber-500' : 'text-amber-600'}`}
+                />
               )}
               {index === breadcrumbs.length - 1 ? (
-                <span className="text-amber-900 font-medium">{item.label}</span>
+                <span
+                  className={`font-medium ${isOnDarkHero ? 'text-amber-100' : 'text-amber-900'}`}
+                >
+                  {item.label}
+                </span>
               ) : (
                 <Link
                   to={item.path}
-                  className="text-amber-600 hover:text-amber-900 transition-colors"
+                  className={
+                    isOnDarkHero
+                      ? 'text-amber-300 hover:text-amber-50 transition-colors'
+                      : 'text-amber-600 hover:text-amber-900 transition-colors'
+                  }
                 >
                   {item.label}
                 </Link>
