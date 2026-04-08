@@ -200,3 +200,38 @@ export function getElementOfStem(stem: HeavenlyStem): FiveElement {
   return STEM_ELEMENT[stem];
 }
 
+export function getDichMa(dayChi: EarthBranch): EarthBranch {
+  // Dịch Mã by Tam Hợp Cục:
+  // Thân, Tý, Thìn => Dần
+  // Hợi, Mão, Mùi => Tỵ
+  // Dần, Ngọ, Tuất => Thân
+  // Tỵ, Dậu, Sửu => Hợi
+  if (dayChi === 'Thân' || dayChi === 'Tý' || dayChi === 'Thìn') return 'Dần';
+  if (dayChi === 'Hợi' || dayChi === 'Mão' || dayChi === 'Mùi') return 'Tỵ';
+  if (dayChi === 'Dần' || dayChi === 'Ngọ' || dayChi === 'Tuất') return 'Thân';
+  return 'Hợi';
+}
+
+export function getGanzhiCycleIndex(dayCan: HeavenlyStem, dayChi: EarthBranch): number {
+  const stemIndex = STEMS.indexOf(dayCan);
+  const branchIndex = BRANCHES.indexOf(dayChi);
+  for (let i = 0; i < 60; i += 1) {
+    if (i % 10 === stemIndex && i % 12 === branchIndex) return i;
+  }
+  throw new Error(`Invalid can-chi pair: ${dayCan} ${dayChi}`);
+}
+
+export function getTuanKhong(dayCan: HeavenlyStem, dayChi: EarthBranch): [EarthBranch, EarthBranch] {
+  const cycleIndex = getGanzhiCycleIndex(dayCan, dayChi);
+  const xunIndex = Math.floor(cycleIndex / 10);
+  const map: Array<[EarthBranch, EarthBranch]> = [
+    ['Tuất', 'Hợi'], // Giáp Tý tuần
+    ['Thân', 'Dậu'], // Giáp Tuất tuần
+    ['Ngọ', 'Mùi'], // Giáp Thân tuần
+    ['Thìn', 'Tỵ'], // Giáp Ngọ tuần
+    ['Dần', 'Mão'], // Giáp Thìn tuần
+    ['Tý', 'Sửu'], // Giáp Dần tuần
+  ];
+  return map[xunIndex];
+}
+

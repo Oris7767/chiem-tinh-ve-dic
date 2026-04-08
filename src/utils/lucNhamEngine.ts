@@ -1,13 +1,15 @@
 import {
   BRANCHES,
   STEMS,
-  MONTH_TUONGS,
   STEM_KY_CUNG,
   EarthBranch,
   HeavenlyStem,
   isKhacByFiveElement,
   isTặcByFiveElement,
   isTyiHoaByYinYang,
+  yinYangOfStem,
+  getDichMa,
+  getTuanKhong,
 } from '@/data/lucNham';
 import {
   LucNhamPurpose,
@@ -94,6 +96,23 @@ function buildHeavenBoard(monthTuoBranch: EarthBranch, hourBranch: EarthBranch):
   return board as Record<EarthBranch, EarthBranch>;
 }
 
+function getOppositeBranch(branch: EarthBranch): EarthBranch {
+  const idx = BRANCHES.indexOf(branch);
+  return BRANCHES[(idx + 6) % 12];
+}
+
+function isPhucNgamBoard(board: Record<EarthBranch, EarthBranch>): boolean {
+  return BRANCHES.every((b) => board[b] === b);
+}
+
+function isPhanNgamBoard(board: Record<EarthBranch, EarthBranch>): boolean {
+  return BRANCHES.every((b) => board[b] === getOppositeBranch(b));
+}
+
+function isOpposing(a: EarthBranch, b: EarthBranch): boolean {
+  return getOppositeBranch(a) === b;
+}
+
 function priorityBucket(branch: EarthBranch): number {
   if (MẠNH.has(branch)) return 3;
   if (TRỌNG.has(branch)) return 2;
@@ -119,7 +138,33 @@ function buildFourKhoa(
   ];
 }
 
-function pickSoTruyen(khoa: FourKhoaItem[], dayCan: HeavenlyStem): EarthBranch {
+// Placeholder: map Nguyệt tướng by Trung Khí boundaries.
+// This is intentionally explicit and replaceable by an astronomic ephemeris in next iteration.
+export function getNguyetTuongByTietKhi(date: Date): EarthBranch {
+  const m = date.getMonth() + 1;
+  const d = date.getDate();
+  // Rough fallback boundaries around each month's Trung Khí (typically ~20th-24th).
+  // Order follows classic 12 monthly generals from the provided rules.
+  if ((m === 2 && d >= 19) || (m === 3 && d < 21)) return 'Hợi'; // Vũ Thủy..Xuân Phân
+  if ((m === 3 && d >= 21) || (m === 4 && d < 20)) return 'Tuất'; // Xuân Phân..Cốc Vũ
+  if ((m === 4 && d >= 20) || (m === 5 && d < 21)) return 'Dậu'; // Cốc Vũ..Tiểu Mãn
+  if ((m === 5 && d >= 21) || (m === 6 && d < 21)) return 'Thân'; // Tiểu Mãn..Hạ Chí
+  if ((m === 6 && d >= 21) || (m === 7 && d < 23)) return 'Mùi'; // Hạ Chí..Đại Thử
+  if ((m === 7 && d >= 23) || (m === 8 && d < 23)) return 'Ngọ'; // Đại Thử..Xử Thử
+  if ((m === 8 && d >= 23) || (m === 9 && d < 23)) return 'Tỵ'; // Xử Thử..Thu Phân
+  if ((m === 9 && d >= 23) || (m === 10 && d < 23)) return 'Thìn'; // Thu Phân..Sương Giáng
+  if ((m === 10 && d >= 23) || (m === 11 && d < 22)) return 'Mão'; // Sương Giáng..Tiểu Tuyết
+  if ((m === 11 && d >= 22) || (m === 12 && d < 22)) return 'Dần'; // Tiểu Tuyết..Đông Chí
+  if ((m === 12 && d >= 22) || (m === 1 && d < 20)) return 'Sửu'; // Đông Chí..Đại Hàn
+  return 'Tý'; // Đại Hàn..Vũ Thủy
+}
+
+function pickSoTruyen(
+  khoa: FourKhoaItem[],
+  dayCan: HeavenlyStem,
+  dayChi: EarthBranch,
+  board: Record<EarthBranch, EarthBranch>
+): EarthBranch {
   const tacList = khoa.filter((k) => isTặcByFiveElement(k.lower, k.upper));
   const khacList = khoa.filter((k) => isKhacByFiveElement(k.upper, k.lower));
 
@@ -133,7 +178,38 @@ function pickSoTruyen(khoa: FourKhoaItem[], dayCan: HeavenlyStem): EarthBranch {
     return pool[0].upper;
   };
 
-  return pickFrom(tacList) ?? pickFrom(khacList) ?? khoa[2].upper;
+  // 1) Tặc Khắc / Tỷ Dụng
+  const tacKhac = pickFrom(tacList) ?? pickFrom(khacList);
+  if (tacKhac) return tacKhac;
+
+  // 2) Phục Ngâm
+  if (isPhucNgamBoard(board)) {
+    return yinYangOfStem(dayCan) === 'Dương' ? khoa[0].upper : khoa[2].upper;
+  }
+
+  // 3) Phản Ngâm
+  if (isPhanNgamBoard(board)) {
+    return getDichMa(dayChi);
+  }
+
+  // 4) Bát Chuyên (when day-stem side and day-branch side collapse to same upper-branch)
+  if (khoa[0].upper === khoa[2].upper) {
+    return khoa[0].upper;
+  }
+
+  // 5) Dao Sát / Dao Khắc (remote clash cue)
+  const daoSatCandidates = khoa.filter((k) => isOpposing(k.upper, k.lower));
+  const daoSat = pickFrom(daoSatCandidates);
+  if (daoSat) return daoSat;
+
+  // 6) Ngang Tinh (no clash/no theft/no control)
+  const hasAnyCombat =
+    tacList.length > 0 || khacList.length > 0 || daoSatCandidates.length > 0;
+  if (!hasAnyCombat) {
+    return yinYangOfStem(dayCan) === 'Dương' ? khoa[0].upper : khoa[2].upper;
+  }
+
+  throw new Error(`Unable to determine Sơ truyền for ${dayCan} ${dayChi}`);
 }
 
 function getMessage(purpose: LucNhamPurpose, isGood: boolean, day: number): string {
@@ -146,16 +222,20 @@ function evaluateForXuatHanh(input: {
   so: EarthBranch;
   trung: EarthBranch;
   mat: EarthBranch;
+  dayCan: HeavenlyStem;
   dayChi: EarthBranch;
   birthYearChi: EarthBranch;
 }): boolean {
-  const { so, trung, mat, dayChi, birthYearChi } = input;
+  const { so, trung, mat, dayCan, dayChi, birthYearChi } = input;
 
-  // Heuristic scoring based on movement-friendly / conflict branches.
   let score = 0;
   const trio = [so, trung, mat];
-  if (trio.includes('Dần') || trio.includes('Thân')) score += 2; // Dịch mã nhóm
-  if (trio.includes('Hợi') || trio.includes('Tý')) score -= 1; // conservative risk flag
+  const dichMa = getDichMa(dayChi);
+  const [voidA, voidB] = getTuanKhong(dayCan, dayChi);
+
+  if (trio.includes(dichMa)) score += 2;
+  if (trio.includes(voidA) || trio.includes(voidB)) score -= 2;
+
   if (dayChi === birthYearChi) score -= 1;
   if (dayChi === so || dayChi === trung) score += 1;
 
@@ -170,17 +250,17 @@ export function buildThirtyDayForecast(params: {
 }): LucNhamDayResult[] {
   const { year, month, purpose, birthDate } = params;
   const safeMonth = Math.max(1, Math.min(12, month));
-  const monthTuo = MONTH_TUONGS[(safeMonth - 1) % MONTH_TUONGS.length].branch;
   const hourBranch: EarthBranch = 'Ngọ';
-  const board = buildHeavenBoard(monthTuo, hourBranch);
   const birthYearChi = getYearBranch(new Date(birthDate));
 
   const result: LucNhamDayResult[] = [];
   for (let day = 1; day <= 30; day += 1) {
     const date = new Date(year, safeMonth - 1, day);
+    const monthTuo = getNguyetTuongByTietKhi(date);
+    const board = buildHeavenBoard(monthTuo, hourBranch);
     const { can, chi } = getDayCanChi(date);
     const khoa = buildFourKhoa(board, can, chi);
-    const so = pickSoTruyen(khoa, can);
+    const so = pickSoTruyen(khoa, can, chi, board);
     const trung = board[so];
     const mat = board[trung];
 
@@ -188,6 +268,7 @@ export function buildThirtyDayForecast(params: {
       so,
       trung,
       mat,
+      dayCan: can,
       dayChi: chi,
       birthYearChi,
     });
