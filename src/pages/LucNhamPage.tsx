@@ -130,18 +130,6 @@ const LucNhamPage: React.FC = () => {
 
           <Card className="border-amber-200 bg-white text-amber-900 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-xl text-amber-900">{t('lucNham.localDataTitle')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-amber-800 text-sm md:text-base leading-relaxed">
-              <p>{t('lucNham.localDataBody')}</p>
-              <p className="text-amber-700 text-xs md:text-sm">
-                {t('lucNham.dataVersionLabel')}: {LUC_NHAM_DATA_VERSION}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-amber-200 bg-white text-amber-900 shadow-sm">
-            <CardHeader>
               <CardTitle className="text-xl text-amber-900">{t('lucNham.calculatorTitle')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-amber-800 text-sm md:text-base leading-relaxed">
@@ -351,7 +339,7 @@ const LucNhamPage: React.FC = () => {
                   Báo cáo chi tiết ngày {selectedDay.day} ({selectedDay.dayCan} {selectedDay.dayChi})
                 </DialogTitle>
                 <DialogDescription className="text-gray-600">
-                  Tổng hợp tham số cá nhân hóa theo Đại Lục Nhâm (không dùng AI diễn giải).
+                  Tổng hợp tham số cá nhân hóa theo Đại Lục Nhâm.
                 </DialogDescription>
               </DialogHeader>
 

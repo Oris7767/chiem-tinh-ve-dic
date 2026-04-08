@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
-import { Menu, BookOpen, Star, Globe, CalendarDays, Sparkles } from 'lucide-react';
+import { Menu, BookOpen, Star, Globe, Sparkles } from 'lucide-react';
 import { 
   Sheet, 
   SheetContent, 
@@ -28,11 +28,6 @@ const MobileMenu = () => {
       label: language === 'vi' ? 'Chiêm Tinh Vệ Đà' : 'Vedic Astrology', 
       icon: Star, 
       highlight: true 
-    },
-    {
-      to: '/panchang',
-      label: language === 'vi' ? 'Lịch Panchang' : 'Panchang Calendar',
-      icon: CalendarDays,
     },
     {
       to: '/luc-nham',
