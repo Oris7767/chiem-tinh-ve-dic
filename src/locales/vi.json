@@ -74,14 +74,12 @@
   },
   "lucNham": {
     "seoTitle": "Lục Nhâm – Chọn ngày giờ tốt | chiemtinhvedavn",
-    "seoDescription": "Công cụ tham khảo ngày giờ lành theo Lục Nhâm: dữ liệu tra cứu cục bộ trên trình duyệt, không gửi thông tin tính toán lên máy chủ.",
+    "seoDescription": "Công cụ tham khảo ngày giờ lành theo Đại Lục Nhâm.",
     "title": "Lục Nhâm – Chọn ngày giờ tốt",
-    "subtitle": "Công cụ Votive giúp bạn tham khảo ngày giờ lành theo logic Lục Nhâm cổ truyền. Bảng tra và quy tắc được đóng gói trong trang để tải nhanh và bảo mật.",
+    "subtitle": "Công cụ Votive giúp bạn tham khảo ngày giờ lành theo logic Đại Lục Nhâm cổ truyền.",
     "localDataTitle": "Dữ liệu cục bộ, riêng tư",
-    "localDataBody": "Các bảng tra và luật giải nằm trong mã nguồn ứng dụng. Khi phần máy tính được nối đầy đủ theo tài liệu dự án, dữ liệu nhập của bạn cho công cụ này không cần gửi lên máy chủ của chúng tôi.",
-    "dataVersionLabel": "Phiên bản gói dữ liệu tham chiếu",
     "calculatorTitle": "Máy tính Lục Nhâm",
-    "calculatorPlaceholder": "Quy trình Lục Nhâm từng bước theo tài liệu bạn cung cấp sẽ được đặt tại đây: nhập ngày giờ, suy ra can chi – môn tướng thần, và kết luận ngày/giờ tốt hay cần thận trọng, thống nhất với truyền thống bạn chọn."
+    "calculatorPlaceholder": "Quy trình Lục Nhâm từng bước theo tài liệu bạn cung cấp sẽ được đặt tại đây: nhập ngày giờ, suy ra can chi – môn tướng thần, và kết luận ngày/giờ tốt hay cần thận trọng."
   },
   "birthChart": {
     "title": "Bản đồ Sao Chiêm tinh Vệ Đà",
