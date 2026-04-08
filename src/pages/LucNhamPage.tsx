@@ -49,7 +49,7 @@ const LucNhamPage: React.FC = () => {
   }, [submitted, targetMonth, purpose, birthDate]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-stone-900 via-amber-950 to-amber-900">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-white via-amber-50 to-white">
       <SEO title={t('lucNham.seoTitle')} description={t('lucNham.seoDescription')} schema={lucNhamSchema} />
 
       <NavBar />
@@ -60,41 +60,68 @@ const LucNhamPage: React.FC = () => {
         </div>
 
         <div className="mb-12 text-center">
-          <div className="mb-6 overflow-hidden rounded-2xl border border-amber-800/70 bg-stone-900/70">
+          <div className="mb-6 mx-auto max-w-sm overflow-hidden rounded-2xl border border-amber-200 bg-white shadow-sm">
             <img
               src="/images/Luc%20Nham.png"
               alt="Logo âm dương Lục Nhâm"
-              className="h-48 w-full object-cover md:h-64"
+              className="h-28 w-full object-contain md:h-32"
             />
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-amber-50 mb-4 font-serif">
+          <h1 className="text-3xl md:text-4xl font-bold text-amber-900 mb-4 font-serif">
             {t('lucNham.title')}
           </h1>
-          <p className="text-lg text-amber-100 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-lg text-amber-800 max-w-3xl mx-auto leading-relaxed">
             {t('lucNham.subtitle')}
           </p>
         </div>
 
         <div className="grid gap-6 max-w-3xl mx-auto">
-          <Card className="border-amber-800/60 bg-stone-900/70 text-amber-50 shadow-lg backdrop-blur-sm">
+          <Card className="border-amber-200 bg-white text-amber-900 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-xl text-amber-100">{t('lucNham.localDataTitle')}</CardTitle>
+              <CardTitle className="text-xl text-amber-900">Đại Lục Nhâm: Chọn &quot;Sự an bài thuận lợi&quot;</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 text-amber-100/90 text-sm md:text-base leading-relaxed">
+            <CardContent className="space-y-4 text-amber-800 text-sm md:text-base leading-relaxed">
+              <p>
+                Lục Nhâm thiên về diễn biến nhân sự. Khi dùng Lục Nhâm để chọn ngày, thực chất là bạn đang xem
+                một &quot;quẻ dự đoán&quot; cho ngày đó.
+              </p>
+              <p>
+                Ưu điểm: Cho bạn biết ngày đó các mối quan hệ con người có thuận hòa hay không, có ẩn chứa rủi ro hay
+                tiểu nhân quấy phá không. Lục Nhâm rất tinh vi trong việc soi xét tâm lý và các nút thắt của sự việc.
+              </p>
+              <p className="font-semibold text-amber-900">Khi nào nên dùng:</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Tổ chức đám cưới (cần sự hòa hợp nhân sự).</li>
+                <li>Hòa giải tranh chấp, kiện tụng.</li>
+                <li>Hội họp, gặp gỡ đối tác (để xem lòng người).</li>
+                <li>Tìm hiểu xem một dự định trong ngày đó có &quot;thành&quot; hay không.</li>
+              </ul>
+              <p>
+                Trong giới huyền học, người ta thường dùng Đổng Công Trạch Nhật hoặc Đại Lục Nhâm để xem ngày (Nhật),
+                sau đó dùng Kỳ Môn để chọn giờ (Thời) và hướng (Phương) nhằm tối ưu hóa kết quả.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-amber-200 bg-white text-amber-900 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-xl text-amber-900">{t('lucNham.localDataTitle')}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-amber-800 text-sm md:text-base leading-relaxed">
               <p>{t('lucNham.localDataBody')}</p>
-              <p className="text-amber-200/80 text-xs md:text-sm">
+              <p className="text-amber-700 text-xs md:text-sm">
                 {t('lucNham.dataVersionLabel')}: {LUC_NHAM_DATA_VERSION}
               </p>
             </CardContent>
           </Card>
 
-          <Card className="border-amber-800/60 bg-stone-900/70 text-amber-50 shadow-lg backdrop-blur-sm">
+          <Card className="border-amber-200 bg-white text-amber-900 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-xl text-amber-100">{t('lucNham.calculatorTitle')}</CardTitle>
+              <CardTitle className="text-xl text-amber-900">{t('lucNham.calculatorTitle')}</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 text-amber-100/90 text-sm md:text-base leading-relaxed">
-              <div className="flex items-center justify-center gap-2 text-amber-100">
-                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-amber-600/70 bg-amber-900/40 text-lg">
+            <CardContent className="space-y-4 text-amber-800 text-sm md:text-base leading-relaxed">
+              <div className="flex items-center justify-center gap-2 text-amber-800">
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-amber-300 bg-amber-100 text-lg">
                   ☯
                 </span>
                 <span className="text-sm md:text-base">Lịch tham khảo Lục Nhâm cho 30 ngày trong tháng</span>
@@ -105,16 +132,16 @@ const LucNhamPage: React.FC = () => {
                   type="date"
                   value={birthDate}
                   onChange={(e) => setBirthDate(e.target.value)}
-                  className="border-amber-700 bg-stone-950/60 text-amber-50"
+                  className="border-amber-300 bg-white text-amber-900"
                 />
                 <Input
                   type="month"
                   value={targetMonth}
                   onChange={(e) => setTargetMonth(e.target.value)}
-                  className="border-amber-700 bg-stone-950/60 text-amber-50"
+                  className="border-amber-300 bg-white text-amber-900"
                 />
                 <Select value={purpose} onValueChange={(value) => setPurpose(value as LucNhamPurpose)}>
-                  <SelectTrigger className="border-amber-700 bg-stone-950/60 text-amber-50">
+                  <SelectTrigger className="border-amber-300 bg-white text-amber-900">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -140,7 +167,7 @@ const LucNhamPage: React.FC = () => {
                 <p>{t('lucNham.calculatorPlaceholder')}</p>
               ) : (
                 <div className="space-y-3">
-                  <p className="text-amber-200 text-sm">
+                  <p className="text-amber-700 text-sm">
                     Màu xanh: tốt cho {PURPOSE_LABELS[purpose].toLowerCase()} | Màu đỏ: nên thận trọng
                   </p>
                   <div className="grid gap-3 md:grid-cols-2">
@@ -156,7 +183,7 @@ const LucNhamPage: React.FC = () => {
                         <p className="font-semibold">
                           Ngày {item.day} ({item.dayCan} {item.dayChi})
                         </p>
-                        <p className="text-xs text-amber-200/90 mt-1">
+                        <p className="text-xs text-amber-700 mt-1">
                           Tam truyền: {item.soTruyen} - {item.trungTruyen} - {item.matTruyen}
                         </p>
                         <p className="text-sm mt-2">{item.reason}</p>
