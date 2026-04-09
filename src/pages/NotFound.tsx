@@ -7,11 +7,11 @@ import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
 import { Button } from '@/components/ui/button';
 import { Home, ArrowLeft } from 'lucide-react';
-import { SEO } from '../utils/seo';
+import SEO from '../components/SEO';
 
 const NotFound = () => {
   const location = useLocation();
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
 
   useEffect(() => {
     console.error(
@@ -22,11 +22,16 @@ const NotFound = () => {
 
   return (
     <>
-      <SEO 
-        title={language === 'vi' ? 'Không tìm thấy trang' : 'Page Not Found'} 
-        description={language === 'vi' ? 'Trang bạn đang tìm kiếm không tồn tại hoặc đã bị di chuyển.' : 'The page you are looking for does not exist or has been moved.'}
+      <SEO
+        title={language === 'vi' ? 'Không tìm thấy trang' : 'Page Not Found'}
+        description={
+          language === 'vi'
+            ? 'Trang bạn đang tìm kiếm không tồn tại hoặc đã bị di chuyển.'
+            : 'The page you are looking for does not exist or has been moved.'
+        }
         keywords="404, not found, error"
         noindex={true}
+        lang={language === 'vi' ? 'vi' : 'en'}
       />
       <div className="min-h-screen flex flex-col bg-gradient-to-b from-amber-800 to-amber-950">
         <NavBar />

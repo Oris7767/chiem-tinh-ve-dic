@@ -107,11 +107,12 @@ const BlogPostPage = () => {
 
   return (
     <>
-      <SEO 
+      <SEO
         title={post.title}
         description={post.excerpt}
         image={post.imageUrl}
         schema={postSchema}
+        lang={language === 'vi' ? 'vi' : 'en'}
       />
       
       <div className="min-h-screen flex flex-col bg-gradient-to-b from-amber-50 to-amber-100">

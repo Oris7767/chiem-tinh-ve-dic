@@ -3,6 +3,10 @@ Allow: /
 Allow: /blog/
 Allow: /vedic-chart/
 Allow: /luc-nham/
+Allow: /panchang/
+Allow: /numerology/
+Allow: /trading/
+
 Disallow: /blog/admin
 Disallow: /subscribers
 Disallow: /numerology/admin
@@ -10,7 +14,6 @@ Disallow: /numerology/admin
 # Sitemaps
 Sitemap: https://vedicvn.com/sitemap.xml
 
-# Common crawl directives
 User-agent: AdsBot-Google
 Allow: /
 
@@ -22,6 +25,3 @@ Allow: /
 
 User-agent: Bingbot
 Allow: /
-
-# Rate limiting
-Crawl-delay: 10

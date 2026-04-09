@@ -5,7 +5,6 @@ import Footer from '../components/Footer';
 import GoogleAd from '../components/GoogleAds';
 import { numberMeanings } from '../utils/data';
 import { useLanguage } from '../context/LanguageContext';
-import { Helmet } from 'react-helmet-async';
 import AboutSlider from '../components/AboutSlider';
 import SEO from '../components/SEO';
 import { calculatorSchema } from '../lib/schemas';
@@ -15,10 +14,12 @@ const Index = () => {
   
   return (
     <div className="min-h-screen flex flex-col">
-      <SEO 
+      <SEO
         title="Số học Vệ Đà - Khám phá ý nghĩa sâu sắc | chiemtinhvedavn"
         description="Khám phá ý nghĩa sâu sắc đằng sau những con số trong cuộc sống của bạn dựa trên nguyên lý cổ đại của số học Vệ Đà từ chiemtinhvedavn."
+        keywords="số học Vệ Đà, lá số Vệ Đà, Lục Nhâm, Panchang, chiêm tinh, Jyotish, chiemtinhvedavn"
         schema={calculatorSchema}
+        lang={language === 'vi' ? 'vi' : 'en'}
       />
       
       <NavBar />

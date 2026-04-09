@@ -13,6 +13,8 @@ import { SolarEvents } from '../components/panchang/SolarEvents';
 import { PlanetaryTransits } from '../components/panchang/PlanetaryTransits';
 import { AstrologicalInfo } from '../components/panchang/AstrologicalInfo';
 import { LunarInfo } from '../components/panchang/LunarInfo';
+import SEO from '../components/SEO';
+import { panchangSchema } from '../lib/schemas';
 
 // For development, set this to true to use mock data
 const USE_MOCK = false;
@@ -20,7 +22,7 @@ const USE_MOCK = false;
 const Panchang: React.FC = () => {
   const { data: panchangData, isLoading: isPanchangLoading, error: panchangError } = usePanchang();
   const { data: transitsData, isLoading: isTransitsLoading, error: transitsError } = useTransits();
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   
   // Use mock data if USE_MOCK is true, otherwise use live data
   const rawData = USE_MOCK ? mockPanchangData : panchangData;
@@ -148,6 +150,13 @@ const Panchang: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 min-h-screen bg-[#2C1810] bg-[url('/images/panchang-bg.jpg')] bg-cover bg-center bg-fixed">
+      <SEO
+        title={t('panchang.seoTitle')}
+        description={t('panchang.seoDescription')}
+        keywords={t('panchang.seoKeywords')}
+        schema={panchangSchema}
+        lang={language === 'vi' ? 'vi' : 'en'}
+      />
       <div className="absolute inset-0 bg-[#2C1810]/90 backdrop-blur-sm"></div>
       <DiyaLamp />
       <div className="relative">

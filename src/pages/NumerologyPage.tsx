@@ -4,12 +4,21 @@ import NavBar from '../components/NavBar';
 import Calculator from '../components/Calculator';
 import Footer from '../components/Footer';
 import { useLanguage } from '../context/LanguageContext';
+import SEO from '../components/SEO';
+import { numerologyPageSchema } from '../lib/schemas';
 
 const NumerologyPage = () => {
-  const { t } = useLanguage();
-  
+  const { t, language } = useLanguage();
+
   return (
     <div className="min-h-screen flex flex-col">
+      <SEO
+        title={t('numerologyPage.seoTitle')}
+        description={t('numerologyPage.seoDescription')}
+        keywords={t('numerologyPage.seoKeywords')}
+        schema={numerologyPageSchema}
+        lang={language === 'vi' ? 'vi' : 'en'}
+      />
       <NavBar />
       <main className="flex-grow pt-16">
         <div className="container mx-auto px-4 py-8">

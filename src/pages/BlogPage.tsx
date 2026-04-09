@@ -72,10 +72,11 @@ const BlogPage = () => {
 
   return (
     <>
-      <SEO 
+      <SEO
         title={language === 'vi' ? 'Blog Chiêm Tinh Vệ Đà' : 'Vedic Astrology Blog'}
         description={language === 'vi' ? 'Khám phá tri thức cổ đại về chiêm tinh và số học Vệ Đà qua các bài viết chuyên sâu' : 'Explore ancient wisdom of Vedic astrology and numerology through our articles'}
         schema={dynamicBlogSchema}
+        lang={language === 'vi' ? 'vi' : 'en'}
       />
       
       <Helmet>

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Helmet } from 'react-helmet-async';
 import TradingViewChart from '../components/TradingViewChart';
 import AdvancedTradingViewChart from '../components/AdvancedTradingViewChart';
 import NavBar from '../components/NavBar';
@@ -12,6 +11,8 @@ import { Switch } from '../components/ui/switch';
 import { Label } from '../components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import Breadcrumbs from '../components/Breadcrumbs';
+import SEO from '../components/SEO';
+import { useLanguage } from '../context/LanguageContext';
 
 const POPULAR_SYMBOLS = [
   { name: 'Apple', symbol: 'NASDAQ:AAPL' },
@@ -51,6 +52,7 @@ const POPULAR_INDICATORS = [
 ];
 
 const TradingViewPage = () => {
+  const { language } = useLanguage();
   const [symbol, setSymbol] = useState<string>('NASDAQ:AAPL');
   const [interval, setInterval] = useState<string>('D');
   const [customSymbol, setCustomSymbol] = useState<string>('');
@@ -87,13 +89,23 @@ const TradingViewPage = () => {
     });
   };
 
+  const tradingTitle =
+    language === 'vi'
+      ? 'Biểu đồ chứng khoán & phân tích kỹ thuật | chiemtinhvedavn'
+      : 'Trading charts & technical analysis | chiemtinhvedavn';
+  const tradingDescription =
+    language === 'vi'
+      ? 'Xem biểu đồ nến, chỉ báo MA, MACD, RSI và khung thời gian tùy chọn — công cụ tham khảo xu hướng thị trường.'
+      : 'Candlestick charts with MA, MACD, RSI and custom timeframes — market trend tools for research.';
+
   return (
     <>
-      <Helmet>
-        <title>Trading Charts | Financial Analysis Tools</title>
-        <meta name="description" content="Analyze market trends with real-time trading charts. Make informed financial decisions with professional-grade technical analysis tools." />
-        <meta name="keywords" content="trading view, stock charts, market analysis, financial tools, technical analysis" />
-      </Helmet>
+      <SEO
+        title={tradingTitle}
+        description={tradingDescription}
+        keywords="TradingView, biểu đồ chứng khoán, technical analysis, stock chart, crypto chart, chiemtinhvedavn"
+        lang={language === 'vi' ? 'vi' : 'en'}
+      />
 
       <NavBar />
       

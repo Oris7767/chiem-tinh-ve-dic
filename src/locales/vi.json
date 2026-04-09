@@ -74,7 +74,8 @@
   },
   "lucNham": {
     "seoTitle": "Lục Nhâm – Chọn ngày giờ tốt | chiemtinhvedavn",
-    "seoDescription": "Công cụ tham khảo ngày giờ lành theo Đại Lục Nhâm.",
+    "seoDescription": "Tra cứu Lục Nhâm online: chọn ngày giờ lành theo Đại Lục Nhâm (xuất hành, cưới hỏi, khai trương, thi cử…). Xem 30 ngày, Can Chi, môn tướng thần; tính toán cục bộ, bảo vệ quyền riêng tư.",
+    "seoKeywords": "Lục Nhâm, Đại Lục Nhâm, chọn ngày tốt, giờ hoàng đạo, xuất hành, xem ngày lành, chiêm tinh Việt Nam, Votive, chiemtinhvedavn",
     "title": "Lục Nhâm – Chọn ngày giờ tốt",
     "subtitle": "Công cụ Votive giúp bạn tham khảo ngày giờ lành theo logic Đại Lục Nhâm cổ truyền.",
     "localDataTitle": "Dữ liệu cục bộ, riêng tư",
@@ -82,6 +83,9 @@
     "calculatorPlaceholder": "Quy trình Lục Nhâm tại đây: nhập ngày giờ, suy ra can chi – môn tướng thần, và kết luận ngày/giờ tốt hay cần thận trọng."
   },
   "birthChart": {
+    "seoTitle": "Lá số Chiêm tinh Vệ Đà (Jyotish) — Bản đồ sao online | chiemtinhvedavn",
+    "seoDescription": "Tạo lá số Vệ Đà miễn phí: Graha, Bhava, Nakshatra, Vimshottari Dasha, bản đồ Nam Ấn. Nhập ngày giờ sinh, địa điểm và múi giờ; xuất SVG, PNG hoặc PDF.",
+    "seoKeywords": "lá số Vệ Đà, bản đồ sao Vedic, Jyotish, chiêm tinh Ấn Độ, Graha, Dasha, cung Mệnh, chiemtinhvedavn, horoscope Vedic",
     "title": "Bản đồ Sao Chiêm tinh Vệ Đà",
     "subtitle": "Tính toán bản đồ sao chiêm tinh Vệ Đà dựa trên chi tiết sinh của bạn và khám phá ảnh hưởng của các thiên thể lên cuộc sống của bạn",
     "birthDetails": "Chi tiết ngày sinh",
@@ -95,6 +99,16 @@
     "calculationSuccess": "Tính toán bản đồ sao thành công",
     "calculationError": "Lỗi khi tính toán bản đồ sao",
     "comingSoon": "Sắp ra mắt"
+  },
+  "numerologyPage": {
+    "seoTitle": "Máy tính số học Vệ Đà online | chiemtinhvedavn",
+    "seoDescription": "Tính số sinh, số tên và số cuộc đời theo số học Vệ Đà. Nhập họ tên và ngày sinh — kết quả và ý nghĩa ngay trên trình duyệt.",
+    "seoKeywords": "số học Vệ Đà, thần số học, số đường đời, số tên, Vedic numerology, chiemtinhvedavn"
+  },
+  "panchang": {
+    "seoTitle": "Panchang hôm nay — Tithi, Nakshatra, múi giờ | chiemtinhvedavn",
+    "seoDescription": "Xem Panchang (lịch thiên văn Ấn Độ): Tithi, Nakshatra, Yoga, Karana, giờ Rahu, Mặt Trời / Mặt Trăng và chuyển động hành tinh.",
+    "seoKeywords": "Panchang, Tithi, Nakshatra, lịch Ấn Độ, giờ Rahu, Jyotish, chiemtinhvedavn"
   },
   "number": {
     "1": {
