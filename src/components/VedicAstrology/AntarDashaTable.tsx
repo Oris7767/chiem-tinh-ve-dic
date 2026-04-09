@@ -65,7 +65,6 @@ const AntarDashaTable: React.FC<AntarDashaTableProps> = ({ antarDashas, currentP
               <TableHead>Hành Tinh</TableHead>
               <TableHead>Ngày Bắt Đầu</TableHead>
               <TableHead>Ngày Kết Thúc</TableHead>
-              <TableHead>Thời Gian (năm)</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -76,7 +75,6 @@ const AntarDashaTable: React.FC<AntarDashaTableProps> = ({ antarDashas, currentP
                 </TableCell>
                 <TableCell>{formatDate(dasha.startDate)}</TableCell>
                 <TableCell>{formatDate(dasha.endDate)}</TableCell>
-                <TableCell>{(dasha.duration / 365.25).toFixed(2)}</TableCell>
               </TableRow>
             ))}
           </TableBody>

@@ -31,6 +31,10 @@ const PlanetAspectsTable: React.FC<PlanetAspectsTableProps> = ({ planets }) => {
   // Lọc ra các hành tinh có góc chiếu
   const planetsWithAspects = planets.filter(p => p.aspects && p.aspects.length > 0);
 
+  // Tạm thời ẩn bảng góc chiếu
+  return null;
+
+  /*
   return (
     <Card>
       <CardHeader>
@@ -74,6 +78,7 @@ const PlanetAspectsTable: React.FC<PlanetAspectsTableProps> = ({ planets }) => {
       </CardContent>
     </Card>
   );
+  */
 };
 
 export default PlanetAspectsTable; 

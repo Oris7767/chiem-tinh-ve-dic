@@ -6,6 +6,7 @@ import VedicChart from '../components/VedicAstrology/VedicChart';
 import SEO from '../components/SEO';
 import { vedicChartSchema } from '../lib/schemas';
 import Breadcrumbs from '../components/Breadcrumbs';
+import { Helmet } from 'react-helmet-async';
 
 const VedicChartPage = () => {
   const { t, language } = useLanguage();
