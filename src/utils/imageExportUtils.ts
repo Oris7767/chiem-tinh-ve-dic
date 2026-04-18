@@ -100,56 +100,45 @@ function debugSVGContent(svgElement: SVGSVGElement): void {
   }
 }
 
-// Utility function to convert SVG directly to canvas
+// Alternative PNG download function that works directly with SVG
 async function svgToCanvas(svgElement: SVGSVGElement, width: number = 500, height: number = 500): Promise<HTMLCanvasElement> {
   return new Promise((resolve, reject) => {
     try {
-      // Create a new canvas
       const canvas = document.createElement('canvas');
       canvas.width = width;
       canvas.height = height;
       const ctx = canvas.getContext('2d');
-      
+
       if (!ctx) {
         reject(new Error('Cannot get canvas context'));
         return;
       }
-      
-      // Clone the SVG to avoid modifying the original
+
       const svgClone = svgElement.cloneNode(true) as SVGSVGElement;
       svgClone.setAttribute('width', width.toString());
       svgClone.setAttribute('height', height.toString());
       svgClone.setAttribute('viewBox', `0 0 ${width} ${height}`);
-      
-      // Serialize SVG to string
+
       const svgData = new XMLSerializer().serializeToString(svgClone);
       const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
       const svgUrl = URL.createObjectURL(svgBlob);
-      
-      // Create image from SVG
+
       const img = new Image();
       img.onload = () => {
-        // Fill canvas with white background
         ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, width, height);
-        
-        // Draw the SVG image
         ctx.drawImage(img, 0, 0, width, height);
-        
         URL.revokeObjectURL(svgUrl);
-        console.log('SVG converted to canvas successfully');
         resolve(canvas);
       };
-      
+
       img.onerror = (error) => {
         URL.revokeObjectURL(svgUrl);
-        console.error('Failed to load SVG as image:', error);
-        reject(new Error('Failed to convert SVG to image'));
+        reject(new Error('Failed to load SVG as image'));
       };
-      
+
       img.src = svgUrl;
     } catch (error) {
-      console.error('Error in svgToCanvas:', error);
       reject(error);
     }
   });
@@ -508,194 +497,225 @@ function createStyledHTML(
   `;
 }
 
+// Improved PNG download function - replaces html2canvas-based version
 export async function downloadAsPNG(
   chartData: VedicChartData,
   userData?: BirthDataFormValues | null
 ): Promise<void> {
-  let tempContainer: HTMLElement | null = null;
-  
   try {
-    // Create a temporary container
-    tempContainer = document.createElement('div');
-    tempContainer.style.position = 'absolute';
-    tempContainer.style.left = '-9999px';
-    tempContainer.style.top = '-9999px';
-    tempContainer.style.width = '1200px';
-    tempContainer.style.visibility = 'hidden';
-    tempContainer.innerHTML = createStyledHTML(chartData, userData);
-    
-    document.body.appendChild(tempContainer);
-    
-    // Wait for fonts and styles to load
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    // Insert the chart SVG with better error handling
-    const chartContainer = tempContainer.querySelector('#chart-container');
+    console.log('Starting PNG generation...');
+
+    // Get the original SVG chart
     const originalChart = document.getElementById('birth-chart-svg');
-    
-    if (chartContainer && originalChart) {
-      // Wait for the original chart to be fully rendered
-      if (originalChart instanceof SVGSVGElement) {
-        debugSVGContent(originalChart);
-        const isRendered = await waitForSVGRender(originalChart);
-        
-        if (!isRendered) {
-          console.warn('SVG chart not fully rendered, waiting additional time...');
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-      } else {
-        console.warn('Original chart is not an SVG element:', originalChart.tagName);
-        // Fallback wait time if not SVG element
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
-      
-      const chartClone = originalChart.cloneNode(true) as SVGSVGElement;
-      
-      // Set explicit dimensions
-      chartClone.setAttribute('width', '500');
-      chartClone.setAttribute('height', '500');
-      chartClone.setAttribute('viewBox', '0 0 500 500');
-      
-      // Remove any problematic attributes
-      chartClone.removeAttribute('class');
-      
-      // Ensure the SVG has proper styling for rendering
-      chartClone.style.display = 'block';
-      chartClone.style.margin = '0 auto';
-      chartClone.style.width = '500px';
-      chartClone.style.height = '500px';
-      chartClone.style.backgroundColor = 'white';
-      
-      console.log('Cloned SVG attributes:', {
-        width: chartClone.getAttribute('width'),
-        height: chartClone.getAttribute('height'),
-        viewBox: chartClone.getAttribute('viewBox'),
-        children: chartClone.children.length
+    if (!originalChart || !(originalChart instanceof SVGSVGElement)) {
+      throw new Error('Biểu đồ chưa được tải. Vui lòng đợi và thử lại.');
+    }
+
+    // Wait for SVG to be fully rendered
+    const isRendered = await waitForSVGRender(originalChart, 3000);
+    if (!isRendered) {
+      console.warn('SVG may not be fully rendered, proceeding anyway...');
+    }
+
+    // Convert SVG to canvas
+    const chartCanvas = await svgToCanvas(originalChart, 500, 500);
+    console.log('Chart converted to canvas:', chartCanvas.width, 'x', chartCanvas.height);
+
+    // Create full content canvas
+    const fullWidth = 1200;
+    const fullHeight = 1600; // Estimated height
+    const fullCanvas = document.createElement('canvas');
+    fullCanvas.width = fullWidth;
+    fullCanvas.height = fullHeight;
+    const ctx = fullCanvas.getContext('2d');
+
+    if (!ctx) {
+      throw new Error('Cannot create canvas context');
+    }
+
+    // Fill background
+    ctx.fillStyle = '#fef7cd';
+    ctx.fillRect(0, 0, fullWidth, fullHeight);
+
+    // Draw header background
+    ctx.fillStyle = '#B45309';
+    ctx.fillRect(0, 0, fullWidth, 100);
+
+    // Draw title
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 28px Arial';
+    ctx.textAlign = 'center';
+    const title = userData?.name
+      ? `Vedic Birth Chart - ${userData.name}`
+      : 'Vedic Birth Chart';
+    ctx.fillText(title, fullWidth / 2, 40);
+
+    // Draw birth info
+    if (userData) {
+      ctx.font = '16px Arial';
+      ctx.fillStyle = '#ffffff';
+      const birthInfo = [
+        userData.birthDate ? new Date(userData.birthDate).toLocaleDateString('vi-VN') : '',
+        userData.birthTime || '',
+        userData.location || ''
+      ].filter(Boolean).join(' - ');
+      ctx.fillText(birthInfo, fullWidth / 2, 70);
+    }
+
+    // Draw chart (centered)
+    const chartX = (fullWidth - 500) / 2;
+    const chartY = 120;
+    ctx.drawImage(chartCanvas, chartX, chartY);
+
+    // Draw planet details section
+    let yPos = chartY + 520;
+
+    // Section header
+    ctx.fillStyle = '#B45309';
+    ctx.font = 'bold 18px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText('Chi tiết các hành tinh (Graha)', 30, yPos);
+    yPos += 25;
+
+    // Planet table header
+    ctx.fillStyle = '#B45309';
+    ctx.font = 'bold 12px Arial';
+    ctx.fillText('Hành tinh', 30, yPos);
+    ctx.fillText('Tên Sanskrit', 120, yPos);
+    ctx.fillText('Cung', 220, yPos);
+    ctx.fillText('Vị trí', 280, yPos);
+    ctx.fillText('Nhà', 340, yPos);
+    ctx.fillText('Nakshatra', 400, yPos);
+    yPos += 15;
+
+    // Draw planet rows
+    ctx.font = '11px Arial';
+    chartData.planets.forEach((planet, index) => {
+      if (yPos > fullHeight - 100) return;
+
+      const bgColor = index % 2 === 0 ? '#fafafa' : 'white';
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(25, yPos - 12, fullWidth - 50, 18);
+
+      ctx.fillStyle = '#000';
+      const planetInfo = `${planet.symbol} ${planet.name}`;
+      ctx.fillText(planetInfo, 30, yPos);
+
+      const sanskritName = VEDIC_PLANET_NAMES[planet.name] || planet.name;
+      ctx.fillText(sanskritName, 120, yPos);
+      ctx.fillText(ZODIAC_SIGNS[planet.sign], 220, yPos);
+      const degrees = Math.floor(planet.longitude % 30);
+      const minutes = Math.floor((planet.longitude % 30 - degrees) * 60);
+      ctx.fillText(`${degrees}°${minutes}'`, 280, yPos);
+      ctx.fillText(`${planet.house}`, 340, yPos);
+      ctx.fillText(planet.nakshatra.name, 400, yPos);
+
+      yPos += 18;
+    });
+
+    // Draw house details section
+    yPos += 20;
+    if (yPos + 200 < fullHeight) {
+      ctx.fillStyle = '#B45309';
+      ctx.font = 'bold 18px Arial';
+      ctx.fillText('Chi tiết các nhà (Bhava)', 30, yPos);
+      yPos += 25;
+
+      ctx.font = 'bold 12px Arial';
+      ctx.fillText('Nhà', 30, yPos);
+      ctx.fillText('Tên Sanskrit', 80, yPos);
+      ctx.fillText('Ý Nghĩa', 200, yPos);
+      ctx.fillText('Hành tinh', 450, yPos);
+      yPos += 15;
+
+      ctx.font = '11px Arial';
+      chartData.houses.forEach((house, index) => {
+        if (yPos > fullHeight - 80) return;
+
+        const bgColor = index % 2 === 0 ? '#fafafa' : 'white';
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(25, yPos - 12, fullWidth - 50, 18);
+
+        ctx.fillStyle = '#000';
+        ctx.fillText(`${house.number}`, 30, yPos);
+
+        const houseInfo = HOUSE_NAMES[house.number as keyof typeof HOUSE_NAMES];
+        ctx.fillText(houseInfo.sanskrit, 80, yPos);
+
+        const planetSymbols = house.planets.map(planetId => {
+          const planet = chartData.planets.find(p => p.id === planetId);
+          return planet ? planet.symbol : '';
+        }).join(' ');
+        ctx.fillText(planetSymbols, 450, yPos);
+
+        yPos += 18;
       });
-      
-      // Try direct SVG to canvas conversion first
-      if (originalChart instanceof SVGSVGElement) {
-        try {
-          console.log('Attempting direct SVG to canvas conversion...');
-          const svgCanvas = await svgToCanvas(originalChart, 500, 500);
-          
-          // Replace the chart container with the canvas
-          chartContainer.innerHTML = '';
-          chartContainer.appendChild(svgCanvas);
-          
-          console.log('Direct SVG conversion successful');
-        } catch (svgError) {
-          console.warn('Direct SVG conversion failed, falling back to cloned SVG:', svgError);
-          chartContainer.appendChild(chartClone);
-        }
-      } else {
-        console.warn('Original chart is not SVG, using cloned element');
-        chartContainer.appendChild(chartClone);
-      }
-      
-      console.log('SVG chart prepared for PNG export');
-    } else {
-      console.warn('Chart SVG not found, proceeding without chart visualization');
-      if (chartContainer) {
-        chartContainer.innerHTML = '<div style="width: 500px; height: 500px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #666;">Biểu đồ sao không khả dụng</div>';
+    }
+
+    // Draw Dasha section
+    if (chartData.dashas?.current) {
+      yPos += 20;
+      if (yPos + 100 < fullHeight) {
+        ctx.fillStyle = '#B45309';
+        ctx.font = 'bold 18px Arial';
+        ctx.fillText('Vimshottari Dasha', 30, yPos);
+        yPos += 25;
+
+        ctx.fillStyle = '#fef3c7';
+        ctx.fillRect(25, yPos - 10, fullWidth - 50, 40);
+
+        ctx.fillStyle = '#000';
+        ctx.font = 'bold 12px Arial';
+        ctx.fillText(`Chu kỳ hiện tại: ${getViPlanetName(chartData.dashas.current.planet)}`, 35, yPos);
+
+        ctx.font = '11px Arial';
+        yPos += 15;
+        ctx.fillText(`Thời gian: ${formatDate(chartData.dashas.current.startDate)} - ${formatDate(chartData.dashas.current.endDate)}`, 35, yPos);
+        yPos += 15;
+        ctx.fillText(`Đã qua: ${chartData.dashas.current.elapsed?.years || 0} năm, ${chartData.dashas.current.elapsed?.months || 0} tháng, ${chartData.dashas.current.elapsed?.days || 0} ngày`, 35, yPos);
+        yPos += 15;
+        ctx.fillText(`Còn lại: ${chartData.dashas.current.remaining?.years || 0} năm, ${chartData.dashas.current.remaining?.months || 0} tháng, ${chartData.dashas.current.remaining?.days || 0} ngày`, 35, yPos);
       }
     }
-    
-    // Wait more time for SVG to render completely
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    const canvas = await html2canvas(tempContainer, {
-      width: 1200,
-      height: tempContainer.scrollHeight,
-      scale: 1.5, // Reduced scale to avoid memory issues
-      useCORS: true,
-      allowTaint: false,
-      backgroundColor: '#fef7cd',
-      logging: true, // Enable logging for debugging
-      removeContainer: false,
-      foreignObjectRendering: false, // Disable foreign object rendering for better compatibility
-      onclone: (clonedDoc) => {
-        // Ensure SVG elements are properly styled in the cloned document
-        const svgElements = clonedDoc.querySelectorAll('svg');
-        svgElements.forEach(svg => {
-          svg.style.display = 'block';
-          svg.style.width = svg.getAttribute('width') || '500px';
-          svg.style.height = svg.getAttribute('height') || '500px';
-        });
-        console.log('Cloned document prepared with', svgElements.length, 'SVG elements');
-      },
-      ignoreElements: (element) => {
-        // Ignore elements that might cause issues
-        return element.tagName === 'SCRIPT' || element.tagName === 'STYLE';
-      }
-    });
-    
-    // Verify canvas has content
-    if (canvas.width === 0 || canvas.height === 0) {
-      throw new Error('Canvas không có nội dung. Vui lòng thử lại.');
-    }
-    
-    // Debug canvas content
-    console.log('Canvas created:', {
-      width: canvas.width,
-      height: canvas.height,
-      dataURL: canvas.toDataURL().substring(0, 50) + '...'
-    });
-    
-    // Check if canvas is mostly empty (white/transparent)
-    const ctx = canvas.getContext('2d');
-    const imageData = ctx?.getImageData(0, 0, Math.min(canvas.width, 100), Math.min(canvas.height, 100));
-    let hasContent = false;
-    if (imageData) {
-      for (let i = 0; i < imageData.data.length; i += 4) {
-        const r = imageData.data[i];
-        const g = imageData.data[i + 1];
-        const b = imageData.data[i + 2];
-        const a = imageData.data[i + 3];
-        // Check if pixel is not white/transparent
-        if (!(r > 250 && g > 250 && b > 250) && a > 0) {
-          hasContent = true;
-          break;
-        }
-      }
-    }
-    console.log('Canvas has visible content:', hasContent);
-    
+
+    // Footer
+    ctx.fillStyle = '#666';
+    ctx.font = '10px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(`Generated by Vedic Astrology App - ${new Date().toLocaleDateString('vi-VN')}`, fullWidth / 2, fullHeight - 20);
+
     // Convert to blob and download
     return new Promise((resolve, reject) => {
-      canvas.toBlob((blob) => {
+      fullCanvas.toBlob((blob) => {
         if (blob && blob.size > 0) {
           const url = URL.createObjectURL(blob);
           const downloadLink = document.createElement('a');
           downloadLink.href = url;
-          
-          const fileName = userData?.name 
-            ? `vedic-chart-${userData.name.replace(/\s+/g, '-')}-${userData.birthDate || 'unknown'}.png`
+
+          const fileName = userData?.name
+            ? `vedic-chart-${userData.name.replace(/s+/g, '-')}-${userData.birthDate || 'unknown'}.png`
             : 'vedic-birth-chart.png';
-          
+
           downloadLink.download = fileName;
           document.body.appendChild(downloadLink);
           downloadLink.click();
           document.body.removeChild(downloadLink);
           URL.revokeObjectURL(url);
-          
+
           console.log(`PNG file downloaded successfully: ${fileName}, size: ${blob.size} bytes`);
           resolve();
         } else {
           reject(new Error('Failed to create blob from canvas or blob is empty'));
         }
-      }, 'image/png', 0.9);
+      }, 'image/png', 0.95);
     });
-    
+
   } catch (error) {
     console.error('Error generating PNG:', error);
     throw new Error(`Không thể tạo file PNG: ${error.message || 'Lỗi không xác định'}. Vui lòng thử lại hoặc sử dụng tùy chọn SVG.`);
-  } finally {
-    if (tempContainer && tempContainer.parentNode) {
-      document.body.removeChild(tempContainer);
-    }
   }
 }
+
 
 // Alternative PNG download function that works directly with SVG
 export async function downloadAsPNGDirect(
@@ -808,208 +828,239 @@ export async function downloadAsPNGDirect(
   }
 }
 
+// New improved PDF download function - replaces the old html2canvas-based version
+// This directly renders everything to canvas and then to PDF
 export async function downloadAsPDF(
   chartData: VedicChartData,
   userData?: BirthDataFormValues | null
 ): Promise<void> {
-  let tempContainer: HTMLElement | null = null;
-  
   try {
-    // Create a temporary container
-    tempContainer = document.createElement('div');
-    tempContainer.style.position = 'absolute';
-    tempContainer.style.left = '-9999px';
-    tempContainer.style.top = '-9999px';
-    tempContainer.style.width = '1200px';
-    tempContainer.style.visibility = 'hidden';
-    tempContainer.innerHTML = createStyledHTML(chartData, userData);
-    
-    document.body.appendChild(tempContainer);
-    
-    // Wait for fonts and styles to load
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    // Insert the chart SVG with better error handling
-    const chartContainer = tempContainer.querySelector('#chart-container');
+    console.log('Starting PDF generation...');
+
+    // Get the original SVG chart
     const originalChart = document.getElementById('birth-chart-svg');
-    
-    if (chartContainer && originalChart) {
-      // Wait for the original chart to be fully rendered
-      if (originalChart instanceof SVGSVGElement) {
-        debugSVGContent(originalChart);
-        const isRendered = await waitForSVGRender(originalChart);
-        
-        if (!isRendered) {
-          console.warn('SVG chart not fully rendered, waiting additional time...');
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-      } else {
-        console.warn('Original chart is not an SVG element:', originalChart.tagName);
-        // Fallback wait time if not SVG element
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
-      
-      const chartClone = originalChart.cloneNode(true) as SVGSVGElement;
-      
-      // Set explicit dimensions
-      chartClone.setAttribute('width', '500');
-      chartClone.setAttribute('height', '500');
-      chartClone.setAttribute('viewBox', '0 0 500 500');
-      
-      // Remove any problematic attributes
-      chartClone.removeAttribute('class');
-      
-      // Ensure the SVG has proper styling for rendering
-      chartClone.style.display = 'block';
-      chartClone.style.margin = '0 auto';
-      chartClone.style.width = '500px';
-      chartClone.style.height = '500px';
-      chartClone.style.backgroundColor = 'white';
-      
-      console.log('Cloned SVG attributes:', {
-        width: chartClone.getAttribute('width'),
-        height: chartClone.getAttribute('height'),
-        viewBox: chartClone.getAttribute('viewBox'),
-        children: chartClone.children.length
-      });
-      
-      // Try direct SVG to canvas conversion first
-      if (originalChart instanceof SVGSVGElement) {
-        try {
-          console.log('Attempting direct SVG to canvas conversion for PDF...');
-          const svgCanvas = await svgToCanvas(originalChart, 500, 500);
-          
-          // Replace the chart container with the canvas
-          chartContainer.innerHTML = '';
-          chartContainer.appendChild(svgCanvas);
-          
-          console.log('Direct SVG conversion successful for PDF');
-        } catch (svgError) {
-          console.warn('Direct SVG conversion failed, falling back to cloned SVG:', svgError);
-          chartContainer.appendChild(chartClone);
-        }
-      } else {
-        console.warn('Original chart is not SVG, using cloned element');
-        chartContainer.appendChild(chartClone);
-      }
-      
-      console.log('SVG chart prepared for PDF export');
-    } else {
-      console.warn('Chart SVG not found, proceeding without chart visualization');
-      if (chartContainer) {
-        chartContainer.innerHTML = '<div style="width: 500px; height: 500px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #666;">Biểu đồ sao không khả dụng</div>';
-      }
+    if (!originalChart || !(originalChart instanceof SVGSVGElement)) {
+      throw new Error('Biểu đồ chưa được tải. Vui lòng đợi và thử lại.');
     }
-    
-    // Wait more time for SVG to render completely
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    const canvas = await html2canvas(tempContainer, {
-      width: 1200,
-      height: tempContainer.scrollHeight,
-      scale: 1.2, // Slightly lower scale for PDF
-      useCORS: true,
-      allowTaint: false,
-      backgroundColor: '#fef7cd',
-      logging: true, // Enable logging for debugging
-      removeContainer: false,
-      foreignObjectRendering: false,
-      onclone: (clonedDoc) => {
-        // Ensure SVG elements are properly styled in the cloned document
-        const svgElements = clonedDoc.querySelectorAll('svg');
-        svgElements.forEach(svg => {
-          svg.style.display = 'block';
-          svg.style.width = svg.getAttribute('width') || '500px';
-          svg.style.height = svg.getAttribute('height') || '500px';
-        });
-        console.log('Cloned document prepared with', svgElements.length, 'SVG elements');
-      },
-      ignoreElements: (element) => {
-        return element.tagName === 'SCRIPT' || element.tagName === 'STYLE';
-      }
-    });
-    
-    // Verify canvas has content
-    if (canvas.width === 0 || canvas.height === 0) {
-      throw new Error('Canvas không có nội dung. Vui lòng thử lại.');
+
+    // Wait for SVG to be fully rendered
+    const isRendered = await waitForSVGRender(originalChart, 3000);
+    if (!isRendered) {
+      console.warn('SVG may not be fully rendered, proceeding anyway...');
     }
-    
-    // Debug canvas content
-    console.log('Canvas created for PDF:', {
-      width: canvas.width,
-      height: canvas.height,
-      dataURL: canvas.toDataURL().substring(0, 50) + '...'
-    });
-    
-    // Check if canvas is mostly empty (white/transparent)
-    const ctx = canvas.getContext('2d');
-    const imageData = ctx?.getImageData(0, 0, Math.min(canvas.width, 100), Math.min(canvas.height, 100));
-    let hasContent = false;
-    if (imageData) {
-      for (let i = 0; i < imageData.data.length; i += 4) {
-        const r = imageData.data[i];
-        const g = imageData.data[i + 1];
-        const b = imageData.data[i + 2];
-        const a = imageData.data[i + 3];
-        // Check if pixel is not white/transparent
-        if (!(r > 250 && g > 250 && b > 250) && a > 0) {
-          hasContent = true;
-          break;
-        }
-      }
-    }
-    console.log('Canvas has visible content for PDF:', hasContent);
-    
-    const imgData = canvas.toDataURL('image/png', 0.9);
-    
-    // Verify image data is not empty
-    if (!imgData || imgData === 'data:,') {
-      throw new Error('Không thể tạo dữ liệu hình ảnh từ canvas.');
-    }
-    
-    // Create PDF
+
+    // Convert SVG to canvas
+    const chartCanvas = await svgToCanvas(originalChart, 500, 500);
+    console.log('Chart converted to canvas:', chartCanvas.width, 'x', chartCanvas.height);
+
+    // Create full PDF page canvas (A4 size at 72 DPI = 595 x 842 pixels)
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
       format: 'a4'
     });
-    
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
-    
-    const imgWidth = pdfWidth - 20; // 10mm margin on each side
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    
-    let heightLeft = imgHeight;
-    let position = 10; // 10mm top margin
-    
-    // Add first page
-    pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-    heightLeft -= (pdfHeight - 20); // Account for margins
-    
-    // Add additional pages if needed
-    while (heightLeft >= 0) {
-      position = heightLeft - imgHeight + 10;
-      pdf.addPage();
-      pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-      heightLeft -= (pdfHeight - 20);
+
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    // Create a large canvas for all content
+    const contentWidth = 595; // A4 width in pixels at 72 DPI
+    const contentHeight = 1500; // Estimated height
+    const fullCanvas = document.createElement('canvas');
+    fullCanvas.width = contentWidth;
+    fullCanvas.height = contentHeight;
+    const ctx = fullCanvas.getContext('2d');
+
+    if (!ctx) {
+      throw new Error('Cannot create canvas context');
     }
-    
-    // Download PDF
-    const fileName = userData?.name 
-      ? `vedic-chart-${userData.name.replace(/\s+/g, '-')}-${userData.birthDate || 'unknown'}.pdf`
+
+    // Fill background
+    ctx.fillStyle = '#fef7cd';
+    ctx.fillRect(0, 0, contentWidth, contentHeight);
+
+    // Draw header background
+    ctx.fillStyle = '#B45309';
+    ctx.fillRect(0, 0, contentWidth, 60);
+
+    // Draw title
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 24px Arial';
+    ctx.textAlign = 'center';
+    const title = userData?.name
+      ? `Vedic Birth Chart - ${userData.name}`
+      : 'Vedic Birth Chart';
+    ctx.fillText(title, contentWidth / 2, 35);
+
+    // Draw birth info
+    if (userData) {
+      ctx.font = '14px Arial';
+      ctx.fillStyle = '#ffffff';
+      const birthInfo = [
+        userData.birthDate ? new Date(userData.birthDate).toLocaleDateString('vi-VN') : '',
+        userData.birthTime || '',
+        userData.location || ''
+      ].filter(Boolean).join(' - ');
+      ctx.fillText(birthInfo, contentWidth / 2, 55);
+    }
+
+    // Draw chart (centered)
+    const chartX = (contentWidth - 500) / 2;
+    const chartY = 80;
+    ctx.drawImage(chartCanvas, chartX, chartY);
+
+    // Draw planet details section
+    let yPos = chartY + 520;
+
+    // Section header
+    ctx.fillStyle = '#B45309';
+    ctx.font = 'bold 18px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText('Chi tiết các hành tinh (Graha)', 30, yPos);
+    yPos += 25;
+
+    // Planet table header
+    ctx.fillStyle = '#B45309';
+    ctx.font = 'bold 12px Arial';
+    ctx.fillText('Hành tinh', 30, yPos);
+    ctx.fillText('Tên Sanskrit', 120, yPos);
+    ctx.fillText('Cung', 220, yPos);
+    ctx.fillText('Vị trí', 280, yPos);
+    ctx.fillText('Nhà', 340, yPos);
+    ctx.fillText('Nakshatra', 400, yPos);
+    yPos += 15;
+
+    // Draw planet rows
+    ctx.font = '11px Arial';
+    chartData.planets.forEach((planet, index) => {
+      if (yPos > contentHeight - 100) return;
+
+      const bgColor = index % 2 === 0 ? '#fafafa' : 'white';
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(25, yPos - 12, contentWidth - 50, 18);
+
+      ctx.fillStyle = '#000';
+      const planetInfo = `${planet.symbol} ${planet.name}`;
+      ctx.fillText(planetInfo, 30, yPos);
+
+      const sanskritName = VEDIC_PLANET_NAMES[planet.name] || planet.name;
+      ctx.fillText(sanskritName, 120, yPos);
+      ctx.fillText(ZODIAC_SIGNS[planet.sign], 220, yPos);
+      const degrees = Math.floor(planet.longitude % 30);
+      const minutes = Math.floor((planet.longitude % 30 - degrees) * 60);
+      ctx.fillText(`${degrees}°${minutes}'`, 280, yPos);
+      ctx.fillText(`${planet.house}`, 340, yPos);
+      ctx.fillText(planet.nakshatra.name, 400, yPos);
+
+      yPos += 18;
+    });
+
+    // Draw house details section
+    yPos += 20;
+    if (yPos + 200 < contentHeight) {
+      ctx.fillStyle = '#B45309';
+      ctx.font = 'bold 18px Arial';
+      ctx.fillText('Chi tiết các nhà (Bhava)', 30, yPos);
+      yPos += 25;
+
+      ctx.font = 'bold 12px Arial';
+      ctx.fillText('Nhà', 30, yPos);
+      ctx.fillText('Tên Sanskrit', 80, yPos);
+      ctx.fillText('Ý Nghĩa', 200, yPos);
+      ctx.fillText('Hành tinh', 450, yPos);
+      yPos += 15;
+
+      ctx.font = '11px Arial';
+      chartData.houses.forEach((house, index) => {
+        if (yPos > contentHeight - 80) return;
+
+        const bgColor = index % 2 === 0 ? '#fafafa' : 'white';
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(25, yPos - 12, contentWidth - 50, 18);
+
+        ctx.fillStyle = '#000';
+        ctx.fillText(`${house.number}`, 30, yPos);
+
+        const houseInfo = HOUSE_NAMES[house.number as keyof typeof HOUSE_NAMES];
+        ctx.fillText(houseInfo.sanskrit, 80, yPos);
+
+        const planetSymbols = house.planets.map(planetId => {
+          const planet = chartData.planets.find(p => p.id === planetId);
+          return planet ? planet.symbol : '';
+        }).join(' ');
+        ctx.fillText(planetSymbols, 450, yPos);
+
+        yPos += 18;
+      });
+    }
+
+    // Draw Dasha section
+    if (chartData.dashas?.current) {
+      yPos += 20;
+      if (yPos + 100 < contentHeight) {
+        ctx.fillStyle = '#B45309';
+        ctx.font = 'bold 18px Arial';
+        ctx.fillText('Vimshottari Dasha', 30, yPos);
+        yPos += 25;
+
+        ctx.fillStyle = '#fef3c7';
+        ctx.fillRect(25, yPos - 10, contentWidth - 50, 40);
+
+        ctx.fillStyle = '#000';
+        ctx.font = 'bold 12px Arial';
+        ctx.fillText(`Chu kỳ hiện tại: ${getViPlanetName(chartData.dashas.current.planet)}`, 35, yPos);
+
+        ctx.font = '11px Arial';
+        yPos += 15;
+        ctx.fillText(`Thời gian: ${formatDate(chartData.dashas.current.startDate)} - ${formatDate(chartData.dashas.current.endDate)}`, 35, yPos);
+        yPos += 15;
+        ctx.fillText(`Đã qua: ${chartData.dashas.current.elapsed?.years || 0} năm, ${chartData.dashas.current.elapsed?.months || 0} tháng, ${chartData.dashas.current.elapsed?.days || 0} ngày`, 35, yPos);
+        yPos += 15;
+        ctx.fillText(`Còn lại: ${chartData.dashas.current.remaining?.years || 0} năm, ${chartData.dashas.current.remaining?.months || 0} tháng, ${chartData.dashas.current.remaining?.days || 0} ngày`, 35, yPos);
+      }
+    }
+
+    // Footer
+    ctx.fillStyle = '#666';
+    ctx.font = '10px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(`Generated by Vedic Astrology App - ${new Date().toLocaleDateString('vi-VN')}`, contentWidth / 2, contentHeight - 20);
+
+    // Convert canvas to image and add to PDF
+    const imgData = fullCanvas.toDataURL('image/png', 0.95);
+
+    // Calculate dimensions to fit A4 page
+    const imgRatio = contentWidth / contentHeight;
+    const pdfImgWidth = pageWidth - 20; // 10mm margins
+    const pdfImgHeight = pdfImgWidth / imgRatio;
+
+    // Add to PDF
+    pdf.addImage(imgData, 'PNG', 10, 10, pdfImgWidth, pdfImgHeight);
+
+    // Download
+    const fileName = userData?.name
+      ? `vedic-chart-${userData.name.replace(/s+/g, '-')}-${userData.birthDate || 'unknown'}.pdf`
       : 'vedic-birth-chart.pdf';
-    
+
     pdf.save(fileName);
-    
-    console.log(`PDF file downloaded successfully: ${fileName}`);
-    
+    console.log(`PDF generated successfully: ${fileName}`);
+
   } catch (error) {
     console.error('Error generating PDF:', error);
     throw new Error(`Không thể tạo file PDF: ${error.message || 'Lỗi không xác định'}`);
-  } finally {
-    if (tempContainer && tempContainer.parentNode) {
-      document.body.removeChild(tempContainer);
-    }
   }
-} 
+}
+
+// Helper functions for PDF generation
+function formatDate(dateStr: string): string {
+  try {
+    return new Date(dateStr).toLocaleDateString('vi-VN');
+  } catch (e) {
+    return dateStr;
+  }
+}
+
+function getViPlanetName(planet: string): string {
+  return PLANET_NAMES_VI[planet as keyof typeof PLANET_NAMES_VI] || planet;
+}
+ 
