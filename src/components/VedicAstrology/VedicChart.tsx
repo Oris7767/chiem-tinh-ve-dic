@@ -740,46 +740,46 @@ const ChartDisplay = ({ chartData, userData, onDownload, onDownloadSeparate, onD
               </div>
             )}
             {onDownload && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <Download className="h-4 w-4 mr-2" />
-                  Tải bản đồ
-                  <ChevronDown className="h-4 w-4 ml-2" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-64">
-                <DropdownMenuItem onClick={onDownloadPNG}>
-                  <Image className="h-4 w-4 mr-2" />
-                  <div className="flex flex-col">
-                    <span>Tải PNG (Khuyến nghị)</span>
-                    <span className="text-xs text-gray-500">Đẹp, dễ xem trên điện thoại</span>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={onDownloadPDF}>
-                  <FileText className="h-4 w-4 mr-2" />
-                  <div className="flex flex-col">
-                    <span>Tải PDF</span>
-                    <span className="text-xs text-gray-500">Dễ in và chia sẻ</span>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={onDownload}>
-                  <Download className="h-4 w-4 mr-2" />
-                  <div className="flex flex-col">
-                    <span>Tải SVG hoàn chỉnh</span>
-                    <span className="text-xs text-gray-500">Vector, có thể chỉnh sửa</span>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={onDownloadSeparate}>
-                  <Download className="h-4 w-4 mr-2" />
-                  <div className="flex flex-col">
-                    <span>Tải SVG riêng biệt</span>
-                    <span className="text-xs text-gray-500">2 file SVG tách biệt</span>
-                  </div>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Download className="h-4 w-4 mr-2" />
+                    Tải bản đồ
+                    <ChevronDown className="h-4 w-4 ml-2" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-64">
+                  <DropdownMenuItem onClick={onDownloadPNG}>
+                    <Image className="h-4 w-4 mr-2" />
+                    <div className="flex flex-col">
+                      <span>Tải PNG (Khuyến nghị)</span>
+                      <span className="text-xs text-gray-500">Đẹp, dễ xem trên điện thoại</span>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={onDownloadPDF}>
+                    <FileText className="h-4 w-4 mr-2" />
+                    <div className="flex flex-col">
+                      <span>Tải PDF</span>
+                      <span className="text-xs text-gray-500">Dễ in và chia sẻ</span>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={onDownload}>
+                    <Download className="h-4 w-4 mr-2" />
+                    <div className="flex flex-col">
+                      <span>Tải SVG hoàn chỉnh</span>
+                      <span className="text-xs text-gray-500">Vector, có thể chỉnh sửa</span>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={onDownloadSeparate}>
+                    <Download className="h-4 w-4 mr-2" />
+                    <div className="flex flex-col">
+                      <span>Tải SVG riêng biệt</span>
+                      <span className="text-xs text-gray-500">2 file SVG tách biệt</span>
+                    </div>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
         </CardHeader>
         <CardContent>
           <div className="aspect-square max-w-full md:max-w-2xl mx-auto">
