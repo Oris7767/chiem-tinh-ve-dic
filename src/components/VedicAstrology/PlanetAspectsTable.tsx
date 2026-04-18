@@ -17,19 +17,20 @@ import { Planet } from './VedicChart';
 
 interface PlanetAspectsTableProps {
   planets: Planet[];
+  showModernPlanets?: boolean;
 }
 
-const ASPECT_SYMBOLS = {
-  'Conjunction': '☌',
-  'Opposition': '☍',
-  'Trine': '△',
-  'Square': '□',
-  'Sextile': '⚹'
-};
-
-const PlanetAspectsTable: React.FC<PlanetAspectsTableProps> = ({ planets }) => {
+const PlanetAspectsTable: React.FC<PlanetAspectsTableProps> = ({ planets, showModernPlanets = false }) => {
   // Lọc ra các hành tinh có góc chiếu
-  const planetsWithAspects = planets.filter(p => p.aspects && p.aspects.length > 0);
+  const filteredPlanets = planets.filter(planet => {
+    const traditionalPlanetIds = ['su', 'mo', 'me', 've', 'ma', 'ju', 'sa', 'ra', 'ke'];
+    if (traditionalPlanetIds.includes(planet.id)) {
+      return true;
+    }
+    return showModernPlanets;
+  });
+
+  const planetsWithAspects = filteredPlanets.filter(p => p.aspects && p.aspects.length > 0);
 
   // Tạm thời ẩn bảng góc chiếu
   return null;

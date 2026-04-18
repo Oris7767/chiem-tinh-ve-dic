@@ -35,7 +35,10 @@ const PLANETS = [
   { id: "ju", name: "Jupiter", symbol: "♃", color: "#FFD700" },
   { id: "sa", name: "Saturn", symbol: "♄", color: "#696969" },
   { id: "ra", name: "Rahu", symbol: "☊", color: "#ADD8E6" },
-  { id: "ke", name: "Ketu", symbol: "☋", color: "#CD7F32" }
+  { id: "ke", name: "Ketu", symbol: "☋", color: "#CD7F32" },
+  { id: "ur", name: "Uranus", symbol: "♅", color: "#4FD0E7" },
+  { id: "ne", name: "Neptune", symbol: "♆", color: "#4B70DD" },
+  { id: "pl", name: "Pluto", symbol: "♇", color: "#CD7F32" }
 ];
 
 // Map planet name to its data
@@ -48,7 +51,10 @@ const PLANET_MAP: Record<string, any> = {
   "JUPITER": { id: "ju", name: "Jupiter", symbol: "♃", color: "#FFD700" },
   "SATURN": { id: "sa", name: "Saturn", symbol: "♄", color: "#696969" },
   "RAHU": { id: "ra", name: "Rahu", symbol: "☊", color: "#ADD8E6" },
-  "KETU": { id: "ke", name: "Ketu", symbol: "☋", color: "#CD7F32" }
+  "KETU": { id: "ke", name: "Ketu", symbol: "☋", color: "#CD7F32" },
+  "URANUS": { id: "ur", name: "Uranus", symbol: "♅", color: "#4FD0E7" },
+  "NEPTUNE": { id: "ne", name: "Neptune", symbol: "♆", color: "#4B70DD" },
+  "PLUTO": { id: "pl", name: "Pluto", symbol: "♇", color: "#CD7F32" }
 };
 
 // List of 27 Nakshatras
