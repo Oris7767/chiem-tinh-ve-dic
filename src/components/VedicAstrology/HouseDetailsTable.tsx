@@ -19,6 +19,7 @@ import { House, Planet } from './VedicChart';
 interface HouseDetailsTableProps {
   houses: House[];
   planets: Planet[];
+  showModernPlanets?: boolean;
 }
 
 const ZODIAC_SIGNS = [
@@ -42,7 +43,7 @@ const HOUSE_NAMES = {
   12: { sanskrit: "Vyaya Bhava", meaning: "Tổn thất / Giải thoát / Tiềm thức" }
 };
 
-const HouseDetailsTable: React.FC<HouseDetailsTableProps> = ({ houses, planets }) => {
+const HouseDetailsTable: React.FC<HouseDetailsTableProps> = ({ houses, planets, showModernPlanets = false }) => {
   const formatDegree = (longitude: number): string => {
     const totalDegrees = longitude % 360;
     const degrees = Math.floor(totalDegrees);
@@ -51,14 +52,22 @@ const HouseDetailsTable: React.FC<HouseDetailsTableProps> = ({ houses, planets }
   };
 
   const getZodiacSign = (signIndex: number): string => {
-    // Ensure signIndex is a valid number between 0 and 11
     const normalizedIndex = ((signIndex % 12) + 12) % 12;
     return ZODIAC_SIGNS[normalizedIndex] || 'Unknown';
   };
 
+  // Filter planets based on showModernPlanets
+  const filteredPlanets = planets.filter(planet => {
+    const traditionalPlanetIds = ['su', 'mo', 'me', 've', 'ma', 'ju', 'sa', 'ra', 'ke'];
+    if (traditionalPlanetIds.includes(planet.id)) {
+      return true;
+    }
+    return showModernPlanets;
+  });
+
   const getPlanetSymbols = (planetIds: string[]): JSX.Element[] => {
     return planetIds.map(planetId => {
-      const planet = planets.find(p => p.id === planetId);
+      const planet = filteredPlanets.find(p => p.id === planetId);
       if (!planet) return null;
       return (
         <span

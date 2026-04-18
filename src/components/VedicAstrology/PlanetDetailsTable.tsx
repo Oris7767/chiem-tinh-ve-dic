@@ -18,6 +18,7 @@ import { Planet } from './VedicChart';
 
 interface PlanetDetailsTableProps {
   planets: Planet[];
+  showModernPlanets?: boolean;
 }
 
 const ZODIAC_SIGNS = [
@@ -35,10 +36,21 @@ const VEDIC_PLANET_NAMES: Record<string, string> = {
   "Venus": "Shukra",
   "Saturn": "Shani",
   "Rahu": "Rahu",
-  "Ketu": "Ketu"
+  "Ketu": "Ketu",
+  "Uranus": "Uranus",
+  "Neptune": "Neptune",
+  "Pluto": "Pluto"
 };
 
-const PlanetDetailsTable: React.FC<PlanetDetailsTableProps> = ({ planets }) => {
+const PlanetDetailsTable: React.FC<PlanetDetailsTableProps> = ({ planets, showModernPlanets = false }) => {
+  // Filter planets based on showModernPlanets
+  const filteredPlanets = planets.filter(planet => {
+    const traditionalPlanetIds = ['su', 'mo', 'me', 've', 'ma', 'ju', 'sa', 'ra', 'ke'];
+    if (traditionalPlanetIds.includes(planet.id)) {
+      return true;
+    }
+    return showModernPlanets;
+  });
   const formatDegree = (longitude: number): string => {
     const totalDegrees = longitude % 30;
     const degrees = Math.floor(totalDegrees);
@@ -70,7 +82,7 @@ const PlanetDetailsTable: React.FC<PlanetDetailsTableProps> = ({ planets }) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {planets.map((planet) => (
+            {filteredPlanets.map((planet) => (
               <TableRow key={planet.id}>
                 <TableCell className="font-medium">
                   <span style={{ color: planet.color }}>

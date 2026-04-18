@@ -41,15 +41,28 @@ interface SouthIndianChartProps {
   chartData: VedicChartData;
   userName?: string;
   birthInfo?: string;
+  showModernPlanets?: boolean;
 }
 
 const SouthIndianChart: React.FC<SouthIndianChartProps> = ({ 
   chartData, 
   userName = '',
-  birthInfo = ''
+  birthInfo = '',
+  showModernPlanets = false
 }) => {
+  // Filter planets based on showModernPlanets toggle
+  const filteredPlanets = chartData.planets.filter(planet => {
+    // Always show traditional planets (su, mo, me, ve, ma, ju, sa, ra, ke)
+    const traditionalPlanetIds = ['su', 'mo', 'me', 've', 'ma', 'ju', 'sa', 'ra', 'ke'];
+    if (traditionalPlanetIds.includes(planet.id)) {
+      return true;
+    }
+    // Show modern planets only if toggle is ON
+    return showModernPlanets;
+  });
+
   // Map planets to houses
-  const planetsByHouse = chartData.planets.reduce((acc, planet) => {
+  const planetsByHouse = filteredPlanets.reduce((acc, planet) => {
     const houseNumber = planet.house;
     if (!acc[houseNumber]) {
       acc[houseNumber] = [];
@@ -75,7 +88,10 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({
       "Jupiter": "Ju",
       "Saturn": "Sa",
       "Rahu": "Ra",
-      "Ketu": "Ke"
+      "Ketu": "Ke",
+      "Uranus": "Ur",
+      "Neptune": "Ne",
+      "Pluto": "Pl"
     };
     return map[name] || name.substring(0, 2);
   };

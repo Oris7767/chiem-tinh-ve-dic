@@ -153,6 +153,7 @@ const VedicChart = () => {
   const [formData, setFormData] = useState<BirthDataFormValues | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [savedCharts, setSavedCharts] = useState<any[]>([]);
+  const [showModernPlanets, setShowModernPlanets] = useState(false);
 
   // Fetch saved charts when user logs in
   const fetchSavedCharts = async (userId: string) => {
@@ -669,6 +670,8 @@ const VedicChart = () => {
               onDownloadSeparate={downloadSeparateFiles}
               onDownloadPNG={downloadAsPNGFile}
               onDownloadPDF={downloadAsPDFFile}
+              showModernPlanets={showModernPlanets}
+              onToggleModernPlanets={setShowModernPlanets}
             />
           </TabsContent>
 
@@ -692,9 +695,11 @@ interface ChartDisplayProps {
   onDownloadSeparate?: () => void;
   onDownloadPNG?: () => void;
   onDownloadPDF?: () => void;
+  showModernPlanets?: boolean;
+  onToggleModernPlanets?: (show: boolean) => void;
 }
 
-const ChartDisplay = ({ chartData, userData, onDownload, onDownloadSeparate, onDownloadPNG, onDownloadPDF }: ChartDisplayProps) => {
+const ChartDisplay = ({ chartData, userData, onDownload, onDownloadSeparate, onDownloadPNG, onDownloadPDF, showModernPlanets, onToggleModernPlanets }: ChartDisplayProps) => {
   // Format birth info for display in the chart
   const getBirthInfo = () => {
     if (!userData) return '';
@@ -710,9 +715,31 @@ const ChartDisplay = ({ chartData, userData, onDownload, onDownloadSeparate, onD
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <CardTitle>Bản đồ sao</CardTitle>
-          {onDownload && (
+          <div className="flex flex-wrap items-center gap-4">
+            {/* Modern Planets Toggle */}
+            {onToggleModernPlanets && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Hành tinh hiện đại:</span>
+                <button
+                  onClick={() => onToggleModernPlanets(!showModernPlanets)}
+                  className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+                    showModernPlanets ? 'bg-primary' : 'bg-input'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-6 w-6 transform rounded-full bg-background shadow-lg transition-transform ${
+                      showModernPlanets ? 'translate-x-7' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+                <span className="text-sm text-muted-foreground">
+                  {showModernPlanets ? 'Bật' : 'Tắt'}
+                </span>
+              </div>
+            )}
+            {onDownload && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm">
@@ -761,17 +788,18 @@ const ChartDisplay = ({ chartData, userData, onDownload, onDownloadSeparate, onD
               showDetails={true}
               userName={userData?.name}
               birthInfo={getBirthInfo()}
+              showModernPlanets={showModernPlanets}
             />
           </div>
         </CardContent>
       </Card>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <PlanetDetailsTable planets={chartData.planets} />
-        <HouseDetailsTable houses={chartData.houses} planets={chartData.planets} />
+        <PlanetDetailsTable planets={chartData.planets} showModernPlanets={showModernPlanets} />
+        <HouseDetailsTable houses={chartData.houses} planets={chartData.planets} showModernPlanets={showModernPlanets} />
       </div>
 
-      <PlanetAspectsTable planets={chartData.planets} />
+      <PlanetAspectsTable planets={chartData.planets} showModernPlanets={showModernPlanets} />
     </div>
   );
 };
