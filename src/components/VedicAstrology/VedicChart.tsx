@@ -780,6 +780,7 @@ const ChartDisplay = ({ chartData, userData, onDownload, onDownloadSeparate, onD
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
+          </div>
         </CardHeader>
         <CardContent>
           <div className="aspect-square max-w-full md:max-w-2xl mx-auto">
