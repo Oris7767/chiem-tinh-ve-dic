@@ -1,4 +1,5 @@
 import React from 'react';
+import { LOGO_DATA_URL } from '@/utils/logoDataUrl';
 
 interface Planet {
   id: string;
@@ -229,11 +230,11 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({
           })}
           
           {/* Logo in the center */}
-          <image 
-            href="/lovable-uploads/caad05e4-b4c3-4988-9357-3e27463a7041.png" 
-            x="150" 
-            y="150" 
-            width="100" 
+          <image
+            href={LOGO_DATA_URL}
+            x="150"
+            y="150"
+            width="100"
             height="100"
           />
         </g>
