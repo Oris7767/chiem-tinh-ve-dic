@@ -114,35 +114,151 @@ async function svgToCanvas(svgElement: SVGSVGElement, width: number = 500, heigh
         return;
       }
 
+      // Clone SVG
       const svgClone = svgElement.cloneNode(true) as SVGSVGElement;
       svgClone.setAttribute('width', width.toString());
       svgClone.setAttribute('height', height.toString());
       svgClone.setAttribute('viewBox', `0 0 ${width} ${height}`);
+      svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      svgClone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
 
+      // Clean up problematic elements
+      const scripts = svgClone.querySelectorAll('script');
+      scripts.forEach(s => s.remove());
+
+      const styles = svgClone.querySelectorAll('style');
+      styles.forEach(s => s.remove());
+
+      // Keep foreignObject - it's actually helpful for HTML content
+      // const foreignObjects = svgClone.querySelectorAll('foreignObject');
+      // foreignObjects.forEach(f => f.remove());
+
+      const images = svgClone.querySelectorAll('image');
+      images.forEach(img => {
+        const href = img.getAttribute('href') || img.getAttribute('xlink:href');
+        if (href && !href.startsWith('data:')) {
+          console.log('Removing external image:', href);
+          img.remove();
+        }
+      });
+
+      // Ensure fonts are system fonts
+      const textElements = svgClone.querySelectorAll('text, tspan');
+      textElements.forEach(text => {
+        const currentFamily = text.getAttribute('font-family');
+        if (!currentFamily || currentFamily.includes('Arial') || currentFamily.includes('Helvetica')) {
+          text.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
+        }
+        const textEl = text as HTMLElement;
+        textEl.style.fontFamily = 'Arial, Helvetica, sans-serif';
+      });
+
+      // Serialize SVG
       const svgData = new XMLSerializer().serializeToString(svgClone);
-      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-      const svgUrl = URL.createObjectURL(svgBlob);
 
-      const img = new Image();
-      img.onload = () => {
-        ctx.fillStyle = 'white';
-        ctx.fillRect(0, 0, width, height);
-        ctx.drawImage(img, 0, 0, width, height);
-        URL.revokeObjectURL(svgUrl);
-        resolve(canvas);
+      // Method 1: Try direct SVG data URL
+      const svgUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgData)}`;
+
+      const testImg = new Image();
+
+      const timeout = setTimeout(() => {
+        testImg.onload = null;
+        testImg.onerror = null;
+        reject(new Error('SVG loading timeout after 10 seconds'));
+      }, 10000);
+
+      testImg.onload = () => {
+        clearTimeout(timeout);
+        try {
+          ctx.fillStyle = 'white';
+          ctx.fillRect(0, 0, width, height);
+          ctx.drawImage(testImg, 0, 0, width, height);
+          resolve(canvas);
+        } catch (e) {
+          reject(new Error('Failed to draw SVG on canvas: ' + e.message));
+        }
       };
 
-      img.onerror = (error) => {
-        URL.revokeObjectURL(svgUrl);
-        reject(new Error('Failed to load SVG as image'));
+      testImg.onerror = () => {
+        clearTimeout(timeout);
+        console.warn('Method 1 (direct SVG) failed, trying Method 2 (foreignObject)...');
+
+        // Method 2: Use foreignObject to embed SVG in HTML
+        try {
+          const html = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <style>
+                body { margin: 0; padding: 0; overflow: hidden; }
+                svg { display: block; width: ${width}px; height: ${height}px; }
+                text { font-family: Arial, Helvetica, sans-serif; }
+              </style>
+            </head>
+            <body>
+              ${svgData}
+            </body>
+            </html>
+          `;
+
+          const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+
+          const img2 = new Image();
+          img2.onload = () => {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, width, height);
+            ctx.drawImage(img2, 0, 0, width, height);
+            URL.revokeObjectURL(url);
+            resolve(canvas);
+          };
+
+          img2.onerror = () => {
+            URL.revokeObjectURL(url);
+            console.warn('Method 2 (foreignObject) failed, trying Method 3 (SVG Blob)...');
+            
+            // Method 3: Try SVG blob URL
+            try {
+              const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+              const svgBlobUrl = URL.createObjectURL(svgBlob);
+              const img3 = new Image();
+              
+              img3.onload = () => {
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, width, height);
+                ctx.drawImage(img3, 0, 0, width, height);
+                URL.revokeObjectURL(svgBlobUrl);
+                resolve(canvas);
+              };
+              
+              img3.onerror = () => {
+                URL.revokeObjectURL(svgBlobUrl);
+                reject(new Error('Failed to load SVG as image using all methods'));
+              };
+              
+              img3.crossOrigin = 'anonymous';
+              img3.src = svgBlobUrl;
+            } catch (e) {
+              reject(new Error('Failed to convert SVG to canvas: ' + e.message));
+            }
+          };
+
+          img2.crossOrigin = 'anonymous';
+          img2.src = url;
+        } catch (e) {
+          reject(new Error('Failed with foreignObject method: ' + e.message));
+        }
       };
 
-      img.src = svgUrl;
+      testImg.crossOrigin = 'anonymous';
+      testImg.src = svgUrl;
     } catch (error) {
+      console.error('Error in svgToCanvas:', error);
       reject(error);
     }
   });
 }
+
 
 function createStyledHTML(
   chartData: VedicChartData,
