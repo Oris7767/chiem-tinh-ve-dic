@@ -969,7 +969,7 @@ export async function downloadAsPDF(
     const chartCanvas = await svgToCanvas(originalChart, 500, 500);
     console.log('Chart converted to canvas:', chartCanvas.width, 'x', chartCanvas.height);
 
-    // Create full PDF page canvas (A4 size at 72 DPI = 595 x 842 pixels)
+    // Initialize PDF (A4 size)
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
@@ -979,27 +979,25 @@ export async function downloadAsPDF(
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
 
-    // Create a large canvas for all content
+    // ============ PAGE 1: Chart + Planets + Houses ============
     const contentWidth = 595; // A4 width in pixels at 72 DPI
-    const contentHeight = 1500; // Estimated height
-    const fullCanvas = document.createElement('canvas');
-    fullCanvas.width = contentWidth;
-    fullCanvas.height = contentHeight;
-    const ctx = fullCanvas.getContext('2d');
+    const contentHeight = 842; // A4 height
+    const canvas1 = document.createElement('canvas');
+    canvas1.width = contentWidth;
+    canvas1.height = contentHeight;
+    const ctx = canvas1.getContext('2d');
 
-    if (!ctx) {
-      throw new Error('Cannot create canvas context');
-    }
+    if (!ctx) throw new Error('Cannot create canvas context');
 
-    // Fill background
+    // Background
     ctx.fillStyle = '#fef7cd';
     ctx.fillRect(0, 0, contentWidth, contentHeight);
 
-    // Draw header background
+    // Header background
     ctx.fillStyle = '#B45309';
     ctx.fillRect(0, 0, contentWidth, 60);
 
-    // Draw title
+    // Title (center aligned)
     ctx.fillStyle = 'white';
     ctx.font = 'bold 24px Arial';
     ctx.textAlign = 'center';
@@ -1008,7 +1006,7 @@ export async function downloadAsPDF(
       : 'Vedic Birth Chart';
     ctx.fillText(title, contentWidth / 2, 35);
 
-    // Draw birth info
+    // Birth info (center aligned)
     if (userData) {
       ctx.font = '14px Arial';
       ctx.fillStyle = '#ffffff';
@@ -1025,19 +1023,20 @@ export async function downloadAsPDF(
     const chartY = 80;
     ctx.drawImage(chartCanvas, chartX, chartY);
 
-    // Draw planet details section
+    // Planet details section
     let yPos = chartY + 520;
 
-    // Section header
+    // Section header (left aligned)
     ctx.fillStyle = '#B45309';
     ctx.font = 'bold 18px Arial';
     ctx.textAlign = 'left';
     ctx.fillText('Chi tiết các hành tinh (Graha)', 30, yPos);
     yPos += 25;
 
-    // Planet table header
+    // Planet table header (left aligned)
     ctx.fillStyle = '#B45309';
     ctx.font = 'bold 12px Arial';
+    ctx.textAlign = 'left';
     ctx.fillText('Hành tinh', 30, yPos);
     ctx.fillText('Tên Sanskrit', 120, yPos);
     ctx.fillText('Cung', 220, yPos);
@@ -1046,7 +1045,7 @@ export async function downloadAsPDF(
     ctx.fillText('Nakshatra', 400, yPos);
     yPos += 15;
 
-    // Draw planet rows
+    // Planet rows (left aligned)
     ctx.font = '11px Arial';
     chartData.planets.forEach((planet, index) => {
       if (yPos > contentHeight - 100) return;
@@ -1056,6 +1055,7 @@ export async function downloadAsPDF(
       ctx.fillRect(25, yPos - 12, contentWidth - 50, 18);
 
       ctx.fillStyle = '#000';
+      ctx.textAlign = 'left';
       const planetInfo = `${planet.symbol} ${planet.name}`;
       ctx.fillText(planetInfo, 30, yPos);
 
@@ -1071,15 +1071,17 @@ export async function downloadAsPDF(
       yPos += 18;
     });
 
-    // Draw house details section
+    // House details section
     yPos += 20;
     if (yPos + 200 < contentHeight) {
       ctx.fillStyle = '#B45309';
       ctx.font = 'bold 18px Arial';
+      ctx.textAlign = 'left';
       ctx.fillText('Chi tiết các nhà (Bhava)', 30, yPos);
       yPos += 25;
 
       ctx.font = 'bold 12px Arial';
+      ctx.textAlign = 'left';
       ctx.fillText('Nhà', 30, yPos);
       ctx.fillText('Tên Sanskrit', 80, yPos);
       ctx.fillText('Ý Nghĩa', 200, yPos);
@@ -1095,6 +1097,7 @@ export async function downloadAsPDF(
         ctx.fillRect(25, yPos - 12, contentWidth - 50, 18);
 
         ctx.fillStyle = '#000';
+        ctx.textAlign = 'left';
         ctx.fillText(`${house.number}`, 30, yPos);
 
         const houseInfo = HOUSE_NAMES[house.number as keyof typeof HOUSE_NAMES];
@@ -1110,52 +1113,162 @@ export async function downloadAsPDF(
       });
     }
 
-    // Draw Dasha section
-    if (chartData.dashas?.current) {
-      yPos += 20;
-      if (yPos + 100 < contentHeight) {
-        ctx.fillStyle = '#B45309';
-        ctx.font = 'bold 18px Arial';
-        ctx.fillText('Vimshottari Dasha', 30, yPos);
-        yPos += 25;
-
-        ctx.fillStyle = '#fef3c7';
-        ctx.fillRect(25, yPos - 10, contentWidth - 50, 40);
-
-        ctx.fillStyle = '#000';
-        ctx.font = 'bold 12px Arial';
-        ctx.fillText(`Chu kỳ hiện tại: ${getViPlanetName(chartData.dashas.current.planet)}`, 35, yPos);
-
-        ctx.font = '11px Arial';
-        yPos += 15;
-        ctx.fillText(`Thời gian: ${formatDate(chartData.dashas.current.startDate)} - ${formatDate(chartData.dashas.current.endDate)}`, 35, yPos);
-        yPos += 15;
-        ctx.fillText(`Đã qua: ${chartData.dashas.current.elapsed?.years || 0} năm, ${chartData.dashas.current.elapsed?.months || 0} tháng, ${chartData.dashas.current.elapsed?.days || 0} ngày`, 35, yPos);
-        yPos += 15;
-        ctx.fillText(`Còn lại: ${chartData.dashas.current.remaining?.years || 0} năm, ${chartData.dashas.current.remaining?.months || 0} tháng, ${chartData.dashas.current.remaining?.days || 0} ngày`, 35, yPos);
-      }
-    }
-
     // Footer
     ctx.fillStyle = '#666';
     ctx.font = '10px Arial';
     ctx.textAlign = 'center';
     ctx.fillText(`Generated by Vedic Astrology App - ${new Date().toLocaleDateString('vi-VN')}`, contentWidth / 2, contentHeight - 20);
 
-    // Convert canvas to image and add to PDF
-    const imgData = fullCanvas.toDataURL('image/png', 0.95);
+    // Add page 1 to PDF
+    const imgData1 = canvas1.toDataURL('image/png', 0.95);
+    pdf.addImage(imgData1, 'PNG', 0, 0, pageWidth, pageHeight);
+    pdf.addPage();
 
-    // Calculate dimensions to fit A4 page
-    const imgRatio = contentWidth / contentHeight;
-    const pdfImgWidth = pageWidth - 20; // 10mm margins
-    const pdfImgHeight = pdfImgWidth / imgRatio;
+    // ============ PAGE 2: Dasha Details ============
+    const canvas2 = document.createElement('canvas');
+    canvas2.width = contentWidth;
+    canvas2.height = contentHeight;
+    const ctx2 = canvas2.getContext('2d');
 
-    // Add to PDF
-    pdf.addImage(imgData, 'PNG', 10, 10, pdfImgWidth, pdfImgHeight);
+    if (!ctx2) throw new Error('Cannot create canvas context for page 2');
+
+    // Background
+    ctx2.fillStyle = '#fef7cd';
+    ctx2.fillRect(0, 0, contentWidth, contentHeight);
+
+    // Header
+    ctx2.fillStyle = '#B45309';
+    ctx2.fillRect(0, 0, contentWidth, 60);
+
+    ctx2.fillStyle = 'white';
+    ctx2.font = 'bold 24px Arial';
+    ctx2.textAlign = 'center';
+    ctx2.fillText('Vimshottari Dasha Details', contentWidth / 2, 35);
+
+    // Current Dasha highlight
+    if (chartData.dashas?.current) {
+      ctx2.fillStyle = '#fef3c7';
+      ctx2.fillRect(25, 70, contentWidth - 50, 50);
+
+      ctx2.fillStyle = '#000';
+      ctx2.font = 'bold 16px Arial';
+      ctx2.textAlign = 'left';
+      ctx2.fillText(`Chu kỳ hiện tại: ${getViPlanetName(chartData.dashas.current.planet)}`, 35, 90);
+
+      ctx2.font = '12px Arial';
+      ctx2.fillText(`Thời gian: ${formatDate(chartData.dashas.current.startDate)} - ${formatDate(chartData.dashas.current.endDate)}`, 35, 110);
+      ctx2.fillText(`Đã qua: ${chartData.dashas.current.elapsed?.years || 0} năm, ${chartData.dashas.current.elapsed?.months || 0} tháng, ${chartData.dashas.current.elapsed?.days || 0} ngày`, 35, 125);
+      ctx2.fillText(`Còn lại: ${chartData.dashas.current.remaining?.years || 0} năm, ${chartData.dashas.current.remaining?.months || 0} tháng, ${chartData.dashas.current.remaining?.days || 0} ngày`, 35, 140);
+    }
+
+    // Full Maha Dasha sequence
+    let yPos2 = 180;
+    ctx2.fillStyle = '#B45309';
+    ctx2.font = 'bold 18px Arial';
+    ctx2.textAlign = 'left';
+    ctx2.fillText('Trật tự Maha Dasha (Vimshottari)', 30, yPos2);
+    yPos2 += 25;
+
+    // Table header
+    ctx2.fillStyle = '#B45309';
+    ctx2.font = 'bold 12px Arial';
+    ctx2.textAlign = 'left';
+    ctx2.fillText('#', 30, yPos2);
+    ctx2.fillText('Hành tinh', 50, yPos2);
+    ctx2.fillText('Thời gian', 150, yPos2);
+    ctx2.fillText('Bắt đầu', 280, yPos2);
+    ctx2.fillText('Kết thúc', 380, yPos2);
+    yPos2 += 15;
+
+    // Maha Dasha rows
+    ctx2.font = '11px Arial';
+    const dashaPlanets = ['Ketu', 'Venus', 'Sun', 'Moon', 'Mars', 'Rahu', 'Jupiter', 'Saturn', 'Mercury'];
+    const dashaDurations = [7, 20, 6, 10, 7, 18, 16, 19, 17];
+
+    chartData.dashas.sequence.forEach((dasha, index) => {
+      if (yPos2 > contentHeight - 50) return;
+
+      const bgColor = index % 2 === 0 ? '#fafafa' : 'white';
+      ctx2.fillStyle = bgColor;
+      ctx2.fillRect(25, yPos2 - 12, contentWidth - 50, 18);
+
+      ctx2.fillStyle = '#000';
+      ctx2.textAlign = 'left';
+      ctx2.fillText(`${index + 1}`, 30, yPos2);
+      ctx2.fillText(getViPlanetName(dasha.planet), 50, yPos2);
+
+      // Calculate duration from start-end
+      const start = new Date(dasha.startDate);
+      const end = new Date(dasha.endDate);
+      const years = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 365));
+      ctx2.fillText(`${years} năm`, 150, yPos2);
+      ctx2.fillText(formatDate(dasha.startDate), 280, yPos2);
+      ctx2.fillText(formatDate(dasha.endDate), 380, yPos2);
+
+      yPos2 += 18;
+    });
+
+    // Current Antardasha details
+    if (chartData.dashas.current?.antardasha?.sequence) {
+      yPos2 += 20;
+      if (yPos2 + 200 < contentHeight) {
+        ctx2.fillStyle = '#B45309';
+        ctx2.font = 'bold 18px Arial';
+        ctx2.textAlign = 'left';
+        ctx2.fillText(`Antardasha của ${getViPlanetName(chartData.dashas.current.planet)}`, 30, yPos2);
+        yPos2 += 25;
+
+        // Table header
+        ctx2.fillStyle = '#B45309';
+        ctx2.font = 'bold 11px Arial';
+        ctx2.textAlign = 'left';
+        ctx2.fillText('#', 30, yPos2);
+        ctx2.fillText('Hành tinh', 50, yPos2);
+        ctx2.fillText('Bắt đầu', 140, yPos2);
+        ctx2.fillText('Kết thúc', 240, yPos2);
+        ctx2.fillText('Thời gian', 340, yPos2);
+        yPos2 += 15;
+
+        // Antardasha rows
+        chartData.dashas.current.antardasha.sequence.forEach((ad, idx) => {
+          if (yPos2 > contentHeight - 50) return;
+
+          const bgColor = idx % 2 === 0 ? '#fafafa' : 'white';
+          ctx2.fillStyle = bgColor;
+          ctx2.fillRect(25, yPos2 - 12, contentWidth - 50, 18);
+
+          ctx2.fillStyle = '#000';
+          ctx2.font = '10px Arial';
+          ctx2.textAlign = 'left';
+          ctx2.fillText(`${idx + 1}`, 30, yPos2);
+          ctx2.fillText(getViPlanetName(ad.planet), 50, yPos2);
+          ctx2.fillText(formatDate(ad.startDate), 140, yPos2);
+          ctx2.fillText(formatDate(ad.endDate), 240, yPos2);
+
+          const start = new Date(ad.startDate);
+          const end = new Date(ad.endDate);
+          const years = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 365));
+          const months = Math.floor(((end.getTime() - start.getTime()) % (1000 * 60 * 60 * 24 * 365)) / (1000 * 60 * 60 * 24 * 30));
+          ctx2.fillText(`${years}n ${months}th`, 340, yPos2);
+
+          yPos2 += 15;
+        });
+      }
+    }
+
+    // Footer
+    ctx2.fillStyle = '#666';
+    ctx2.font = '10px Arial';
+    ctx2.textAlign = 'center';
+    ctx2.fillText(`Generated by Vedic Astrology App - ${new Date().toLocaleDateString('vi-VN')}`, contentWidth / 2, contentHeight - 20);
+
+    // Add page 2 to PDF
+    const imgData2 = canvas2.toDataURL('image/png', 0.95);
+    pdf.addImage(imgData2, 'PNG', 0, 0, pageWidth, pageHeight);
 
     // Download
     const fileName = userData?.name
-      ? `vedic-chart-${userData.name.replace(/s+/g, '-')}-${userData.birthDate || 'unknown'}.pdf`
+      ? `vedic-chart-${userData.name.replace(/\s+/g, '-')}-${userData.birthDate || 'unknown'}.pdf`
       : 'vedic-birth-chart.pdf';
 
     pdf.save(fileName);
