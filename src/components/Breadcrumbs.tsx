@@ -8,7 +8,7 @@ interface BreadcrumbItem {
   path: string;
 }
 
-const DARK_HERO_ROUTES = ['/vedic-chart', '/luc-nham'];
+const DARK_HERO_ROUTES = ['/vedic-chart', '/luc-nham', '/panchang', '/trading'];
 
 const Breadcrumbs = () => {
   const location = useLocation();
@@ -41,6 +41,12 @@ const Breadcrumbs = () => {
           break;
         case 'luc-nham':
           label = t('nav.lucNham');
+          break;
+        case 'panchang':
+          label = 'Panchang';
+          break;
+        case 'trading':
+          label = language === 'vi' ? 'Biểu đồ' : 'Trading';
           break;
         default:
           label = path;

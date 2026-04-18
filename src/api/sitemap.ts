@@ -1,12 +1,11 @@
 import { generateSitemap } from '../utils/sitemap';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../integrations/supabase/client';
 
 export const getSitemap = async () => {
   try {
-    // Fetch all blog posts
     const { data: posts, error } = await supabase
-      .from('posts')
-      .select('*')
+      .from('blog_posts')
+      .select('slug, date')
       .order('date', { ascending: false });
 
     if (error) throw error;

@@ -38,7 +38,7 @@ type ForecastFilter = 'all' | 'good' | 'bad';
 type ForecastLayout = 'grid' | 'calendar';
 
 const LucNhamPage: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [birthDate, setBirthDate] = useState('1990-01-01');
   const [targetMonth, setTargetMonth] = useState(() => {
     const now = new Date();
@@ -75,7 +75,13 @@ const LucNhamPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-white via-amber-50 to-white">
-      <SEO title={t('lucNham.seoTitle')} description={t('lucNham.seoDescription')} schema={lucNhamSchema} />
+      <SEO
+        title={t('lucNham.seoTitle')}
+        description={t('lucNham.seoDescription')}
+        keywords={t('lucNham.seoKeywords')}
+        schema={lucNhamSchema}
+        lang={language === 'vi' ? 'vi' : 'en'}
+      />
 
       <NavBar />
 

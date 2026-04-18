@@ -74,6 +74,9 @@
     "subtitle": "Each number from 1 to 9 carries unique meanings and energies, linked to the planets."
   },
   "birthChart": {
+    "seoTitle": "Vedic birth chart (Jyotish) — Free online chart | chiemtinhvedavn",
+    "seoDescription": "Generate a free Vedic astrology chart: Graha, Bhava, Nakshatra, Vimshottari Dasha, South Indian chart. Enter birth date, time, place and timezone; export SVG, PNG or PDF.",
+    "seoKeywords": "Vedic birth chart, Jyotish, Indian astrology, Graha, Dasha, Lagna, chiemtinhvedavn, free horoscope",
     "title": "Vedic Birth Chart",
     "subtitle": "Calculate your Vedic astrology birth chart based on your birth details and discover the celestial influences on your life",
     "birthDetails": "Birth Details",
@@ -88,8 +91,20 @@
     "calculationError": "Error calculating chart",
     "comingSoon": "Coming Soon"
   },
+  "numerologyPage": {
+    "seoTitle": "Vedic numerology calculator online | chiemtinhvedavn",
+    "seoDescription": "Compute birth, name and life path numbers from Vedic numerology. Enter your full name and date of birth for instant interpretations.",
+    "seoKeywords": "Vedic numerology, life path number, name number, birth number, chiemtinhvedavn"
+  },
+  "panchang": {
+    "seoTitle": "Today's Panchang — Tithi, Nakshatra, timings | chiemtinhvedavn",
+    "seoDescription": "Daily Panchang: Tithi, Nakshatra, Yoga, Karana, Rahu kaal, solar and lunar events, and planetary transits.",
+    "seoKeywords": "Panchang, Tithi, Nakshatra, Hindu calendar, Rahu kaal, Jyotish, chiemtinhvedavn"
+  },
   "lucNham": {
     "seoTitle": "Liu Ren (Lục Nhâm) – Auspicious dates & hours | chiemtinhvedavn",
+    "seoDescription": "Lục Nhâm / Liu Ren date picker: favorable days for travel, weddings, openings, exams. 30-day view with stems & branches and door/omen hints. Runs locally in your browser for privacy.",
+    "seoKeywords": "Lục Nhâm, Liu Ren, auspicious date, Vietnamese astrology, stem branch, chiemtinhvedavn, Votive",
     "title": "Liu Ren (Lục Nhâm) – Auspicious dates",
     "subtitle": "A Votive tool to study favorable days and hours using classical Lục Nhâm logic. Numbers and tables ship with the page for privacy and speed.",
     "localDataTitle": "Local, private data",

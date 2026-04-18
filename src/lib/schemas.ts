@@ -23,21 +23,27 @@ export const lucNhamSchema = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
   "name": "Lục Nhâm – Chọn ngày giờ tốt",
+  "url": "https://vedicvn.com/luc-nham",
   "applicationCategory": "LifestyleApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript. Tính toán Lục Nhâm chạy cục bộ trên trình duyệt.",
+  "inLanguage": "vi-VN",
   "description":
-    "Công cụ tham khảo ngày giờ tốt theo phương pháp Lục Nhâm, chạy hoàn toàn trên trình duyệt với dữ liệu cục bộ.",
+    "Công cụ tham khảo ngày giờ tốt theo phương pháp Đại Lục Nhâm: xem ngày thuận lợi theo mục đích (xuất hành, cưới hỏi, khai trương…), dữ liệu cục bộ.",
   "offers": {
     "@type": "Offer",
     "price": "0",
     "priceCurrency": "VND"
   },
   "featureList": [
-    "Tra cứu và phân tích theo Lục Nhâm",
-    "Dữ liệu bảng tra cứu cục bộ, không gửi dữ liệu cá nhân lên máy chủ cho phần tính toán này"
+    "Dự báo 30 ngày theo tháng và mục đích",
+    "Can Chi, môn tướng thần và gợi ý ngày thuận / cần thận trọng",
+    "Không gửi dữ liệu sinh lên máy chủ cho phần tính Lục Nhâm"
   ],
   "publisher": {
     "@type": "Organization",
     "name": "chiemtinhvedavn",
+    "url": "https://vedicvn.com/",
     "logo": {
       "@type": "ImageObject",
       "url": "https://vedicvn.com/lovable-uploads/97fa6e16-3fd9-42cd-887d-d6d1d4d3ee6b.png"
@@ -49,20 +55,65 @@ export const lucNhamSchema = {
 export const vedicChartSchema = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  "name": "Bản đồ sao Vệ Đà",
+  "name": "Bản đồ sao Vệ Đà (Jyotish)",
+  "url": "https://vedicvn.com/vedic-chart",
   "applicationCategory": "AstrologyApplication",
-  "description": "Công cụ tạo và phân tích bản đồ sao theo chiêm tinh Vệ Đà",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript. Lá số được tính qua dịch vụ backend.",
+  "inLanguage": "vi-VN",
+  "description":
+    "Tạo lá số chiêm tinh Vệ Đà (Jyotish): cung Mệnh, vị trí Graha, nhà Bhava, Vimshottari Dasha và bản đồ Nam Ấn.",
   "offers": {
     "@type": "Offer",
     "price": "0",
     "priceCurrency": "VND"
   },
   "featureList": [
-    "Tạo bản đồ sao cá nhân",
-    "Phân tích vị trí các hành tinh",
-    "Xem xét các cung hoàng đạo",
-    "Giải đoán theo chiêm tinh Vệ Đà"
-  ]
+    "Lá số theo ngày giờ sinh, tọa độ và múi giờ",
+    "Bảng hành tinh, nhà, Dasha / AntarDasha",
+    "Xuất SVG / PNG / PDF",
+    "Hệ nhà và ayanamsa tùy chọn"
+  ],
+  "publisher": {
+    "@type": "Organization",
+    "name": "chiemtinhvedavn",
+    "url": "https://vedicvn.com/"
+  }
+};
+
+// Panchang (daily Hindu calendar view)
+export const panchangSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Panchang — Lịch thiên văn hôm nay",
+  "url": "https://vedicvn.com/panchang",
+  "applicationCategory": "LifestyleApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "vi-VN",
+  "description":
+    "Xem Tithi, Nakshatra, Yoga, Karana, giờ Rahu và các sự kiện Mặt Trời / Mặt Trăng theo Panchang.",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "VND"
+  }
+};
+
+// Standalone numerology calculator route
+export const numerologyPageSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Máy tính số học Vệ Đà",
+  "url": "https://vedicvn.com/numerology",
+  "applicationCategory": "CalculatorApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "vi-VN",
+  "description": "Tính số sinh, số tên và số cuộc đời theo số học Vệ Đà từ họ tên và ngày sinh.",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "VND"
+  }
 };
 
 // Schema for Blog
