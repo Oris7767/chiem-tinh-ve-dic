@@ -128,7 +128,7 @@ export async function downloadAsPDF(
     // Wait for SVG to render
     const startTime = Date.now();
     while (Date.now() - startTime < 3000) {
-      if (svgElement.children.length > 0) break;
+      if (originalChart.children.length > 0) break;
       await new Promise(resolve => setTimeout(resolve, 100));
     }
 
