@@ -2,7 +2,7 @@ import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
 
 const DEFAULT_IMAGE =
-  'https://vedicvn.com/lovable-uploads/a4ffc284-5fa3-4e81-b16e-11136da35031.png';
+  'https://vedicvn.com/images/og-image.png';
 const BASE_URL = 'https://vedicvn.com';
 
 export interface SEOProps {
@@ -71,7 +71,7 @@ const SEO = ({
       <meta name="twitter:image" content={ogImage} />
 
       <meta name="format-detection" content="telephone=no" />
-      <meta name="theme-color" content="#B45309" />
+      <meta name="theme-color" content="#A11211" />
 
       {structuredBlocks.map((obj, i) => (
         <script type="application/ld+json" key={i}>
