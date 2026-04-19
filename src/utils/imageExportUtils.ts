@@ -105,8 +105,8 @@ async function svgToCanvas(svgElement: SVGSVGElement, width: number = 500, heigh
   return new Promise((resolve, reject) => {
     try {
       const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
+      canvas.width = width * 2; // Higher resolution for sharper output
+      canvas.height = height * 2;
       const ctx = canvas.getContext('2d');
 
       if (!ctx) {
@@ -116,38 +116,32 @@ async function svgToCanvas(svgElement: SVGSVGElement, width: number = 500, heigh
 
       // Clone SVG
       const svgClone = svgElement.cloneNode(true) as SVGSVGElement;
-      svgClone.setAttribute('width', width.toString());
-      svgClone.setAttribute('height', height.toString());
-      svgClone.setAttribute('viewBox', `0 0 ${width} ${height}`);
+      svgClone.setAttribute('width', (width * 2).toString());
+      svgClone.setAttribute('height', (height * 2).toString());
+      svgClone.setAttribute('viewBox', `0 0 ${width * 2} ${height * 2}`);
       svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
       svgClone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
 
-      // Clean up problematic elements
-      const scripts = svgClone.querySelectorAll('script');
-      scripts.forEach(s => s.remove());
-
-      const styles = svgClone.querySelectorAll('style');
-      styles.forEach(s => s.remove());
-
-      // Keep foreignObject - it's actually helpful for HTML content
-      // const foreignObjects = svgClone.querySelectorAll('foreignObject');
-      // foreignObjects.forEach(f => f.remove());
-
+      // Improve image rendering quality
       const images = svgClone.querySelectorAll('image');
       images.forEach(img => {
-        const href = img.getAttribute('href') || img.getAttribute('xlink:href');
-        if (href && !href.startsWith('data:')) {
-          console.log('Removing external image:', href);
-          img.remove();
-        }
+        img.setAttribute('shape-rendering', 'auto');
+        img.setAttribute('text-rendering', 'auto');
+        img.setAttribute('image-rendering', 'auto');
+        img.setAttribute('preserveAspectRatio', 'xMidYMid meet');
       });
 
-      // Ensure fonts are system fonts
+      // Ensure fonts are system fonts and properly sized
       const textElements = svgClone.querySelectorAll('text, tspan');
       textElements.forEach(text => {
         const currentFamily = text.getAttribute('font-family');
         if (!currentFamily || currentFamily.includes('Arial') || currentFamily.includes('Helvetica')) {
           text.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
+        }
+        // Ensure font size is properly scaled
+        const fontSize = text.getAttribute('font-size');
+        if (fontSize && !fontSize.includes('px')) {
+          text.setAttribute('font-size', `${parseFloat(fontSize) * 2}px`);
         }
         const textEl = text as HTMLElement;
         textEl.style.fontFamily = 'Arial, Helvetica, sans-serif';
@@ -171,9 +165,22 @@ async function svgToCanvas(svgElement: SVGSVGElement, width: number = 500, heigh
         clearTimeout(timeout);
         try {
           ctx.fillStyle = 'white';
-          ctx.fillRect(0, 0, width, height);
-          ctx.drawImage(testImg, 0, 0, width, height);
-          resolve(canvas);
+          ctx.fillRect(0, 0, width * 2, height * 2);
+          // Use high-quality image smoothing
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(testImg, 0, 0, width * 2, height * 2);
+          // Scale back down to requested size with better quality
+          const finalCanvas = document.createElement('canvas');
+          finalCanvas.width = width;
+          finalCanvas.height = height;
+          const finalCtx = finalCanvas.getContext('2d');
+          if (finalCtx) {
+            finalCtx.imageSmoothingEnabled = true;
+            finalCtx.imageSmoothingQuality = 'high';
+            finalCtx.drawImage(canvas, 0, 0, width, height);
+          }
+          resolve(finalCanvas);
         } catch (e) {
           reject(new Error('Failed to draw SVG on canvas: ' + e.message));
         }
@@ -191,7 +198,7 @@ async function svgToCanvas(svgElement: SVGSVGElement, width: number = 500, heigh
             <head>
               <style>
                 body { margin: 0; padding: 0; overflow: hidden; }
-                svg { display: block; width: ${width}px; height: ${height}px; }
+                svg { display: block; width: ${width * 2}px; height: ${height * 2}px; }
                 text { font-family: Arial, Helvetica, sans-serif; }
               </style>
             </head>
@@ -207,35 +214,55 @@ async function svgToCanvas(svgElement: SVGSVGElement, width: number = 500, heigh
           const img2 = new Image();
           img2.onload = () => {
             ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, width, height);
-            ctx.drawImage(img2, 0, 0, width, height);
+            ctx.fillRect(0, 0, width * 2, height * 2);
+            ctx.drawImage(img2, 0, 0, width * 2, height * 2);
             URL.revokeObjectURL(url);
-            resolve(canvas);
+            // Scale down
+            const finalCanvas = document.createElement('canvas');
+            finalCanvas.width = width;
+            finalCanvas.height = height;
+            const finalCtx = finalCanvas.getContext('2d');
+            if (finalCtx) {
+              finalCtx.imageSmoothingEnabled = true;
+              finalCtx.imageSmoothingQuality = 'high';
+              finalCtx.drawImage(canvas, 0, 0, width, height);
+            }
+            resolve(finalCanvas);
           };
 
           img2.onerror = () => {
             URL.revokeObjectURL(url);
             console.warn('Method 2 (foreignObject) failed, trying Method 3 (SVG Blob)...');
-            
+
             // Method 3: Try SVG blob URL
             try {
               const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
               const svgBlobUrl = URL.createObjectURL(svgBlob);
               const img3 = new Image();
-              
+
               img3.onload = () => {
                 ctx.fillStyle = 'white';
-                ctx.fillRect(0, 0, width, height);
-                ctx.drawImage(img3, 0, 0, width, height);
+                ctx.fillRect(0, 0, width * 2, height * 2);
+                ctx.drawImage(img3, 0, 0, width * 2, height * 2);
                 URL.revokeObjectURL(svgBlobUrl);
-                resolve(canvas);
+                // Scale down
+                const finalCanvas = document.createElement('canvas');
+                finalCanvas.width = width;
+                finalCanvas.height = height;
+                const finalCtx = finalCanvas.getContext('2d');
+                if (finalCtx) {
+                  finalCtx.imageSmoothingEnabled = true;
+                  finalCtx.imageSmoothingQuality = 'high';
+                  finalCtx.drawImage(canvas, 0, 0, width, height);
+                }
+                resolve(finalCanvas);
               };
-              
+
               img3.onerror = () => {
                 URL.revokeObjectURL(svgBlobUrl);
                 reject(new Error('Failed to load SVG as image using all methods'));
               };
-              
+
               img3.crossOrigin = 'anonymous';
               img3.src = svgBlobUrl;
             } catch (e) {
@@ -791,6 +818,85 @@ export async function downloadAsPNG(
         ctx.fillText(`Đã qua: ${chartData.dashas.current.elapsed?.years || 0} năm, ${chartData.dashas.current.elapsed?.months || 0} tháng, ${chartData.dashas.current.elapsed?.days || 0} ngày`, 35, yPos);
         yPos += 15;
         ctx.fillText(`Còn lại: ${chartData.dashas.current.remaining?.years || 0} năm, ${chartData.dashas.current.remaining?.months || 0} tháng, ${chartData.dashas.current.remaining?.days || 0} ngày`, 35, yPos);
+        yPos += 20;
+
+        // Draw Maha Dasha sequence
+        if (chartData.dashas.sequence && chartData.dashas.sequence.length > 0) {
+          ctx.fillStyle = '#B45309';
+          ctx.font = 'bold 14px Arial';
+          ctx.fillText('Trình tự Maha Dasha:', 30, yPos);
+          yPos += 20;
+
+          ctx.font = 'bold 11px Arial';
+          ctx.fillText('#', 30, yPos);
+          ctx.fillText('Hành tinh', 80, yPos);
+          ctx.fillText('Bắt đầu', 200, yPos);
+          ctx.fillText('Kết thúc', 320, yPos);
+          ctx.fillText('Thời gian (năm)', 440, yPos);
+          yPos += 12;
+
+          chartData.dashas.sequence.slice(0, 10).forEach((dasha, index) => {
+            if (yPos > fullHeight - 50) return;
+
+            const bgColor = index % 2 === 0 ? '#fafafa' : 'white';
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(25, yPos - 10, fullWidth - 50, 16);
+
+            ctx.fillStyle = '#000';
+            ctx.font = '10px Arial';
+            ctx.fillText(`${index + 1}`, 30, yPos);
+            ctx.fillText(getViPlanetName(dasha.planet), 80, yPos);
+            ctx.fillText(formatDate(dasha.startDate), 200, yPos);
+            ctx.fillText(formatDate(dasha.endDate), 320, yPos);
+
+            const years = Math.floor((new Date(dasha.endDate).getTime() - new Date(dasha.startDate).getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+            ctx.fillText(`${years}`, 440, yPos);
+
+            yPos += 16;
+          });
+
+          yPos += 10;
+
+          // Draw Antardasha of current Mahadasha
+          const currentAntardashas = chartData.dashas.current.antardashas || chartData.dashas.current.antardasha?.sequence || [];
+          if (currentAntardashas.length > 0) {
+            if (yPos + 150 < fullHeight) {
+              ctx.fillStyle = '#B45309';
+              ctx.font = 'bold 14px Arial';
+              ctx.fillText(`Antardasha của ${getViPlanetName(chartData.dashas.current.planet)}:`, 30, yPos);
+              yPos += 20;
+
+              ctx.font = 'bold 10px Arial';
+              ctx.fillText('#', 30, yPos);
+              ctx.fillText('Hành tinh', 80, yPos);
+              ctx.fillText('Bắt đầu', 200, yPos);
+              ctx.fillText('Kết thúc', 320, yPos);
+              ctx.fillText('Thời gian', 440, yPos);
+              yPos += 12;
+
+              currentAntardashas.forEach((ad: any, idx: number) => {
+                if (yPos > fullHeight - 50) return;
+
+                const bgColor = idx % 2 === 0 ? '#fafafa' : 'white';
+                ctx.fillStyle = bgColor;
+                ctx.fillRect(25, yPos - 10, fullWidth - 50, 16);
+
+                ctx.fillStyle = '#000';
+                ctx.font = '9px Arial';
+                ctx.fillText(`${idx + 1}`, 30, yPos);
+                ctx.fillText(getViPlanetName(ad.planet), 80, yPos);
+                ctx.fillText(formatDate(ad.startDate), 200, yPos);
+                ctx.fillText(formatDate(ad.endDate), 320, yPos);
+
+                const years = Math.floor((new Date(ad.endDate).getTime() - new Date(ad.startDate).getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+                const months = Math.floor(((new Date(ad.endDate).getTime() - new Date(ad.startDate).getTime()) % (365.25 * 24 * 60 * 60 * 1000)) / (30 * 24 * 60 * 60 * 1000));
+                ctx.fillText(`${years}n ${months}th`, 440, yPos);
+
+                yPos += 16;
+              });
+            }
+          }
+        }
       }
     }
 
@@ -1208,8 +1314,9 @@ export async function downloadAsPDF(
       yPos2 += 18;
     });
 
-    // Current Antardasha details
-    if (chartData.dashas.current?.antardasha?.sequence) {
+    // Current Antardasha details - use antardashas array if available
+    const currentAntardashas = chartData.dashas.current?.antardashas || chartData.dashas.current?.antardasha?.sequence || [];
+    if (currentAntardashas.length > 0) {
       yPos2 += 20;
       if (yPos2 + 200 < contentHeight) {
         ctx2.fillStyle = '#B45309';
@@ -1230,7 +1337,7 @@ export async function downloadAsPDF(
         yPos2 += 15;
 
         // Antardasha rows
-        chartData.dashas.current.antardasha.sequence.forEach((ad, idx) => {
+        currentAntardashas.forEach((ad: any, idx: number) => {
           if (yPos2 > contentHeight - 50) return;
 
           const bgColor = idx % 2 === 0 ? '#fafafa' : 'white';

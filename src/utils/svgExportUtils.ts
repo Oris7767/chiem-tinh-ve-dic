@@ -214,16 +214,17 @@ function createPlanetDetailsSVG(planets: Planet[]): string {
   };
 
   let y = 25;
+  // Increase width to 600 to prevent text overlap
   let svg = `
     <!-- Table Header -->
-    <rect x="0" y="15" width="500" height="20" fill="#f5f5f5" stroke="#ddd"/>
+    <rect x="0" y="15" width="600" height="20" fill="#f5f5f5" stroke="#ddd"/>
     <text x="5" y="28" class="table-header">Hành tinh</text>
-    <text x="80" y="28" class="table-header">Tên Sanskrit</text>
+    <text x="70" y="28" class="table-header">Tên Sanskrit</text>
     <text x="180" y="28" class="table-header">Cung</text>
-    <text x="250" y="28" class="table-header">Vị trí</text>
+    <text x="260" y="28" class="table-header">Vị trí</text>
     <text x="320" y="28" class="table-header">Nhà</text>
-    <text x="350" y="28" class="table-header">Nakshatra</text>
-    <text x="450" y="28" class="table-header">Pada</text>
+    <text x="380" y="28" class="table-header">Nakshatra</text>
+    <text x="520" y="28" class="table-header">Pada</text>
   `;
 
   planets.forEach((planet, index) => {
@@ -231,26 +232,26 @@ function createPlanetDetailsSVG(planets: Planet[]): string {
     const bgColor = index % 2 === 0 ? '#fafafa' : 'white';
     
     svg += `
-      <rect x="0" y="${y - 12}" width="500" height="20" fill="${bgColor}" stroke="#eee"/>
+      <rect x="0" y="${y - 12}" width="600" height="20" fill="${bgColor}" stroke="#eee"/>
       <text x="5" y="${y}" class="table-cell" fill="${planet.color}">
         ${planet.symbol} ${planet.name}
       </text>
-      <text x="80" y="${y}" class="table-cell">
+      <text x="70" y="${y}" class="table-cell">
         ${VEDIC_PLANET_NAMES[planet.name] || planet.name}
       </text>
       <text x="180" y="${y}" class="table-cell">
         ${getZodiacSign(planet.sign)}
       </text>
-      <text x="250" y="${y}" class="table-cell">
+      <text x="260" y="${y}" class="table-cell">
         ${formatDegree(planet.longitude)}
       </text>
       <text x="320" y="${y}" class="table-cell">
         ${planet.house}
       </text>
-      <text x="350" y="${y}" class="table-cell">
+      <text x="380" y="${y}" class="table-cell">
         ${planet.nakshatra.name}
       </text>
-      <text x="450" y="${y}" class="table-cell">
+      <text x="520" y="${y}" class="table-cell">
         ${planet.nakshatra.pada}
       </text>
     `;
@@ -272,36 +273,37 @@ function createHouseDetailsSVG(houses: House[], planets: Planet[]): string {
   };
 
   let y = 25;
+  // Increase width to 600 to accommodate longer text without overlap
   let svg = `
     <!-- Table Header -->
-    <rect x="0" y="15" width="500" height="20" fill="#f5f5f5" stroke="#ddd"/>
+    <rect x="0" y="15" width="600" height="20" fill="#f5f5f5" stroke="#ddd"/>
     <text x="5" y="28" class="table-header">Nhà</text>
     <text x="40" y="28" class="table-header">Tên Sanskrit</text>
-    <text x="140" y="28" class="table-header">Ý Nghĩa</text>
-    <text x="350" y="28" class="table-header">Cung</text>
-    <text x="420" y="28" class="table-header">Hành tinh</text>
+    <text x="180" y="28" class="table-header">Ý Nghĩa</text>
+    <text x="380" y="28" class="table-header">Cung</text>
+    <text x="460" y="28" class="table-header">Hành tinh</text>
   `;
 
   houses.forEach((house, index) => {
-    y = 45 + index * 35;
+    y = 45 + index * 25;
     const bgColor = index % 2 === 0 ? '#fafafa' : 'white';
     const houseInfo = HOUSE_NAMES[house.number as keyof typeof HOUSE_NAMES];
-    
+
     svg += `
-      <rect x="0" y="${y - 12}" width="500" height="30" fill="${bgColor}" stroke="#eee"/>
+      <rect x="0" y="${y - 12}" width="600" height="20" fill="${bgColor}" stroke="#eee"/>
       <text x="5" y="${y}" class="table-cell">
         ${house.number}
       </text>
       <text x="40" y="${y}" class="table-cell">
         ${houseInfo.sanskrit}
       </text>
-      <text x="140" y="${y}" class="table-cell-small">
+      <text x="180" y="${y}" class="table-cell-small">
         ${houseInfo.meaning}
       </text>
-      <text x="350" y="${y}" class="table-cell">
+      <text x="380" y="${y}" class="table-cell">
         ${getZodiacSign(house.sign)}
       </text>
-      <text x="420" y="${y}" class="table-cell">
+      <text x="460" y="${y}" class="table-cell">
         ${getPlanetSymbols(house.planets)}
       </text>
     `;
@@ -327,6 +329,15 @@ function createDashaSVG(dashas: any): string {
 
   const current = dashas.current;
   
+  // Calculate total height needed
+  let totalContent = 120; // Base for current dasha
+  if (dashas.sequence && dashas.sequence.length > 0) {
+    totalContent += 30 + (dashas.sequence.length * 20); // sequence section
+  }
+  if (current.antardasha?.sequence && current.antardasha.sequence.length > 0) {
+    totalContent += 60 + (current.antardasha.sequence.length * 18); // antardasha section
+  }
+
   let svg = `
     <!-- Current Dasha -->
     <rect x="0" y="15" width="1100" height="80" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
@@ -342,20 +353,24 @@ function createDashaSVG(dashas: any): string {
     </text>
   `;
 
+  let yPos = 120;
+
   // Add sequence if available
   if (dashas.sequence && dashas.sequence.length > 0) {
     svg += `
-      <text x="0" y="120" class="section-title">Trình tự Dasha:</text>
+      <text x="0" y="${yPos}" class="section-title">Trình tự Maha Dasha (Vimshottari):</text>
       <!-- Table Header -->
-      <rect x="0" y="130" width="1100" height="20" fill="#f5f5f5" stroke="#ddd"/>
-      <text x="5" y="143" class="table-header">Hành Tinh</text>
-      <text x="150" y="143" class="table-header">Ngày Bắt Đầu</text>
-      <text x="300" y="143" class="table-header">Ngày Kết Thúc</text>
-      <text x="450" y="143" class="table-header">Thời Gian (năm)</text>
+      <rect x="0" y="${yPos + 10}" width="1100" height="20" fill="#f5f5f5" stroke="#ddd"/>
+      <text x="5" y="${yPos + 23}" class="table-header">Hành Tinh</text>
+      <text x="150" y="${yPos + 23}" class="table-header">Ngày Bắt Đầu</text>
+      <text x="300" y="${yPos + 23}" class="table-header">Ngày Kết Thúc</text>
+      <text x="450" y="${yPos + 23}" class="table-header">Thời Gian (năm)</text>
     `;
 
+    yPos += 35;
+
     dashas.sequence.slice(0, 15).forEach((dasha: any, index: number) => {
-      const y = 165 + index * 20;
+      const y = yPos + index * 20;
       const bgColor = index % 2 === 0 ? '#fafafa' : 'white';
       
       svg += `
@@ -371,6 +386,51 @@ function createDashaSVG(dashas: any): string {
         </text>
         <text x="450" y="${y}" class="table-cell">
           ${((dasha.endDate ? new Date(dasha.endDate).getTime() : 0) - (dasha.startDate ? new Date(dasha.startDate).getTime() : 0)) / (365.25 * 24 * 60 * 60 * 1000) || 0}
+        </text>
+      `;
+    });
+
+    yPos += dashas.sequence.length * 20 + 20;
+  }
+
+  // Add Antardasha of current Mahadasha
+  if (current.antardashas && current.antardashas.length > 0) {
+    if (yPos + 200 > 1100) yPos = 120; // Start new page if needed
+
+    svg += `
+      <text x="0" y="${yPos}" class="section-title">Antardasha của ${getViPlanetName(current.planet)}:</text>
+      <!-- Table Header -->
+      <rect x="0" y="${yPos + 10}" width="1100" height="20" fill="#f5f5f5" stroke="#ddd"/>
+      <text x="5" y="${yPos + 23}" class="table-header">Hành Tinh</text>
+      <text x="150" y="${yPos + 23}" class="table-header">Ngày Bắt Đầu</text>
+      <text x="300" y="${yPos + 23}" class="table-header">Ngày Kết Thúc</text>
+      <text x="450" y="${yPos + 23}" class="table-header">Thời Gian</text>
+    `;
+
+    yPos += 35;
+
+    current.antardashas.forEach((ad: any, idx: number) => {
+      const y = yPos + idx * 18;
+      const bgColor = idx % 2 === 0 ? '#fafafa' : 'white';
+      
+      const start = new Date(ad.startDate);
+      const end = new Date(ad.endDate);
+      const years = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 365));
+      const months = Math.floor(((end.getTime() - start.getTime()) % (1000 * 60 * 60 * 24 * 365)) / (1000 * 60 * 60 * 24 * 30));
+
+      svg += `
+        <rect x="0" y="${y - 12}" width="1100" height="18" fill="${bgColor}" stroke="#eee"/>
+        <text x="5" y="${y}" class="table-cell">
+          ${getViPlanetName(ad.planet)}
+        </text>
+        <text x="150" y="${y}" class="table-cell">
+          ${formatDate(ad.startDate)}
+        </text>
+        <text x="300" y="${y}" class="table-cell">
+          ${formatDate(ad.endDate)}
+        </text>
+        <text x="450" y="${y}" class="table-cell">
+          ${years}n ${months}th
         </text>
       `;
     });

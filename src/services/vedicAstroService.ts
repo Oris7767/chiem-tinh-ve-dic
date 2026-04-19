@@ -3,6 +3,7 @@ import { VedicChartData, Planet, House } from '@/components/VedicAstrology/Vedic
 import { supabase } from '@/integrations/supabase/client';
 import { Json } from '@/integrations/supabase/types';
 import { birthChartService } from '@/services/birthChartService';
+import { DateTime } from 'luxon';
 
 // Constants for zodiac signs
 const SIGNS = [
@@ -492,4 +493,122 @@ function calculateLunarDay(planets: PlanetaryPosition[]): number {
   const sunLongitude = sun.longitude;
   const moonLongitude = moon.longitude;
   return Math.floor(((moonLongitude - sunLongitude + 360) % 360) / 12) + 1;
+}
+
+/**
+ * Fetch antardasha percentages for a planet from Supabase
+ */
+async function fetchAntardashaPercentages(planet: string): Promise<Record<string, number> | null> {
+  try {
+    const { data, error } = await supabase
+      .from('dasha_reference')
+      .select('antardasha_percentages')
+      .eq('planet', planet)
+      .single();
+
+    if (error || !data) {
+      console.warn(`No antardasha data for ${planet}:`, error);
+      return null;
+    }
+    return data.antardasha_percentages as Record<string, number>;
+  } catch (err) {
+    console.error(`Error fetching antardasha for ${planet}:`, err);
+    return null;
+  }
+}
+
+/**
+ * Calculate antardashas for a mahadasha
+ */
+async function calculateAntardashasForMahadasha(
+  mahadasha: any,
+  allPercentages: Record<string, Record<string, number>>
+): Promise<Array<{ planet: string; startDate: string; endDate: string; duration: number }>> {
+  const percentages = allPercentages[mahadasha.planet];
+  if (!percentages) return [];
+
+  const startDate = DateTime.fromISO(mahadasha.startDate);
+  const endDate = DateTime.fromISO(mahadasha.endDate);
+  const totalDuration = endDate.diff(startDate);
+
+  const antardashas = Object.entries(percentages).map(([planet, percentage]) => {
+    const duration = totalDuration.multiply(percentage / 100);
+    const subStartDate = startDate.plus({ milliseconds: duration.milliseconds * (Object.keys(percentages).indexOf(planet)) });
+    const subEndDate = subStartDate.plus(duration);
+
+    return {
+      planet,
+      startDate: subStartDate.toISO(),
+      endDate: subEndDate.toISO(),
+      duration: duration.as('milliseconds')
+    };
+  });
+
+  return antardashas;
+}
+
+/**
+ * Convert API response format to app's VedicChartData format (async version with antardashas)
+ */
+export async function convertApiResponseToChartData(apiData: VedicChartResponse): Promise<VedicChartData> {
+  // ... existing code for ascendant, planets, houses ...
+
+  // Fetch antardasha percentages for all planets in sequence first
+  const sequencePlanets = [...new Set(apiData.dashas.sequence.map((d: any) => d.planet))];
+  const percentagesMap: Record<string, Record<string, number>> = {};
+
+  for (const planet of sequencePlanets) {
+    const percentages = await fetchAntardashaPercentages(planet);
+    if (percentages) {
+      percentagesMap[planet] = percentages;
+    }
+  }
+
+  // Then process dashas with antardashas
+  const sequenceWithAntardashas = await Promise.all(
+    apiData.dashas.sequence.map(async (dasha: any) => {
+      const antardashas = await calculateAntardashasForMahadasha(dasha, percentagesMap);
+      return {
+        ...dasha,
+        antardashas
+      };
+    })
+  );
+
+  // Current dasha antardashas
+  const currentAntardashas = await calculateAntardashasForMahadasha(apiData.dashas.current, percentagesMap);
+
+  const normalizedCurrentDasha = {
+    planet: apiData.dashas.current.planet,
+    startDate: apiData.dashas.current.startDate,
+    endDate: apiData.dashas.current.endDate,
+    elapsed: apiData.dashas.current.elapsed || { years: 0, months: 0, days: 0 },
+    remaining: apiData.dashas.current.remaining || { years: 0, months: 0, days: 0 },
+    antardasha: {
+      current: apiData.dashas.current.antardasha?.current || {
+        planet: '',
+        startDate: '',
+        endDate: '',
+        elapsed: { years: 0, months: 0, days: 0 },
+        remaining: { years: 0, months: 0, days: 0 }
+      },
+      sequence: apiData.dashas.current.antardasha?.sequence || []
+    },
+    // Also add calculated antardashas array for easy access
+    antardashas: currentAntardashas
+  };
+
+  return {
+    ascendant: ascLongitude,
+    ascendantNakshatra: apiData.ascendant.nakshatra,
+    planets,
+    houses,
+    moonNakshatra,
+    lunarDay: calculateLunarDay(apiData.planets),
+    metadata: apiData.metadata,
+    dashas: {
+      current: normalizedCurrentDasha,
+      sequence: sequenceWithAntardashas
+    }
+  };
 }
