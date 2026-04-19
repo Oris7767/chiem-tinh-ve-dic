@@ -334,8 +334,8 @@ function createDashaSVG(dashas: any): string {
   if (dashas.sequence && dashas.sequence.length > 0) {
     totalContent += 30 + (dashas.sequence.length * 20); // sequence section
   }
-  if (current.antardasha?.sequence && current.antardasha.sequence.length > 0) {
-    totalContent += 60 + (current.antardasha.sequence.length * 18); // antardasha section
+  if (current.antardashas && current.antardashas.length > 0) {
+    totalContent += 60 + (current.antardashas.length * 18); // antardasha section
   }
 
   let svg = `

@@ -116,6 +116,12 @@ export interface DashaPeriod {
       }>;
     }>;
   };
+  antardashas?: Array<{
+    planet: string;
+    startDate: string;
+    endDate: string;
+    duration: number;
+  }>;
 }
 
 export interface VedicChartData {
