@@ -944,8 +944,9 @@ export async function downloadAsPNGDirect(
   }
 }
 
-// New improved PDF download function - Dashboard Layout (2 columns, single page A4)
-// This directly renders everything to canvas and then to PDF
+// New improved PDF download function - Grid 2x2 Layout (single page A4)
+// Top-Left: Chart | Top-Right: Dasha
+// Bottom-Left: Planets | Bottom-Right: Houses
 export async function downloadAsPDF(
   chartData: VedicChartData,
   userData?: BirthDataFormValues | null
@@ -965,7 +966,7 @@ export async function downloadAsPDF(
       console.warn('SVG may not be fully rendered, proceeding anyway...');
     }
 
-    // Convert SVG to canvas (chart only - rendered on high DPI canvas)
+    // Convert SVG to canvas
     const chartCanvas = await svgToCanvas(originalChart, 500, 500);
     console.log('Chart converted to canvas:', chartCanvas.width, 'x', chartCanvas.height);
 
@@ -982,21 +983,19 @@ export async function downloadAsPDF(
     // ============ HIGH DPI SCALING ============
     const scale = 3;
 
-    // ============ SINGLE PAGE A4 LAYOUT ============
-    // Page dimensions at 72 DPI
+    // ============ LAYOUT CONSTANTS ============
     const contentWidth = 595;
     const contentHeight = 842;
 
-    // Column layout constants
-    const LEFT_COL_X = 25;          // Left column start X
-    const LEFT_COL_WIDTH = 260;      // Left column width
-    const RIGHT_COL_X = 295;         // Right column start X
-    const RIGHT_COL_WIDTH = 275;     // Right column width
-    const RIGHT_COL_END = RIGHT_COL_X + RIGHT_COL_WIDTH; // 570
+    // Grid positions
+    const TOP_Y = 60;
+    const BOTTOM_Y = 350;
+    const LEFT_X = 25;
+    const RIGHT_X = 300;
+    const COL_WIDTH = 270;
 
-    // Row height constants
-    const ROW_HEIGHT = 13;           // Height per row
-    const HEADER_HEIGHT = 22;        // Section header height
+    // Row height
+    const ROW_H = 14;
 
     const canvas1 = document.createElement('canvas');
     canvas1.width = contentWidth * scale;
@@ -1004,22 +1003,20 @@ export async function downloadAsPDF(
     const ctx = canvas1.getContext('2d');
 
     if (!ctx) throw new Error('Cannot create canvas context');
-
-    // Apply high DPI scaling
     ctx.scale(scale, scale);
 
-    // ============ BACKGROUND (Clean White) ============
+    // ============ BACKGROUND ============
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, contentWidth, contentHeight);
 
-    // ============ HEADER (Minimalist) ============
+    // ============ HEADER ============
     ctx.fillStyle = '#B45309';
-    ctx.font = 'bold 18px Arial';
+    ctx.font = 'bold 16px Arial';
     ctx.textAlign = 'center';
     const title = userData?.name
       ? `Vedic Birth Chart - ${userData.name}`
       : 'Vedic Birth Chart';
-    ctx.fillText(title, contentWidth / 2, 28);
+    ctx.fillText(title, contentWidth / 2, 25);
 
     if (userData) {
       ctx.font = '10px Arial';
@@ -1029,182 +1026,168 @@ export async function downloadAsPDF(
         userData.birthTime || '',
         userData.location || ''
       ].filter(Boolean).join(' | ');
-      ctx.fillText(birthInfo, contentWidth / 2, 42);
+      ctx.fillText(birthInfo, contentWidth / 2, 38);
     }
 
-    // Thin separator line below header
+    // Separator line
     ctx.strokeStyle = '#B45309';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(25, 50);
-    ctx.lineTo(contentWidth - 25, 50);
+    ctx.moveTo(25, 48);
+    ctx.lineTo(contentWidth - 25, 48);
     ctx.stroke();
 
-    // ============ LEFT COLUMN: Chart + Dasha ============
-    // Draw chart (scaled down to fit column)
-    const chartX = LEFT_COL_X;
-    const chartY = 58;
-    const chartSize = 220;
+    // ============ TOP-LEFT: CHART ============
+    const chartX = LEFT_X;
+    const chartY = TOP_Y;
+    const chartSize = 260;
     ctx.drawImage(chartCanvas, chartX, chartY, chartSize, chartSize);
 
-    // Current Dasha section (no background)
-    let yLeft = chartY + chartSize + 15;
+    // ============ TOP-RIGHT: DASHA ============
+    let yRight = TOP_Y;
+
+    // Current Dasha section
+    ctx.fillStyle = '#B45309';
+    ctx.font = 'bold 10px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText('Vimshottari Dasha hiện tại:', RIGHT_X, yRight);
+    yRight += 12;
 
     if (chartData.dashas?.current) {
-      ctx.fillStyle = '#B45309';
-      ctx.font = 'bold 10px Arial';
-      ctx.textAlign = 'left';
-      ctx.fillText('Vimshottari Dasha hiện tại:', LEFT_COL_X, yLeft);
-      yLeft += 12;
-
       ctx.fillStyle = '#333';
       ctx.font = '10px Arial';
-      ctx.fillText(getViPlanetName(chartData.dashas.current.planet), LEFT_COL_X, yLeft);
-      yLeft += 10;
+      ctx.fillText(getViPlanetName(chartData.dashas.current.planet), RIGHT_X, yRight);
+      yRight += 10;
 
       ctx.font = '9px Arial';
       ctx.fillStyle = '#666';
-      ctx.fillText(`${formatDate(chartData.dashas.current.startDate)} - ${formatDate(chartData.dashas.current.endDate)}`, LEFT_COL_X, yLeft);
-      yLeft += 10;
+      ctx.fillText(`${formatDate(chartData.dashas.current.startDate)} - ${formatDate(chartData.dashas.current.endDate)}`, RIGHT_X, yRight);
+      yRight += 10;
 
-      ctx.fillText(`Đã qua: ${chartData.dashas.current.elapsed?.years || 0}y ${chartData.dashas.current.elapsed?.months || 0}m`, LEFT_COL_X, yLeft);
-      ctx.fillText(`Còn lại: ${chartData.dashas.current.remaining?.years || 0}y ${chartData.dashas.current.remaining?.months || 0}m`, LEFT_COL_X + 130, yLeft);
-      yLeft += 12;
+      ctx.fillText(`Đã qua: ${chartData.dashas.current.elapsed?.years || 0}y ${chartData.dashas.current.elapsed?.months || 0}m`, RIGHT_X, yRight);
+      ctx.fillText(`Còn lại: ${chartData.dashas.current.remaining?.years || 0}y ${chartData.dashas.current.remaining?.months || 0}m`, RIGHT_X + 130, yRight);
+      yRight += 12;
 
-      // Show current Antardasha if available (FIXED: use antardasha.current)
-      if (chartData.dashas.current.antardasha?.current) {
+      // Antardasha - check antardasha.current path
+      const antardasha = chartData.dashas.current.antardasha?.current;
+      if (antardasha && antardasha.startDate && antardasha.endDate) {
         ctx.fillStyle = '#B45309';
         ctx.font = 'bold 9px Arial';
-        ctx.fillText(`Tiểu vận: ${getViPlanetName(chartData.dashas.current.antardasha.current.planet)}`, LEFT_COL_X, yLeft);
-        yLeft += 10;
+        ctx.fillText(`Tiểu vận: ${getViPlanetName(antardasha.planet)}`, RIGHT_X, yRight);
+        yRight += 10;
 
         ctx.fillStyle = '#666';
         ctx.font = '9px Arial';
-        ctx.fillText(`${formatDate(chartData.dashas.current.antardasha.current.startDate)} - ${formatDate(chartData.dashas.current.antardasha.current.endDate)}`, LEFT_COL_X, yLeft);
-        yLeft += 15;
+        ctx.fillText(`${formatDate(antardasha.startDate)} - ${formatDate(antardasha.endDate)}`, RIGHT_X, yRight);
+        yRight += 14;
+      } else {
+        yRight += 4;
       }
-
-      yLeft += 10;
     }
 
-    // Dasha Sequence List - FIXED: single column list to avoid overlap
+    // Maha Dasha sequence table
+    yRight += 4;
     ctx.fillStyle = '#B45309';
     ctx.font = 'bold 10px Arial';
-    ctx.textAlign = 'left';
-    ctx.fillText('Trật tự Maha Dasha:', LEFT_COL_X, yLeft);
-    yLeft += 12;
+    ctx.fillText('Trật tự Maha Dasha:', RIGHT_X, yRight);
+    yRight += 12;
 
-    // Dasha rows - single column, dates on same line, no overlap
+    // Table header
+    ctx.font = 'bold 8px Arial';
+    ctx.fillText('Hành tinh', RIGHT_X, yRight);
+    ctx.fillText('Bắt đầu', RIGHT_X + 100, yRight);
+    ctx.fillText('Kết thúc', RIGHT_X + 180, yRight);
+    yRight += 10;
+
+    // Dasha rows
     ctx.font = '9px Arial';
     chartData.dashas.sequence.forEach((dasha, index) => {
       ctx.fillStyle = '#333';
-      ctx.fillText(`${index + 1}. ${getViPlanetName(dasha.planet)}`, LEFT_COL_X, yLeft);
+      ctx.fillText(`${index + 1}. ${getViPlanetName(dasha.planet)}`, RIGHT_X, yRight);
 
       ctx.fillStyle = '#666';
       ctx.font = '8px Arial';
-      ctx.fillText(formatDate(dasha.startDate), LEFT_COL_X + 100, yLeft);
-      ctx.fillText('-', LEFT_COL_X + 175, yLeft);
-      ctx.fillText(formatDate(dasha.endDate), LEFT_COL_X + 182, yLeft);
+      ctx.fillText(formatDate(dasha.startDate), RIGHT_X + 100, yRight);
+      ctx.fillText(formatDate(dasha.endDate), RIGHT_X + 180, yRight);
       ctx.font = '9px Arial';
 
-      yLeft += 13;
+      yRight += ROW_H;
     });
 
-    // Calculate final yLeft after dasha list
-    yLeft += 10;
+    // ============ BOTTOM-LEFT: PLANETS ============
+    let yLeft = BOTTOM_Y;
 
-    // ============ RIGHT COLUMN: Planet + House Details ============
-    // Start from same Y as left column content (after chart + dasha current)
-    const leftContentEndY = yLeft;
-    let yRight = leftContentEndY > 400 ? leftContentEndY : 400;
-
-    // Planet details section header - FIXED X coordinates
     ctx.fillStyle = '#B45309';
     ctx.font = 'bold 10px Arial';
     ctx.textAlign = 'left';
-    ctx.fillText('Chi tiết các hành tinh:', RIGHT_COL_X, yRight);
-    yRight += 12;
+    ctx.fillText('Chi tiết các hành tinh:', LEFT_X, yLeft);
+    yLeft += 12;
 
-    // Planet table header - FIXED X coordinates
+    // Table header
     ctx.font = 'bold 8px Arial';
-    ctx.fillText('Hành tinh', RIGHT_COL_X, yRight);
-    ctx.fillText('Cung/Vị trí', RIGHT_COL_X + 60, yRight);
-    ctx.fillText('Nhà', RIGHT_COL_X + 150, yRight);
-    ctx.fillText('Nakshatra', RIGHT_COL_X + 180, yRight);
-    yRight += 10;
+    ctx.fillText('Hành tinh', LEFT_X, yLeft);
+    ctx.fillText('Vị trí', LEFT_X + 65, yLeft);
+    ctx.fillText('Nhà', LEFT_X + 145, yLeft);
+    ctx.fillText('Nakshatra', LEFT_X + 175, yLeft);
+    yLeft += 10;
 
-    // Planet rows - NO background, FIXED X coordinates
+    // Planet rows
     ctx.font = '9px Arial';
     chartData.planets.forEach((planet) => {
       ctx.fillStyle = '#333';
-      ctx.textAlign = 'left';
+      ctx.fillText(`${planet.symbol} ${planet.name}`, LEFT_X, yLeft);
 
-      // Merged: Planet symbol + name
-      const planetText = `${planet.symbol} ${planet.name}`;
-      ctx.fillText(planetText, RIGHT_COL_X, yRight);
-
-      // Merged: Zodiac sign + degree
       const degrees = Math.floor(planet.longitude % 30);
       const minutes = Math.floor((planet.longitude % 30 - degrees) * 60);
-      const signText = `${ZODIAC_SIGNS[planet.sign]} ${degrees}°${minutes}'`;
-      ctx.fillText(signText, RIGHT_COL_X + 60, yRight);
+      ctx.fillText(`${ZODIAC_SIGNS[planet.sign]} ${degrees}°${minutes}'`, LEFT_X + 65, yLeft);
 
-      // House
-      ctx.fillText(`${planet.house}`, RIGHT_COL_X + 150, yRight);
+      ctx.fillText(`${planet.house}`, LEFT_X + 145, yLeft);
+      ctx.fillText(`${planet.nakshatra.name} P${planet.nakshatra.pada}`, LEFT_X + 175, yLeft);
 
-      // Nakshatra
-      ctx.fillText(`${planet.nakshatra.name} P${planet.nakshatra.pada}`, RIGHT_COL_X + 180, yRight);
-
-      yRight += 12;
+      yLeft += ROW_H;
     });
 
-    yRight += 10;
+    // ============ BOTTOM-RIGHT: HOUSES ============
+    let yRightBottom = BOTTOM_Y;
 
-    // House details section header - FIXED X coordinates
     ctx.fillStyle = '#B45309';
     ctx.font = 'bold 10px Arial';
-    ctx.fillText('Chi tiết các nhà:', RIGHT_COL_X, yRight);
-    yRight += 12;
+    ctx.fillText('Chi tiết các nhà:', RIGHT_X, yRightBottom);
+    yRightBottom += 12;
 
-    // House table header - FIXED X coordinates
+    // Table header
     ctx.font = 'bold 8px Arial';
-    ctx.fillText('Nhà', RIGHT_COL_X, yRight);
-    ctx.fillText('Tên', RIGHT_COL_X + 30, yRight);
-    ctx.fillText('Ý nghĩa', RIGHT_COL_X + 90, yRight);
-    ctx.fillText('Cung', RIGHT_COL_X + 200, yRight);
-    ctx.fillText('HT', RIGHT_COL_X + 245, yRight);
-    yRight += 10;
+    ctx.fillText('Nhà', RIGHT_X, yRightBottom);
+    ctx.fillText('Tên', RIGHT_X + 30, yRightBottom);
+    ctx.fillText('Ý nghĩa', RIGHT_X + 110, yRightBottom);
+    ctx.fillText('Cung', RIGHT_X + 200, yRightBottom);
+    ctx.fillText('HT', RIGHT_X + 245, yRightBottom);
+    yRightBottom += 10;
 
-    // House rows - NO background, FIXED X coordinates
+    // House rows
     ctx.font = '9px Arial';
     chartData.houses.forEach((house) => {
       ctx.fillStyle = '#333';
-      ctx.textAlign = 'left';
+      ctx.fillText(`${house.number}`, RIGHT_X, yRightBottom);
+      ctx.fillText(HOUSE_NAMES[house.number as keyof typeof HOUSE_NAMES].sanskrit, RIGHT_X + 30, yRightBottom);
 
-      ctx.fillText(`${house.number}`, RIGHT_COL_X, yRight);
-
-      const houseInfo = HOUSE_NAMES[house.number as keyof typeof HOUSE_NAMES];
-      ctx.fillText(houseInfo.sanskrit, RIGHT_COL_X + 30, yRight);
-
-      // Shortened meaning (max 15 chars to avoid overlap)
-      const meaningShort = houseInfo.meaning.length > 15
-        ? houseInfo.meaning.substring(0, 13) + '..'
-        : houseInfo.meaning;
+      const meaning = HOUSE_NAMES[house.number as keyof typeof HOUSE_NAMES].meaning;
+      const meaningShort = meaning.length > 15 ? meaning.substring(0, 13) + '..' : meaning;
       ctx.fillStyle = '#666';
       ctx.font = '8px Arial';
-      ctx.fillText(meaningShort, RIGHT_COL_X + 90, yRight);
+      ctx.fillText(meaningShort, RIGHT_X + 110, yRightBottom);
       ctx.font = '9px Arial';
       ctx.fillStyle = '#333';
 
-      ctx.fillText(ZODIAC_SIGNS[house.sign], RIGHT_COL_X + 200, yRight);
+      ctx.fillText(ZODIAC_SIGNS[house.sign], RIGHT_X + 200, yRightBottom);
 
       const planetSymbols = house.planets.map(planetId => {
         const planet = chartData.planets.find(p => p.id === planetId);
         return planet ? planet.symbol : '';
       }).join(' ');
-      ctx.fillText(planetSymbols, RIGHT_COL_X + 245, yRight);
+      ctx.fillText(planetSymbols, RIGHT_X + 245, yRightBottom);
 
-      yRight += 12;
+      yRightBottom += ROW_H;
     });
 
     // ============ FOOTER ============
@@ -1217,7 +1200,6 @@ export async function downloadAsPDF(
     const imgData1 = canvas1.toDataURL('image/png', 0.95);
     pdf.addImage(imgData1, 'PNG', 0, 0, pageWidth, pageHeight);
 
-    // Download
     const fileName = userData?.name
       ? `vedic-chart-${userData.name.replace(/\s+/g, '-')}-${userData.birthDate || 'unknown'}.pdf`
       : 'vedic-birth-chart.pdf';
