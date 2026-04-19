@@ -15,7 +15,7 @@ const ChatBot = () => {
     <>
       <button
         onClick={toggleChatBot}
-        className="fixed bottom-6 right-6 p-4 rounded-full bg-primary text-white shadow-lg hover:bg-amber-600 transition-all z-50"
+        className="fixed bottom-6 right-6 p-4 rounded-full bg-primary text-white shadow-lg hover:bg-primary/90 transition-all z-50"
         aria-label="Open Chat Bot"
       >
         <Bot size={24} />
@@ -30,7 +30,7 @@ const ChatBot = () => {
               </h3>
               <button 
                 onClick={toggleChatBot}
-                className="text-white hover:text-amber-200"
+                className="text-white hover:text-white/80"
               >
                 ✕
               </button>

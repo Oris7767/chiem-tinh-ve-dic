@@ -112,16 +112,16 @@ const BlogPage = () => {
         </script>
       </Helmet>
       
-      <div className="min-h-screen flex flex-col bg-gradient-to-b from-amber-50 to-amber-100">
+      <div className="min-h-screen flex flex-col bg-gradient-to-b from-votive-bg to-votive-surface">
         <NavBar />
         <main className="flex-grow pt-16">
           <div className="container mx-auto px-4 py-8">
             <div className="max-w-6xl mx-auto">
               <div className="text-center mb-8">
-                <h1 className="text-3xl md:text-4xl font-bold text-amber-900 mb-2">
+                <h1 className="text-3xl md:text-4xl font-bold text-votive-red mb-2 font-serif">
                   {t('blog.title') || 'Vedic Wisdom Blog'}
                 </h1>
-                <p className="text-lg text-amber-800 max-w-2xl mx-auto">
+                <p className="text-lg text-votive-muted max-w-2xl mx-auto">
                   {t('blog.subtitle') || 'Explore the ancient wisdom of Vedic numerology and astrology through our articles and insights'}
                 </p>
               </div>
@@ -222,8 +222,8 @@ const BlogPage = () => {
                           </div>
                         )}
                         <CardHeader className="pb-2">
-                          <CardTitle className="text-xl font-bold text-gray-900">
-                            <Link to={`/blog/${post.slug}`} className="hover:text-amber-700 transition-colors">
+                          <CardTitle className="text-xl font-bold text-votive-text">
+                            <Link to={`/blog/${post.slug}`} className="hover:text-primary transition-colors">
                               {post.title}
                             </Link>
                           </CardTitle>
@@ -251,7 +251,7 @@ const BlogPage = () => {
                             {post.tags.slice(0, 3).map(tag => (
                               <span 
                                 key={tag} 
-                                className="inline-flex items-center bg-amber-100 px-2 py-1 rounded-full text-xs text-amber-800"
+                                className="inline-flex items-center bg-primary/10 px-2 py-1 rounded-full text-xs text-primary"
                               >
                                 <Tag size={10} className="mr-1" />
                                 {tag}

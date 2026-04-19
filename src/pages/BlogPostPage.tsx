@@ -48,7 +48,7 @@ const BlogPostPage = () => {
   
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-gradient-to-b from-amber-50 to-amber-100">
+      <div className="min-h-screen flex flex-col bg-gradient-to-b from-votive-bg to-votive-surface">
         <NavBar />
         <main className="flex-grow pt-16">
           <div className="container mx-auto px-4 py-8">
@@ -64,7 +64,7 @@ const BlogPostPage = () => {
               <div className="bg-white rounded-lg shadow-xl p-8 mb-12">
                 <Skeleton className="h-10 w-3/4 mb-4" />
                 
-                <div className="flex flex-wrap items-center gap-4 text-sm text-amber-700 mb-6">
+                <div className="flex flex-wrap items-center gap-4 text-sm text-votive-muted mb-6">
                   <Skeleton className="h-5 w-24" />
                   <Skeleton className="h-5 w-24" />
                   <div className="flex flex-wrap gap-2">
@@ -115,7 +115,7 @@ const BlogPostPage = () => {
         lang={language === 'vi' ? 'vi' : 'en'}
       />
       
-      <div className="min-h-screen flex flex-col bg-gradient-to-b from-amber-50 to-amber-100">
+      <div className="min-h-screen flex flex-col bg-gradient-to-b from-votive-bg to-votive-surface">
         <NavBar />
         <main className="flex-grow pt-16">
           <div className="container mx-auto px-4 py-8">
@@ -125,7 +125,7 @@ const BlogPostPage = () => {
               </div>
               
               <div className="mb-6">
-                <Link to="/blog" className="inline-flex items-center text-amber-700 hover:text-amber-900 transition-colors">
+                <Link to="/blog" className="inline-flex items-center text-votive-muted hover:text-primary transition-colors">
                   <ArrowLeft size={16} className="mr-2" />
                   {t('blog.backToBlog') || 'Back to Blog'}
                 </Link>
@@ -206,7 +206,7 @@ const BlogPostPage = () => {
               </article>
               
               <div className="bg-white rounded-lg shadow-lg p-8 mb-12">
-                <h2 className="text-2xl font-bold text-amber-900 mb-4">
+                <h2 className="text-2xl font-bold text-votive-text font-serif mb-4">
                   {t('blog.stayUpdated') || 'Stay Updated'}
                 </h2>
                 <NewsletterSignup />

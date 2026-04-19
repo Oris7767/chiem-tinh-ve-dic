@@ -168,7 +168,7 @@ const Hero = () => {
         </script>
       </Helmet>
       
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-gray-50 z-0"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-votive-bg to-votive-surface z-0"></div>
 
       <div ref={numberRef} className="absolute opacity-5 text-[30rem] font-serif text-primary/20 select-none z-0 animate-float" aria-hidden="true">
         9

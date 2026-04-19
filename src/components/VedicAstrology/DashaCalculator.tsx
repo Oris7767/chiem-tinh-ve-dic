@@ -120,7 +120,7 @@ const DashaCalculator: React.FC<DashaCalculatorProps> = ({ chartData }) => {
       </CardHeader>
       <CardContent>
         {currentDasha && (
-          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
+          <div className="mb-4 p-3 bg-votive-surface border border-votive-border rounded-md">
             <div className="font-bold text-lg">Chu kỳ hiện tại:</div>
             <div className="flex justify-between">
               <div className="font-medium">{currentDasha.planet} ({getPlanetAbbr(currentDasha.planet)})</div>
@@ -180,7 +180,7 @@ const DashaCalculator: React.FC<DashaCalculatorProps> = ({ chartData }) => {
             dashaSequence.map((dasha, index) => {
               const isSelected = selectedMahadasha === dasha.planet;
               return (
-                <div key={index} className={`p-3 border rounded-md ${dasha.planet === currentDasha.planet ? 'bg-amber-50 border-amber-300' : ''}`}>
+                <div key={index} className={`p-3 border rounded-md ${dasha.planet === currentDasha.planet ? 'bg-votive-surface border-votive-border' : 'border-votive-border'}`}>
                   <div className="flex justify-between items-center cursor-pointer" onClick={() => setSelectedMahadasha(dasha.planet)}>
                     <div className="font-medium">
                       {dasha.planet} ({getPlanetAbbr(dasha.planet)})

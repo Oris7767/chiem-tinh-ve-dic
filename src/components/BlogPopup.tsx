@@ -44,7 +44,7 @@ const BlogPopup = () => {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-amber-900">
+          <DialogTitle className="text-votive-text font-serif">
             {t('blogPopup.title') || 'Discover Our New Blog!'}
           </DialogTitle>
           <DialogDescription>
@@ -54,13 +54,13 @@ const BlogPopup = () => {
         
         <div className="flex justify-center py-4">
           <img 
-            src="/lovable-uploads/97fa6e16-3fd9-42cd-887d-d6d1d4d3ee6b.png" 
+            src="/images/logo.png" 
             alt="Blog" 
             className="h-24"
           />
         </div>
         
-        <div className="text-center text-amber-700">
+        <div className="text-center text-votive-muted">
           {t('blogPopup.content') || 'Read our latest articles about Vedic numerology, birth charts, and more. Stay updated with weekly posts!'}
         </div>
         

@@ -71,9 +71,9 @@ const AboutSlider = () => {
               <div className="p-1">
                 <Card className="border-none glass-card overflow-hidden">
                   <CardContent className="flex flex-col justify-center items-center p-6 md:p-10 text-center min-h-[400px]">
-                    {React.createElement(slide.icon, { className: "h-12 w-12 mb-6 text-amber-600" })}
-                    <h3 className="text-2xl font-semibold text-amber-900 mb-4">{slide.title}</h3>
-                    <p className="text-lg md:text-xl text-amber-900 leading-relaxed whitespace-pre-line">{slide.content}</p>
+                    {React.createElement(slide.icon, { className: "h-12 w-12 mb-6 text-primary" })}
+                    <h3 className="text-2xl font-semibold text-votive-text font-serif mb-4">{slide.title}</h3>
+                    <p className="text-lg md:text-xl text-votive-muted leading-relaxed whitespace-pre-line">{slide.content}</p>
                   </CardContent>
                 </Card>
               </div>
@@ -88,7 +88,7 @@ const AboutSlider = () => {
           <button
             key={index}
             className={`w-2 h-2 rounded-full transition-colors ${
-              index === activeIndex ? 'bg-amber-600' : 'bg-amber-300'
+              index === activeIndex ? 'bg-primary' : 'bg-votive-border'
             }`}
             onClick={() => emblaApi?.scrollTo(index)}
             aria-label={`Go to slide ${index + 1}`}

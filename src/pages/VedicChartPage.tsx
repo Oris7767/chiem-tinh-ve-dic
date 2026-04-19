@@ -12,7 +12,7 @@ const VedicChartPage = () => {
   const { t, language } = useLanguage();
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-stone-900 via-amber-950 to-amber-900">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-votive-text via-votive-text/95 to-votive-text">
       <SEO
         title={t('birthChart.seoTitle')}
         description={t('birthChart.seoDescription')}
@@ -29,10 +29,10 @@ const VedicChartPage = () => {
         </div>
         
         <div className="mb-12 text-center">
-          <h1 className="text-3xl md:text-4xl font-bold text-amber-50 mb-4">
+          <h1 className="text-3xl md:text-4xl font-bold text-votive-bg mb-4 font-serif">
             {t('birthChart.title')}
           </h1>
-          <p className="text-lg text-amber-100 max-w-3xl mx-auto">
+          <p className="text-lg text-votive-bg/80 max-w-3xl mx-auto">
             {t('birthChart.subtitle')}
           </p>
         </div>

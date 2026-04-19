@@ -203,7 +203,7 @@ const Calculator = () => {
 
   return (
     <section id="calculator" className="py-24 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-white to-blue-50 z-0"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-white to-votive-bg z-0"></div>
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-3xl mx-auto">
@@ -428,7 +428,7 @@ const Calculator = () => {
                             {renderScoreBar(aspectScores[LifeAspect.Career], t('aspect.career'), <Briefcase className="w-4 h-4 text-indigo-500" />)}
                             {renderScoreBar(aspectScores[LifeAspect.Reputation], t('aspect.reputation'), <Award className="w-4 h-4 text-yellow-600" />)}
                             {renderScoreBar(aspectScores[LifeAspect.Spirituality], t('aspect.spirituality'), <Compass className="w-4 h-4 text-cyan-600" />)}
-                            {renderScoreBar(aspectScores[LifeAspect.Luck], t('aspect.luck'), <Zap className="w-4 h-4 text-amber-500" />)}
+                            {renderScoreBar(aspectScores[LifeAspect.Luck], t('aspect.luck'), <Zap className="w-4 h-4 text-votive-terra" />)}
                           </>
                         )}
                       </div>
@@ -539,7 +539,7 @@ const Calculator = () => {
                             {renderScoreBar(aspectScores[LifeAspect.Career], t('aspect.career'), <Briefcase className="w-4 h-4 text-indigo-500" />)}
                             {renderScoreBar(aspectScores[LifeAspect.Reputation], t('aspect.reputation'), <Award className="w-4 h-4 text-yellow-600" />)}
                             {renderScoreBar(aspectScores[LifeAspect.Spirituality], t('aspect.spirituality'), <Compass className="w-4 h-4 text-cyan-600" />)}
-                            {renderScoreBar(aspectScores[LifeAspect.Luck], t('aspect.luck'), <Zap className="w-4 h-4 text-amber-500" />)}
+                            {renderScoreBar(aspectScores[LifeAspect.Luck], t('aspect.luck'), <Zap className="w-4 h-4 text-votive-terra" />)}
                           </>
                         )}
                       </div>
@@ -650,7 +650,7 @@ const Calculator = () => {
                             {renderScoreBar(aspectScores[LifeAspect.Career], t('aspect.career'), <Briefcase className="w-4 h-4 text-indigo-500" />)}
                             {renderScoreBar(aspectScores[LifeAspect.Reputation], t('aspect.reputation'), <Award className="w-4 h-4 text-yellow-600" />)}
                             {renderScoreBar(aspectScores[LifeAspect.Spirituality], t('aspect.spirituality'), <Compass className="w-4 h-4 text-cyan-600" />)}
-                            {renderScoreBar(aspectScores[LifeAspect.Luck], t('aspect.luck'), <Zap className="w-4 h-4 text-amber-500" />)}
+                            {renderScoreBar(aspectScores[LifeAspect.Luck], t('aspect.luck'), <Zap className="w-4 h-4 text-votive-terra" />)}
                           </>
                         )}
                       </div>

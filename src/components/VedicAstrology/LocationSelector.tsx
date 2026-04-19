@@ -212,20 +212,20 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
           </div>
 
           {isSearching && (
-            <div className="text-xs text-amber-600 mt-1 flex items-center">
+            <div className="text-xs text-primary mt-1 flex items-center">
               <span className="animate-spin mr-1">⏳</span> Đang tìm kiếm địa điểm...
             </div>
           )}
 
           {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
+            <div className="absolute z-10 w-full mt-1 bg-white border border-votive-border rounded-md shadow-lg max-h-60 overflow-auto">
               {suggestions.map((suggestion, index) => (
                 <div
                   key={index}
-                  className="p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center"
+                  className="p-3 hover:bg-votive-surface cursor-pointer flex items-center"
                   onClick={() => handleSelectLocation(suggestion)}
                 >
-                  <MapPin className="h-4 w-4 mr-2 text-amber-500" />
+                  <MapPin className="h-4 w-4 mr-2 text-primary" />
                   <span>{suggestion.properties.formatted}</span>
                 </div>
               ))}

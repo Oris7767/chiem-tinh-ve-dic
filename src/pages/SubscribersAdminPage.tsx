@@ -63,14 +63,14 @@ const SubscribersAdminPage = () => {
   if (!isLoggedIn) return null;
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-amber-50 to-amber-100">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-votive-bg to-votive-surface">
       <NavBar />
       <main className="flex-grow pt-16 pb-12">
         <div className="container mx-auto px-4">
           <Card className="shadow-lg">
             <CardHeader className="border-b">
               <div className="flex justify-between items-center">
-                <CardTitle className="text-2xl font-bold text-amber-900">
+                <CardTitle className="text-2xl font-bold text-votive-text font-serif">
                   {t('subscribers.adminTitle') || 'Newsletter Subscribers'}
                 </CardTitle>
                 <div className="flex gap-2">

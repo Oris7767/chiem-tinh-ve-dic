@@ -534,7 +534,7 @@ const VedicChart = () => {
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <div>
-              <p className="text-amber-100">Xin chào, {user.user_metadata?.name || user.email}</p>
+              <p className="text-votive-bg">Xin chào, {user.user_metadata?.name || user.email}</p>
             </div>
             <Button variant="outline" onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />

@@ -57,7 +57,7 @@ const PostHeader: React.FC<PostHeaderProps> = ({
         {tags.map(tag => (
           <span 
             key={tag} 
-            className="inline-flex items-center bg-amber-100 px-3 py-1 rounded-full text-sm text-amber-800"
+            className="inline-flex items-center bg-primary/10 px-3 py-1 rounded-full text-sm text-primary"
           >
             <Tag size={12} className="mr-2" />
             {tag}
