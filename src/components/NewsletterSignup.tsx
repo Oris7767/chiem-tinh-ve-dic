@@ -41,14 +41,14 @@ const NewsletterSignup = () => {
   return (
     <div className="flex flex-col md:flex-row items-center gap-6">
       <div className="w-full md:w-1/2">
-        <h3 className="text-xl font-bold text-amber-900 mb-2">
+        <h3 className="text-xl font-bold text-votive-text font-serif mb-2">
           {t('newsletter.title') || 'Subscribe to Our Newsletter'}
         </h3>
-        <p className="text-amber-700 mb-2">
+        <p className="text-votive-muted mb-2">
           {t('newsletter.description') || 'Stay updated with our latest articles, insights, and special offers.'}
         </p>
         <div className="hidden md:block">
-          <div className="flex items-center text-amber-600 mt-4">
+          <div className="flex items-center text-primary mt-4">
             <Mail className="mr-2" />
             <span>{t('newsletter.privacyNote') || 'We respect your privacy and will never share your information.'}</span>
           </div>
@@ -95,7 +95,7 @@ const NewsletterSignup = () => {
           </Button>
           
           <div className="block md:hidden text-center">
-            <div className="flex items-center justify-center text-amber-600 text-sm mt-4">
+            <div className="flex items-center justify-center text-primary text-sm mt-4">
               <Mail className="mr-2 h-4 w-4" />
               <span>{t('newsletter.privacyNote') || 'We respect your privacy and will never share your information.'}</span>
             </div>

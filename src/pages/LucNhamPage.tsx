@@ -74,7 +74,7 @@ const LucNhamPage: React.FC = () => {
   }, [forecast, filter]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-white via-amber-50 to-white">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-votive-bg via-votive-surface to-votive-bg">
       <SEO
         title={t('lucNham.seoTitle')}
         description={t('lucNham.seoDescription')}
@@ -91,27 +91,27 @@ const LucNhamPage: React.FC = () => {
         </div>
 
         <div className="mb-12 text-center">
-          <div className="mb-6 mx-auto max-w-sm overflow-hidden rounded-2xl border border-amber-200 bg-white shadow-sm">
+          <div className="mb-6 mx-auto max-w-sm overflow-hidden rounded-2xl border border-votive-border bg-white shadow-sm">
             <img
               src="/images/Luc%20Nham.png"
               alt="Logo âm dương Lục Nhâm"
               className="h-28 w-full object-contain md:h-32"
             />
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-amber-900 mb-4 font-serif">
+          <h1 className="text-3xl md:text-4xl font-bold text-votive-red mb-4 font-serif">
             {t('lucNham.title')}
           </h1>
-          <p className="text-lg text-amber-800 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-lg text-votive-muted max-w-3xl mx-auto leading-relaxed">
             {t('lucNham.subtitle')}
           </p>
         </div>
 
         <div className="grid gap-6 max-w-3xl mx-auto">
-          <Card className="border-amber-200 bg-white text-amber-900 shadow-sm">
+          <Card className="border-votive-border bg-white text-votive-text shadow-sm">
             <CardHeader>
-              <CardTitle className="text-xl text-amber-900">Đại Lục Nhâm: Chọn &quot;Sự an bài thuận lợi&quot;</CardTitle>
+              <CardTitle className="text-xl text-votive-text">Đại Lục Nhâm: Chọn &quot;Sự an bài thuận lợi&quot;</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 text-amber-800 text-sm md:text-base leading-relaxed">
+            <CardContent className="space-y-4 text-votive-muted text-sm md:text-base leading-relaxed">
               <p>
                 Lục Nhâm thiên về diễn biến nhân sự. Khi dùng Lục Nhâm để chọn ngày, thực chất là bạn đang xem
                 một &quot;quẻ dự đoán&quot; cho ngày đó.
@@ -120,7 +120,7 @@ const LucNhamPage: React.FC = () => {
                 Ưu điểm: Cho bạn biết ngày đó các mối quan hệ con người có thuận hòa hay không, có ẩn chứa rủi ro hay
                 tiểu nhân quấy phá không. Lục Nhâm rất tinh vi trong việc soi xét tâm lý và các nút thắt của sự việc.
               </p>
-              <p className="font-semibold text-amber-900">Khi nào nên dùng:</p>
+              <p className="font-semibold text-votive-text">Khi nào nên dùng:</p>
               <ul className="list-disc pl-5 space-y-1">
                 <li>Tổ chức đám cưới (cần sự hòa hợp nhân sự).</li>
                 <li>Hòa giải tranh chấp, kiện tụng.</li>
@@ -134,13 +134,13 @@ const LucNhamPage: React.FC = () => {
             </CardContent>
           </Card>
 
-          <Card className="border-amber-200 bg-white text-amber-900 shadow-sm">
+          <Card className="border-votive-border bg-white text-votive-text shadow-sm">
             <CardHeader>
-              <CardTitle className="text-xl text-amber-900">{t('lucNham.calculatorTitle')}</CardTitle>
+              <CardTitle className="text-xl text-votive-text">{t('lucNham.calculatorTitle')}</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 text-amber-800 text-sm md:text-base leading-relaxed">
-              <div className="flex items-center justify-center gap-2 text-amber-800">
-                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-amber-300 bg-amber-100 text-lg">
+            <CardContent className="space-y-4 text-votive-muted text-sm md:text-base leading-relaxed">
+              <div className="flex items-center justify-center gap-2 text-votive-muted">
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-votive-border bg-primary/10 text-lg">
                   ☯
                 </span>
                 <span className="text-sm md:text-base">Lịch tham khảo Lục Nhâm cho 30 ngày trong tháng</span>
@@ -151,16 +151,16 @@ const LucNhamPage: React.FC = () => {
                   type="date"
                   value={birthDate}
                   onChange={(e) => setBirthDate(e.target.value)}
-                  className="border-amber-300 bg-white text-amber-900"
+                  className="border-votive-border bg-white text-votive-text"
                 />
                 <Input
                   type="month"
                   value={targetMonth}
                   onChange={(e) => setTargetMonth(e.target.value)}
-                  className="border-amber-300 bg-white text-amber-900"
+                  className="border-votive-border bg-white text-votive-text"
                 />
                 <Select value={purpose} onValueChange={(value) => setPurpose(value as LucNhamPurpose)}>
-                  <SelectTrigger className="border-amber-300 bg-white text-amber-900">
+                  <SelectTrigger className="border-votive-border bg-white text-votive-text">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -172,7 +172,7 @@ const LucNhamPage: React.FC = () => {
                   </SelectContent>
                 </Select>
                 <Select value={gender} onValueChange={(value) => setGender(value as 'male' | 'female')}>
-                  <SelectTrigger className="border-amber-300 bg-white text-amber-900">
+                  <SelectTrigger className="border-votive-border bg-white text-votive-text">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -185,7 +185,7 @@ const LucNhamPage: React.FC = () => {
               <div className="flex justify-center">
                 <Button
                   onClick={() => setSubmitted(true)}
-                  className="bg-amber-600 hover:bg-amber-500 text-white"
+                  className="bg-primary text-white"
                 >
                   Tính lịch 30 ngày
                 </Button>
@@ -195,19 +195,19 @@ const LucNhamPage: React.FC = () => {
                 <p>{t('lucNham.calculatorPlaceholder')}</p>
               ) : (
                 <div className="space-y-3">
-                  <p className="text-amber-700 text-sm">
+                  <p className="text-votive-muted text-sm">
                     Màu xanh: tốt cho {PURPOSE_LABELS[purpose].toLowerCase()} | Màu đỏ: nên thận trọng
                   </p>
 
                   <div className="flex flex-wrap items-center justify-between gap-3 py-1">
-                    <div className="inline-flex rounded-lg border border-amber-200 bg-white p-1">
+                    <div className="inline-flex rounded-lg border border-votive-border bg-white p-1">
                       <button
                         onClick={() => setFilter('all')}
                         className={cn(
                           'rounded-md px-3 py-1.5 text-sm transition-colors',
                           filter === 'all'
-                            ? 'bg-amber-600 text-white'
-                            : 'text-amber-800 hover:bg-amber-50'
+                            ? 'bg-votive-terra text-white'
+                            : 'text-votive-muted hover:bg-votive-surface'
                         )}
                       >
                         Tất cả
@@ -236,14 +236,14 @@ const LucNhamPage: React.FC = () => {
                       </button>
                     </div>
 
-                    <div className="inline-flex rounded-lg border border-amber-200 bg-white p-1">
+                    <div className="inline-flex rounded-lg border border-votive-border bg-white p-1">
                       <button
                         onClick={() => setLayout('grid')}
                         className={cn(
                           'inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm transition-colors',
                           layout === 'grid'
-                            ? 'bg-amber-600 text-white'
-                            : 'text-amber-800 hover:bg-amber-50'
+                            ? 'bg-votive-terra text-white'
+                            : 'text-votive-muted hover:bg-votive-surface'
                         )}
                       >
                         <LayoutGrid className="h-4 w-4" />
@@ -254,8 +254,8 @@ const LucNhamPage: React.FC = () => {
                         className={cn(
                           'inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm transition-colors',
                           layout === 'calendar'
-                            ? 'bg-amber-600 text-white'
-                            : 'text-amber-800 hover:bg-amber-50'
+                            ? 'bg-votive-terra text-white'
+                            : 'text-votive-muted hover:bg-votive-surface'
                         )}
                       >
                         <CalendarDays className="h-4 w-4" />
@@ -271,12 +271,12 @@ const LucNhamPage: React.FC = () => {
                           key={item.isoDate}
                           onClick={() => setSelectedDay(item)}
                           className={cn(
-                            'rounded-xl border border-amber-100 bg-white p-4 shadow-sm border-l-4 cursor-pointer transition hover:shadow-md',
+                            'rounded-xl border border-votive-border bg-white p-4 shadow-sm border-l-4 cursor-pointer transition hover:shadow-md',
                             item.isGood ? 'border-l-emerald-500' : 'border-l-red-500'
                           )}
                         >
                           <div className="flex items-start justify-between gap-2">
-                            <p className="font-semibold text-amber-900">
+                            <p className="font-semibold text-votive-text">
                               Ngày {item.day} ({item.dayCan} {item.dayChi})
                             </p>
                             {item.isGood ? (
@@ -298,7 +298,7 @@ const LucNhamPage: React.FC = () => {
                             </Badge>
                           </div>
 
-                          <p className="text-sm text-amber-800 mt-3">{item.reason}</p>
+                          <p className="text-sm text-votive-muted mt-3">{item.reason}</p>
                         </div>
                       ))}
                     </div>
@@ -320,7 +320,7 @@ const LucNhamPage: React.FC = () => {
                             ) : (
                               <AlertTriangle className="h-3.5 w-3.5 text-red-500" />
                             )}
-                            <span className="text-amber-900 font-medium">Ngày {item.day}</span>
+                            <span className="text-votive-text font-medium">Ngày {item.day}</span>
                           </div>
                           <p className="mt-1 text-[11px] text-gray-600">
                             {item.soTruyen}-{item.trungTruyen}-{item.matTruyen}
@@ -363,13 +363,13 @@ const LucNhamPage: React.FC = () => {
                 </div>
 
                 {selectedDay.personalContext?.isQuyNhanDangThienMon && (
-                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
-                    <p className="font-medium text-amber-900">🌟 Quý nhân đăng thiên môn</p>
-                    <p className="text-amber-800 mt-1">
+                  <div className="rounded-lg border border-votive-border bg-votive-surface p-3">
+                    <p className="font-medium text-votive-text">🌟 Quý nhân đăng thiên môn</p>
+                    <p className="text-votive-muted mt-1">
                       Dễ gặp quý nhân giúp đỡ, đi đường bình an.
                     </p>
                     <div className="mt-2">
-                      <Badge variant="secondary" className="bg-white text-amber-900 border border-amber-200">
+                      <Badge variant="secondary" className="bg-white text-votive-text border border-votive-border">
                         Quý Nhân: {selectedDay.personalContext?.quyNhan}
                       </Badge>
                     </div>
@@ -421,8 +421,8 @@ const LucNhamPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
-                  <p className="text-sm italic text-amber-800">
+                <div className="rounded-lg border border-votive-border bg-votive-surface px-3 py-2">
+                  <p className="text-sm italic text-votive-muted">
                     *Lưu ý: Năng lượng chung của ngày (Lục Nhâm) luôn giữ vai trò quyết định. Chỉ số phụ trợ chỉ
                     dùng để tham khảo thêm.*
                   </p>

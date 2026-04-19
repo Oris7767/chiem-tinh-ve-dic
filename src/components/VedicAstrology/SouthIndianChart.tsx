@@ -140,7 +140,7 @@ const SouthIndianChart: React.FC<SouthIndianChartProps> = ({
         viewBox="0 0 500 500"
         width="500"
         height="500"
-        className="w-full h-full border border-amber-200 rounded-lg"
+        className="w-full h-full border border-votive-border rounded-lg"
         id="birth-chart-svg"
       >
         {/* Add a white background for better image saving */}

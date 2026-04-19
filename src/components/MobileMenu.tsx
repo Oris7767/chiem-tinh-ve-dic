@@ -46,30 +46,30 @@ const MobileMenu = () => {
     <div className="md:hidden">
       <Sheet>
         <SheetTrigger asChild>
-          <button className="p-2 rounded-full bg-amber-600/30 hover:bg-amber-600/50 text-amber-50 transition-colors">
+          <button className="p-2 rounded-full bg-primary/30 hover:bg-primary/50 text-votive-bg transition-colors">
             <Menu size={24} />
           </button>
         </SheetTrigger>
-        <SheetContent side="right" className="bg-gradient-to-b from-amber-900 to-amber-800 text-amber-50">
+        <SheetContent side="right" className="bg-gradient-to-b from-votive-text to-votive-text/90 text-votive-bg">
           <SheetHeader>
-            <SheetTitle className="text-amber-50 flex items-center justify-between">
+            <SheetTitle className="text-votive-bg flex items-center justify-between">
               <img 
-                src="/lovable-uploads/97fa6e16-3fd9-42cd-887d-d6d1d4d3ee6b.png" 
+                src="/images/logo.png" 
                 alt="Votic Logo" 
                 className="h-12"
               />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="p-2 rounded-full hover:bg-amber-800/50 transition-colors">
+                  <button className="p-2 rounded-full hover:bg-votive-text/50 transition-colors">
                     <Globe size={24} />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-amber-800 border-amber-700">
+                <DropdownMenuContent align="end" className="bg-votive-text border-votive-border">
                   {languages.map((lang) => (
                     <DropdownMenuItem
                       key={lang.code}
-                      className={`text-amber-50 hover:bg-amber-700 cursor-pointer ${
-                        language === lang.code ? 'bg-amber-700' : ''
+                      className={`text-votive-bg hover:bg-votive-red cursor-pointer ${
+                        language === lang.code ? 'bg-votive-red' : ''
                       }`}
                       onClick={() => setLanguage(lang.code === 'vi' ? 'vi' : 'en')}
                     >
@@ -90,14 +90,14 @@ const MobileMenu = () => {
                       to={item.to} 
                       className={`flex items-center py-3 px-4 text-lg font-medium rounded-md transition-colors
                         ${item.highlight 
-                          ? 'bg-amber-600/30 hover:bg-amber-600/50' 
-                          : 'hover:bg-amber-800/50'
+                          ? 'bg-primary/30 hover:bg-primary/50' 
+                          : 'hover:bg-votive-text/50'
                         }`}
                     >
                       {item.icon && <item.icon className="mr-3" size={20} />}
                       {item.label.startsWith('nav.') ? t(item.label) : item.label}
                       {item.badge && (
-                        <span className="ml-2 px-2 py-0.5 text-xs bg-amber-500 rounded-full">
+                        <span className="ml-2 px-2 py-0.5 text-xs bg-primary rounded-full">
                           {item.badge}
                         </span>
                       )}
@@ -112,7 +112,7 @@ const MobileMenu = () => {
             <SheetClose asChild>
               <Link 
                 to="/#calculator" 
-                className="block w-full py-3 px-4 bg-amber-500 hover:bg-amber-600 text-center rounded-md font-medium transition-colors"
+                className="block w-full py-3 px-4 bg-primary hover:bg-primary/90 text-white text-center rounded-md font-medium transition-colors"
               >
                 {t('nav.start')}
               </Link>

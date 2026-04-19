@@ -84,12 +84,12 @@ const Breadcrumbs = () => {
             <li key={item.path} className="inline-flex items-center">
               {index > 0 && (
                 <ChevronRight
-                  className={`w-4 h-4 mx-1 ${isOnDarkHero ? 'text-amber-500' : 'text-amber-600'}`}
+                  className={`w-4 h-4 mx-1 ${isOnDarkHero ? 'text-primary' : 'text-votive-muted'}`}
                 />
               )}
               {index === breadcrumbs.length - 1 ? (
                 <span
-                  className={`font-medium ${isOnDarkHero ? 'text-amber-100' : 'text-amber-900'}`}
+                  className={`font-medium ${isOnDarkHero ? 'text-votive-bg' : 'text-votive-text'}`}
                 >
                   {item.label}
                 </span>
@@ -98,8 +98,8 @@ const Breadcrumbs = () => {
                   to={item.path}
                   className={
                     isOnDarkHero
-                      ? 'text-amber-300 hover:text-amber-50 transition-colors'
-                      : 'text-amber-600 hover:text-amber-900 transition-colors'
+                      ? 'text-votive-bg/70 hover:text-votive-bg transition-colors'
+                      : 'text-votive-muted hover:text-votive-text transition-colors'
                   }
                 >
                   {item.label}

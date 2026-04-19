@@ -33,13 +33,13 @@ const NotFound = () => {
         noindex={true}
         lang={language === 'vi' ? 'vi' : 'en'}
       />
-      <div className="min-h-screen flex flex-col bg-gradient-to-b from-amber-800 to-amber-950">
+      <div className="min-h-screen flex flex-col bg-gradient-to-b from-votive-text to-votive-text/95">
         <NavBar />
         <main className="flex-grow flex items-center justify-center">
           <div className="container mx-auto px-4 py-16 text-center">
-            <div className="max-w-lg mx-auto bg-amber-50 p-8 rounded-xl shadow-2xl">
-              <h1 className="text-6xl font-bold text-amber-900 mb-2">404</h1>
-              <h2 className="text-xl font-medium text-amber-800 mb-6">
+            <div className="max-w-lg mx-auto bg-votive-bg p-8 rounded-xl shadow-2xl">
+              <h1 className="text-6xl font-bold text-votive-red mb-2 font-serif">404</h1>
+              <h2 className="text-xl font-medium text-votive-text mb-6">
                 {language === 'vi' ? 'Không tìm thấy trang' : 'Page Not Found'}
               </h2>
               <p className="text-gray-600 mb-8">

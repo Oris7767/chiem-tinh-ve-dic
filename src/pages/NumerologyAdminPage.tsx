@@ -55,29 +55,29 @@ const NumerologyAdminPage = () => {
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-8">
-              <h1 className="text-3xl md:text-4xl font-bold text-amber-900 mb-4">
+              <h1 className="text-3xl md:text-4xl font-bold text-votive-text font-serif mb-4">
                 Numerology Calculations Admin
               </h1>
-              <p className="text-lg text-amber-800">
+              <p className="text-lg text-votive-muted">
                 View all saved numerology calculations
               </p>
             </div>
             
             {loading ? (
               <div className="flex justify-center p-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-900"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
               </div>
             ) : (
               <div className="overflow-x-auto shadow-md rounded-lg">
                 <Table>
-                  <TableHeader className="bg-amber-100">
+                  <TableHeader className="bg-primary/10">
                     <TableRow>
-                      <TableHead className="text-amber-900 font-semibold">Name</TableHead>
-                      <TableHead className="text-amber-900 font-semibold">Birth Date</TableHead>
-                      <TableHead className="text-amber-900 font-semibold">Birth Number</TableHead>
-                      <TableHead className="text-amber-900 font-semibold">Name Number</TableHead>
-                      <TableHead className="text-amber-900 font-semibold">Life Number</TableHead>
-                      <TableHead className="text-amber-900 font-semibold">Created At</TableHead>
+                      <TableHead className="text-votive-text font-semibold">Name</TableHead>
+                      <TableHead className="text-votive-text font-semibold">Birth Date</TableHead>
+                      <TableHead className="text-votive-text font-semibold">Birth Number</TableHead>
+                      <TableHead className="text-votive-text font-semibold">Name Number</TableHead>
+                      <TableHead className="text-votive-text font-semibold">Life Number</TableHead>
+                      <TableHead className="text-votive-text font-semibold">Created At</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody className="divide-y divide-gray-200 bg-white">
