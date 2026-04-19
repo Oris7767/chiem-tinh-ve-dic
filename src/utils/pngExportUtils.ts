@@ -143,7 +143,7 @@ export async function downloadAsPNG(
     }
 
     await waitForSVGRender(originalChart, 3000);
-    const chartCanvas = await svgToCanvas(originalChart, 500, 500);
+    const chartCanvas = await svgToCanvas(originalChart, 600, 600);
 
     // Canvas size (A4 x2 for high DPI)
     const fullWidth = 1190;
@@ -191,7 +191,7 @@ export async function downloadAsPNG(
     const RIGHT_X = 620;
     const TOP_Y = 160;
     const BOTTOM_Y = 820;
-    const ROW_H = 30;
+    const ROW_H = 26;
 
     // Vertical divider (between columns)
     ctx.strokeStyle = '#e5e7eb';
@@ -208,7 +208,7 @@ export async function downloadAsPNG(
     ctx.stroke();
 
     // ============ TOP-LEFT: CHART ============
-    ctx.drawImage(chartCanvas, LEFT_X, TOP_Y, 500, 500);
+    ctx.drawImage(chartCanvas, LEFT_X, TOP_Y, 600, 600);
 
     // ============ TOP-RIGHT: DASHA ============
     let yRight = TOP_Y;
@@ -225,7 +225,7 @@ export async function downloadAsPNG(
       ctx.fillText(getViPlanetName(chartData.dashas.current.planet), RIGHT_X, yRight);
       yRight += 26;
 
-      ctx.font = '20px Arial';
+      ctx.font = '18px Arial';
       ctx.fillStyle = '#666';
       ctx.fillText(`${formatDate(chartData.dashas.current.startDate)} - ${formatDate(chartData.dashas.current.endDate)}`, RIGHT_X, yRight);
       yRight += 26;
@@ -243,7 +243,7 @@ export async function downloadAsPNG(
         yRight += 26;
 
         ctx.fillStyle = '#666';
-        ctx.font = '20px Arial';
+        ctx.font = '18px Arial';
         ctx.fillText(`${formatDate(antardasha.startDate)} - ${formatDate(antardasha.endDate)}`, RIGHT_X, yRight);
         yRight += 36;
       } else {
@@ -266,7 +266,7 @@ export async function downloadAsPNG(
     yRight += 28;
 
     // Dasha rows
-    ctx.font = '20px Arial';
+    ctx.font = '18px Arial';
     chartData.dashas.sequence.forEach((dasha, index) => {
       ctx.fillStyle = '#333';
       ctx.fillText(`${index + 1}. ${getViPlanetName(dasha.planet)}`, RIGHT_X, yRight);
@@ -275,7 +275,7 @@ export async function downloadAsPNG(
       ctx.font = '18px Arial';
       ctx.fillText(formatDate(dasha.startDate), RIGHT_X + 150, yRight);
       ctx.fillText(formatDate(dasha.endDate), RIGHT_X + 320, yRight);
-      ctx.font = '20px Arial';
+      ctx.font = '18px Arial';
 
       yRight += ROW_H;
     });
@@ -298,7 +298,7 @@ export async function downloadAsPNG(
     yLeft += 28;
 
     // Planet rows
-    ctx.font = '20px Arial';
+    ctx.font = '18px Arial';
     chartData.planets.forEach((planet) => {
       ctx.fillStyle = '#333';
       ctx.fillText(`${planet.symbol} ${planet.name}`, LEFT_X, yLeft);
@@ -331,7 +331,7 @@ export async function downloadAsPNG(
     yRightBottom += 28;
 
     // House rows
-    ctx.font = '20px Arial';
+    ctx.font = '18px Arial';
     chartData.houses.forEach((house) => {
       ctx.fillStyle = '#333';
       ctx.fillText(`${house.number}`, RIGHT_X, yRightBottom);
@@ -342,7 +342,7 @@ export async function downloadAsPNG(
       ctx.fillStyle = '#666';
       ctx.font = '18px Arial';
       ctx.fillText(meaningShort, RIGHT_X + 220, yRightBottom);
-      ctx.font = '20px Arial';
+      ctx.font = '18px Arial';
       ctx.fillStyle = '#333';
 
       ctx.fillText(ZODIAC_SIGNS[house.sign], RIGHT_X + 430, yRightBottom);
