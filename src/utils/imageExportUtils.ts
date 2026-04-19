@@ -1044,11 +1044,11 @@ export async function downloadAsPDF(
     // Draw chart (scaled down to fit column)
     const chartX = LEFT_COL_X;
     const chartY = 58;
-    const chartSize = 250;
+    const chartSize = 220;
     ctx.drawImage(chartCanvas, chartX, chartY, chartSize, chartSize);
 
     // Current Dasha section (no background)
-    let yLeft = chartY + chartSize + 12;
+    let yLeft = chartY + chartSize + 15;
 
     if (chartData.dashas?.current) {
       ctx.fillStyle = '#B45309';
@@ -1081,50 +1081,42 @@ export async function downloadAsPDF(
         ctx.fillStyle = '#666';
         ctx.font = '9px Arial';
         ctx.fillText(`${formatDate(chartData.dashas.current.antardasha.current.startDate)} - ${formatDate(chartData.dashas.current.antardasha.current.endDate)}`, LEFT_COL_X, yLeft);
-        yLeft += 12;
+        yLeft += 15;
       }
 
-      yLeft += 8;
+      yLeft += 10;
     }
 
-    // Dasha Sequence List (Maha Dasha grid) - FIXED X coordinates
+    // Dasha Sequence List - FIXED: single column list to avoid overlap
     ctx.fillStyle = '#B45309';
     ctx.font = 'bold 10px Arial';
     ctx.textAlign = 'left';
     ctx.fillText('Trật tự Maha Dasha:', LEFT_COL_X, yLeft);
     yLeft += 12;
 
-    // Dasha table header - FIXED X coordinates
-    ctx.font = 'bold 9px Arial';
-    ctx.fillText('#', LEFT_COL_X, yLeft);
-    ctx.fillText('Hành tinh', LEFT_COL_X + 18, yLeft);
-    ctx.fillText('Bắt đầu', LEFT_COL_X + 70, yLeft);
-    ctx.fillText('Kết thúc', LEFT_COL_X + 140, yLeft);
-    yLeft += 10;
-
-    // Dasha rows - NO background, FIXED X coordinates
+    // Dasha rows - single column, dates on same line, no overlap
     ctx.font = '9px Arial';
-    const dashaPerRow = 2;
     chartData.dashas.sequence.forEach((dasha, index) => {
-      const col = index % dashaPerRow;
-      const row = Math.floor(index / dashaPerRow);
-      const xPos = col === 0 ? LEFT_COL_X : LEFT_COL_X + 130;
-      const yPos = yLeft + (row * 14);
-
       ctx.fillStyle = '#333';
-      ctx.fillText(`${index + 1}. ${getViPlanetName(dasha.planet)}`, xPos, yPos);
+      ctx.fillText(`${index + 1}. ${getViPlanetName(dasha.planet)}`, LEFT_COL_X, yLeft);
+
       ctx.fillStyle = '#666';
       ctx.font = '8px Arial';
-      ctx.fillText(formatDate(dasha.startDate), xPos + 2, yPos + 10);
+      ctx.fillText(formatDate(dasha.startDate), LEFT_COL_X + 100, yLeft);
+      ctx.fillText('-', LEFT_COL_X + 175, yLeft);
+      ctx.fillText(formatDate(dasha.endDate), LEFT_COL_X + 182, yLeft);
       ctx.font = '9px Arial';
+
+      yLeft += 13;
     });
 
     // Calculate final yLeft after dasha list
-    const dashaRows = Math.ceil(chartData.dashas.sequence.length / dashaPerRow);
-    yLeft += dashaRows * 14 + 10;
+    yLeft += 10;
 
     // ============ RIGHT COLUMN: Planet + House Details ============
-    let yRight = 58;
+    // Start from same Y as left column content (after chart + dasha current)
+    const leftContentEndY = yLeft;
+    let yRight = leftContentEndY > 400 ? leftContentEndY : 400;
 
     // Planet details section header - FIXED X coordinates
     ctx.fillStyle = '#B45309';
