@@ -20,7 +20,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Json } from '@/integrations/supabase/types';
 import { DateTime } from 'luxon';
 import { downloadCompleteSVG, downloadSeparateSVGs } from '@/utils/svgExportUtils';
-import { downloadAsPNG, downloadAsPDF, downloadAsPNGDirect } from '@/utils/imageExportUtils';
+import { downloadAsPNG, downloadAsPDF } from '@/utils/imageExportUtils';
 import { Progress } from "@/components/ui/progress";
 import PlanetAspectsTable from './PlanetAspectsTable';
 import PlanetDetailsTable from './PlanetDetailsTable';
@@ -470,15 +470,9 @@ const VedicChart = () => {
     try {
       console.log('Starting PNG download with chart data:', chartData);
       
-      // Try direct method first, fallback to html2canvas method
-      try {
-        await downloadAsPNGDirect(chartData, formData);
-        console.log('Direct PNG download successful');
-      } catch (directError) {
-        console.warn('Direct PNG download failed, trying html2canvas method:', directError);
-        await downloadAsPNG(chartData, formData);
-        console.log('html2canvas PNG download successful');
-      }
+      // Use downloadAsPNG with Grid 2x2 layout
+      await downloadAsPNG(chartData, formData);
+      console.log('PNG download successful');
       
       toast({
         title: "Tải xuống thành công",
