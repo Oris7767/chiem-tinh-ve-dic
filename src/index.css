@@ -7,33 +7,44 @@
 
 @layer base {
   :root {
-    --background: 30 20% 97%;
-    --foreground: 20 10% 5%;
+    /* Mystic & Classic Color Palette */
+    --votive-bg: 44 100% 97.6%;        /* Nền chính - Kem nhạt / Ivory */
+    --votive-surface: 40 100% 95.5%;    /* Nền card - Kem */
+    --votive-border: 40 45% 89%;         /* Viền nhạt */
+    --votive-sand: 33 45% 82%;          /* Sand - background table header */
+    --votive-text: 22 38% 14%;          /* Chữ chính - Nâu đen / Espresso */
+    --votive-muted: 20 12% 32%;         /* Chữ phụ */
+    --votive-red: 0 65% 38%;            /* Đỏ Votive - Logo accent */
+    --votive-terra: 6 65% 58%;          /* Đỏ cam nhạt - Terra */
+
+    /* Shadcn UI variables using votive colors */
+    --background: 44 100% 97.6%;
+    --foreground: 22 38% 14%;
 
     --card: 0 0% 100%;
-    --card-foreground: 20 10% 5%;
+    --card-foreground: 22 38% 14%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 20 10% 5%;
+    --popover-foreground: 22 38% 14%;
 
-    --primary: 30 95% 40%;
-    --primary-foreground: 30 20% 98%;
+    --primary: 0 65% 38%;                /* Đỏ Votive - Crimson Red */
+    --primary-foreground: 44 100% 97.6%;
 
-    --secondary: 30 30% 95%;
-    --secondary-foreground: 20 10% 20%;
+    --secondary: 33 45% 82%;
+    --secondary-foreground: 22 38% 14%;
 
-    --muted: 30 20% 95%;
-    --muted-foreground: 20 10% 40%;
+    --muted: 40 45% 89%;
+    --muted-foreground: 20 12% 32%;
 
-    --accent: 30 30% 95%;
-    --accent-foreground: 20 10% 20%;
+    --accent: 6 65% 58%;                 /* Terra - Đỏ cam nhạt */
+    --accent-foreground: 22 38% 14%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 30 20% 98%;
+    --destructive-foreground: 44 100% 97.6%;
 
-    --border: 20 15% 90%;
-    --input: 20 15% 90%;
-    --ring: 20 10% 5%;
+    --border: 40 45% 89%;
+    --input: 40 45% 89%;
+    --ring: 0 65% 38%;
 
     --radius: 0.75rem;
   }
@@ -57,11 +68,11 @@
 
 @layer components {
   .glass-card {
-    @apply bg-amber-50/80 backdrop-blur-md border border-amber-200/30 shadow-sm;
+    @apply bg-votive-surface/80 backdrop-blur-md border border-votive-border shadow-sm;
   }
 
   .input-field {
-    @apply w-full py-3 px-4 bg-white border border-amber-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition duration-200;
+    @apply w-full py-3 px-4 bg-white border border-votive-border rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition duration-200;
   }
 
   .btn-primary {

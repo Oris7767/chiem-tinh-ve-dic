@@ -74,7 +74,7 @@ const LucNhamPage: React.FC = () => {
   }, [forecast, filter]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-white via-amber-50 to-white">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-votive-bg via-votive-surface to-votive-bg">
       <SEO
         title={t('lucNham.seoTitle')}
         description={t('lucNham.seoDescription')}
@@ -91,17 +91,17 @@ const LucNhamPage: React.FC = () => {
         </div>
 
         <div className="mb-12 text-center">
-          <div className="mb-6 mx-auto max-w-sm overflow-hidden rounded-2xl border border-amber-200 bg-white shadow-sm">
+          <div className="mb-6 mx-auto max-w-sm overflow-hidden rounded-2xl border border-votive-border bg-white shadow-sm">
             <img
               src="/images/Luc%20Nham.png"
               alt="Logo âm dương Lục Nhâm"
               className="h-28 w-full object-contain md:h-32"
             />
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-amber-900 mb-4 font-serif">
+          <h1 className="text-3xl md:text-4xl font-bold text-votive-red mb-4 font-serif">
             {t('lucNham.title')}
           </h1>
-          <p className="text-lg text-amber-800 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-lg text-votive-muted max-w-3xl mx-auto leading-relaxed">
             {t('lucNham.subtitle')}
           </p>
         </div>

@@ -32,8 +32,8 @@ const NavBar = () => {
   return (
     <nav
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 px-6 md:px-12 bg-black/40 backdrop-blur-md",
-        scrolled ? "py-3 bg-black/80 shadow-sm" : "py-5"
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 px-6 md:px-12 bg-votive-text/40 backdrop-blur-md",
+        scrolled ? "py-3 bg-votive-text/80 shadow-sm" : "py-5"
       )}
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -42,11 +42,11 @@ const NavBar = () => {
           className="flex items-center space-x-3 animate-fade-in"
         >
           <img 
-            src="/lovable-uploads/97fa6e16-3fd9-42cd-887d-d6d1d4d3ee6b.png" 
+            src="/images/logo.png" 
             alt="Votive Logo" 
             className="h-10"
           />
-          <span className="text-xl md:text-2xl font-serif font-semibold text-amber-50">
+          <span className="text-xl md:text-2xl font-serif font-semibold text-votive-bg">
             {language === 'vi' ? 'Số học Vệ Đà' : 'Vedic Numerology'}
           </span>
         </a>
@@ -54,7 +54,7 @@ const NavBar = () => {
         <div className="flex items-center space-x-4 md:space-x-8">
           <button
             onClick={toggleLanguage}
-            className="p-2 rounded-full bg-amber-600/30 hover:bg-amber-600/50 text-amber-50 transition-colors"
+            className="p-2 rounded-full bg-primary/30 hover:bg-primary/50 text-votive-bg transition-colors"
             aria-label="Switch Language"
           >
             <Languages size={18} />
@@ -64,18 +64,18 @@ const NavBar = () => {
             {isHomePage ? (
               <>
                 <li>
-                  <Link to="/blog" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
+                  <Link to="/blog" className="text-votive-bg/80 hover:text-votive-bg subtle-underline animate-fade-in-delay">
                     {t('nav.blog')}
                   </Link>
                 </li>
                 {/* Vedic Chart menu item */}
                 <li>
-                  <Link to="/vedic-chart" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
+                  <Link to="/vedic-chart" className="text-votive-bg/80 hover:text-votive-bg subtle-underline animate-fade-in-delay">
                     {language === 'vi' ? 'Chiêm Tinh Vệ Đà' : 'Vedic Astrology'}
                   </Link>
                 </li>
                 <li>
-                  <Link to="/luc-nham" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
+                  <Link to="/luc-nham" className="text-votive-bg/80 hover:text-votive-bg subtle-underline animate-fade-in-delay">
                     {t('nav.lucNham')}
                   </Link>
                 </li>
@@ -83,23 +83,23 @@ const NavBar = () => {
             ) : (
               <>
                 <li>
-                  <Link to="/" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in">
+                  <Link to="/" className="text-votive-bg/80 hover:text-votive-bg subtle-underline animate-fade-in">
                     {t('nav.home') || 'Home'}
                   </Link>
                 </li>
                 <li>
-                  <Link to="/blog" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
+                  <Link to="/blog" className="text-votive-bg/80 hover:text-votive-bg subtle-underline animate-fade-in-delay">
                     {t('nav.blog') || 'Blog'}
                   </Link>
                 </li>
                 {/* Vedic Chart menu item */}
                 <li>
-                  <Link to="/vedic-chart" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
+                  <Link to="/vedic-chart" className="text-votive-bg/80 hover:text-votive-bg subtle-underline animate-fade-in-delay">
                     {language === 'vi' ? 'Chiêm Tinh Vệ Đà' : 'Vedic Astrology'}
                   </Link>
                 </li>
                 <li>
-                  <Link to="/luc-nham" className="text-amber-100 hover:text-amber-50 subtle-underline animate-fade-in-delay">
+                  <Link to="/luc-nham" className="text-votive-bg/80 hover:text-votive-bg subtle-underline animate-fade-in-delay">
                     {t('nav.lucNham')}
                   </Link>
                 </li>
