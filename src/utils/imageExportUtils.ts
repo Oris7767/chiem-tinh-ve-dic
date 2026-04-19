@@ -100,19 +100,28 @@ function debugSVGContent(svgElement: SVGSVGElement): void {
   }
 }
 
+// High-resolution canvas multiplier for sharp text
+const SCALE_FACTOR = (typeof window !== 'undefined' ? window.devicePixelRatio : 2) * 2;
+
 // Alternative PNG download function that works directly with SVG
 async function svgToCanvas(svgElement: SVGSVGElement, width: number = 500, height: number = 500): Promise<HTMLCanvasElement> {
   return new Promise((resolve, reject) => {
     try {
+      // Create high-resolution canvas for sharp text
       const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
+      const scaledWidth = Math.round(width * SCALE_FACTOR);
+      const scaledHeight = Math.round(height * SCALE_FACTOR);
+      canvas.width = scaledWidth;
+      canvas.height = scaledHeight;
       const ctx = canvas.getContext('2d');
 
       if (!ctx) {
         reject(new Error('Cannot get canvas context'));
         return;
       }
+
+      // Scale context for high resolution
+      ctx.scale(SCALE_FACTOR, SCALE_FACTOR);
 
       // Clone SVG
       const svgClone = svgElement.cloneNode(true) as SVGSVGElement;
@@ -171,8 +180,8 @@ async function svgToCanvas(svgElement: SVGSVGElement, width: number = 500, heigh
         clearTimeout(timeout);
         try {
           ctx.fillStyle = 'white';
-          ctx.fillRect(0, 0, width, height);
-          ctx.drawImage(testImg, 0, 0, width, height);
+          ctx.fillRect(0, 0, scaledWidth, scaledHeight);
+          ctx.drawImage(testImg, 0, 0, scaledWidth, scaledHeight);
           resolve(canvas);
         } catch (e) {
           reject(new Error('Failed to draw SVG on canvas: ' + e.message));
@@ -207,8 +216,8 @@ async function svgToCanvas(svgElement: SVGSVGElement, width: number = 500, heigh
           const img2 = new Image();
           img2.onload = () => {
             ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, width, height);
-            ctx.drawImage(img2, 0, 0, width, height);
+            ctx.fillRect(0, 0, scaledWidth, scaledHeight);
+            ctx.drawImage(img2, 0, 0, scaledWidth, scaledHeight);
             URL.revokeObjectURL(url);
             resolve(canvas);
           };
@@ -225,8 +234,8 @@ async function svgToCanvas(svgElement: SVGSVGElement, width: number = 500, heigh
               
               img3.onload = () => {
                 ctx.fillStyle = 'white';
-                ctx.fillRect(0, 0, width, height);
-                ctx.drawImage(img3, 0, 0, width, height);
+                ctx.fillRect(0, 0, scaledWidth, scaledHeight);
+                ctx.drawImage(img3, 0, 0, scaledWidth, scaledHeight);
                 URL.revokeObjectURL(svgBlobUrl);
                 resolve(canvas);
               };
@@ -637,17 +646,21 @@ export async function downloadAsPNG(
     const chartCanvas = await svgToCanvas(originalChart, 500, 500);
     console.log('Chart converted to canvas:', chartCanvas.width, 'x', chartCanvas.height);
 
-    // Create full content canvas
+    // Create full content canvas - HIGH RESOLUTION
+    const pngScale = 2;
     const fullWidth = 1200;
-    const fullHeight = 1600; // Estimated height
+    const fullHeight = 1600;
     const fullCanvas = document.createElement('canvas');
-    fullCanvas.width = fullWidth;
-    fullCanvas.height = fullHeight;
+    fullCanvas.width = fullWidth * pngScale;
+    fullCanvas.height = fullHeight * pngScale;
     const ctx = fullCanvas.getContext('2d');
 
     if (!ctx) {
       throw new Error('Cannot create canvas context');
     }
+
+    // Scale context for high resolution
+    ctx.scale(pngScale, pngScale);
 
     // Fill background
     ctx.fillStyle = '#fef7cd';
@@ -678,10 +691,10 @@ export async function downloadAsPNG(
       ctx.fillText(birthInfo, fullWidth / 2, 70);
     }
 
-    // Draw chart (centered)
+    // Draw chart (centered) - use native chartCanvas size (already high-res from svgToCanvas)
     const chartX = (fullWidth - 500) / 2;
     const chartY = 120;
-    ctx.drawImage(chartCanvas, chartX, chartY);
+    ctx.drawImage(chartCanvas, chartX, chartY, 500, 500);
 
     // Draw planet details section
     let yPos = chartY + 520;
@@ -849,20 +862,24 @@ export async function downloadAsPNGDirect(
     
     debugSVGContent(originalChart);
     
-    // Convert SVG directly to canvas
+    // Convert SVG directly to canvas (svgToCanvas already returns high-res canvas)
     const svgCanvas = await svgToCanvas(originalChart, 500, 500);
     
-    // Create the full content canvas
+    // Create the full content canvas - HIGH RESOLUTION
+    const pngScale = 2;
     const fullCanvas = document.createElement('canvas');
     const fullWidth = 1200;
-    const fullHeight = 1600; // Estimated height
-    fullCanvas.width = fullWidth;
-    fullCanvas.height = fullHeight;
+    const fullHeight = 1600;
+    fullCanvas.width = fullWidth * pngScale;
+    fullCanvas.height = fullHeight * pngScale;
     
     const ctx = fullCanvas.getContext('2d');
     if (!ctx) {
       throw new Error('Cannot get canvas context');
     }
+    
+    // Scale context for high resolution
+    ctx.scale(pngScale, pngScale);
     
     // Fill background
     ctx.fillStyle = '#fef7cd';
@@ -888,10 +905,10 @@ export async function downloadAsPNGDirect(
       ctx.fillText(birthInfo, fullWidth / 2, 70);
     }
     
-    // Draw SVG chart
+    // Draw SVG chart - use native size (already high-res)
     const chartX = (fullWidth - 500) / 2;
     const chartY = 120;
-    ctx.drawImage(svgCanvas, chartX, chartY);
+    ctx.drawImage(svgCanvas, chartX, chartY, 500, 500);
     
     // Add basic info text
     ctx.fillStyle = '#333';
@@ -979,15 +996,19 @@ export async function downloadAsPDF(
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
 
-    // ============ PAGE 1: Chart + Planets + Houses ============
+    // High-resolution canvas for sharp text (2x scale)
+    const pdfScale = 2;
     const contentWidth = 595; // A4 width in pixels at 72 DPI
     const contentHeight = 842; // A4 height
     const canvas1 = document.createElement('canvas');
-    canvas1.width = contentWidth;
-    canvas1.height = contentHeight;
+    canvas1.width = contentWidth * pdfScale;
+    canvas1.height = contentHeight * pdfScale;
     const ctx = canvas1.getContext('2d');
 
     if (!ctx) throw new Error('Cannot create canvas context');
+
+    // Scale context for high resolution
+    ctx.scale(pdfScale, pdfScale);
 
     // Background
     ctx.fillStyle = '#fef7cd';
@@ -1018,98 +1039,99 @@ export async function downloadAsPDF(
       ctx.fillText(birthInfo, contentWidth / 2, 55);
     }
 
-    // Draw chart (centered)
-    const chartX = (contentWidth - 500) / 2;
-    const chartY = 80;
-    ctx.drawImage(chartCanvas, chartX, chartY);
+    // Draw chart (centered) - scaled down slightly to fit more content
+    const chartX = (contentWidth - 480) / 2;
+    const chartY = 75;
+    ctx.drawImage(chartCanvas, chartX, chartY, 480, 480);
 
-    // Planet details section
-    let yPos = chartY + 520;
+    // Planet details section - compact layout
+    let yPos = chartY + 490;
 
     // Section header (left aligned)
     ctx.fillStyle = '#B45309';
-    ctx.font = 'bold 18px Arial';
+    ctx.font = 'bold 16px Arial';
     ctx.textAlign = 'left';
-    ctx.fillText('Chi tiết các hành tinh (Graha)', 30, yPos);
-    yPos += 25;
+    ctx.fillText('Chi tiết các hành tinh (Graha)', 20, yPos);
+    yPos += 20;
 
     // Planet table header (left aligned)
     ctx.fillStyle = '#B45309';
-    ctx.font = 'bold 12px Arial';
+    ctx.font = 'bold 10px Arial';
     ctx.textAlign = 'left';
-    ctx.fillText('Hành tinh', 30, yPos);
-    ctx.fillText('Tên Sanskrit', 120, yPos);
-    ctx.fillText('Cung', 220, yPos);
-    ctx.fillText('Vị trí', 280, yPos);
-    ctx.fillText('Nhà', 340, yPos);
-    ctx.fillText('Nakshatra', 400, yPos);
-    yPos += 15;
+    ctx.fillText('HP', 20, yPos);
+    ctx.fillText('Tên Sanskrit', 70, yPos);
+    ctx.fillText('Cung', 180, yPos);
+    ctx.fillText('Vị trí', 250, yPos);
+    ctx.fillText('Nhà', 310, yPos);
+    ctx.fillText('Nakshatra', 350, yPos);
+    yPos += 12;
 
-    // Planet rows (left aligned)
-    ctx.font = '11px Arial';
+    // Planet rows (left aligned) - compact
+    ctx.font = '9px Arial';
     chartData.planets.forEach((planet, index) => {
-      if (yPos > contentHeight - 100) return;
+      if (yPos > contentHeight - 60) return;
 
       const bgColor = index % 2 === 0 ? '#fafafa' : 'white';
       ctx.fillStyle = bgColor;
-      ctx.fillRect(25, yPos - 12, contentWidth - 50, 18);
+      ctx.fillRect(15, yPos - 9, contentWidth - 30, 14);
 
       ctx.fillStyle = '#000';
       ctx.textAlign = 'left';
       const planetInfo = `${planet.symbol} ${planet.name}`;
-      ctx.fillText(planetInfo, 30, yPos);
+      ctx.fillText(planetInfo, 22, yPos);
 
       const sanskritName = VEDIC_PLANET_NAMES[planet.name] || planet.name;
-      ctx.fillText(sanskritName, 120, yPos);
-      ctx.fillText(ZODIAC_SIGNS[planet.sign], 220, yPos);
+      ctx.fillText(sanskritName, 70, yPos);
+      ctx.fillText(ZODIAC_SIGNS[planet.sign], 180, yPos);
       const degrees = Math.floor(planet.longitude % 30);
       const minutes = Math.floor((planet.longitude % 30 - degrees) * 60);
-      ctx.fillText(`${degrees}°${minutes}'`, 280, yPos);
-      ctx.fillText(`${planet.house}`, 340, yPos);
-      ctx.fillText(planet.nakshatra.name, 400, yPos);
+      ctx.fillText(`${degrees}°${minutes}'`, 250, yPos);
+      ctx.fillText(`${planet.house}`, 310, yPos);
+      ctx.fillText(planet.nakshatra.name, 350, yPos);
 
-      yPos += 18;
+      yPos += 14;
     });
 
-    // House details section
-    yPos += 20;
-    if (yPos + 200 < contentHeight) {
+    // House details section - COMPACT and INLINE with planets
+    yPos += 15;
+    if (yPos + 180 < contentHeight) {
       ctx.fillStyle = '#B45309';
-      ctx.font = 'bold 18px Arial';
+      ctx.font = 'bold 16px Arial';
       ctx.textAlign = 'left';
-      ctx.fillText('Chi tiết các nhà (Bhava)', 30, yPos);
-      yPos += 25;
+      ctx.fillText('Chi tiết các nhà (Bhava)', 20, yPos);
+      yPos += 20;
 
-      ctx.font = 'bold 12px Arial';
-      ctx.textAlign = 'left';
-      ctx.fillText('Nhà', 30, yPos);
-      ctx.fillText('Tên Sanskrit', 80, yPos);
-      ctx.fillText('Ý Nghĩa', 200, yPos);
-      ctx.fillText('Hành tinh', 450, yPos);
-      yPos += 15;
-
-      ctx.font = '11px Arial';
+      // Draw house details in a compact 2-column grid
+      const colWidth = (contentWidth - 40) / 2;
       chartData.houses.forEach((house, index) => {
-        if (yPos > contentHeight - 80) return;
+        const col = index % 2;
+        const row = Math.floor(index / 2);
+        const xBase = 20 + col * colWidth;
+        const yHouse = yPos + row * 36;
 
-        const bgColor = index % 2 === 0 ? '#fafafa' : 'white';
-        ctx.fillStyle = bgColor;
-        ctx.fillRect(25, yPos - 12, contentWidth - 50, 18);
-
-        ctx.fillStyle = '#000';
-        ctx.textAlign = 'left';
-        ctx.fillText(`${house.number}`, 30, yPos);
+        if (yHouse > contentHeight - 40) return;
 
         const houseInfo = HOUSE_NAMES[house.number as keyof typeof HOUSE_NAMES];
-        ctx.fillText(houseInfo.sanskrit, 80, yPos);
-
         const planetSymbols = house.planets.map(planetId => {
           const planet = chartData.planets.find(p => p.id === planetId);
           return planet ? planet.symbol : '';
         }).join(' ');
-        ctx.fillText(planetSymbols, 450, yPos);
 
-        yPos += 18;
+        // House background
+        ctx.fillStyle = index % 2 === 0 ? '#fafafa' : 'white';
+        ctx.fillRect(xBase, yHouse - 10, colWidth - 10, 32);
+
+        // House number and sign
+        ctx.fillStyle = '#B45309';
+        ctx.font = 'bold 11px Arial';
+        ctx.fillText(`Nhà ${house.number}`, xBase + 5, yHouse + 2);
+
+        ctx.fillStyle = '#000';
+        ctx.font = '10px Arial';
+        ctx.fillText(`${houseInfo.sanskrit}`, xBase + 5, yHouse + 14);
+
+        // Sign and planets on same line
+        ctx.fillText(`${ZODIAC_SIGNS[house.sign]} ${planetSymbols}`, xBase + 5, yHouse + 26);
       });
     }
 
@@ -1125,12 +1147,16 @@ export async function downloadAsPDF(
     pdf.addPage();
 
     // ============ PAGE 2: Dasha Details ============
+    // High-resolution canvas for page 2
     const canvas2 = document.createElement('canvas');
-    canvas2.width = contentWidth;
-    canvas2.height = contentHeight;
+    canvas2.width = contentWidth * pdfScale;
+    canvas2.height = contentHeight * pdfScale;
     const ctx2 = canvas2.getContext('2d');
 
     if (!ctx2) throw new Error('Cannot create canvas context for page 2');
+
+    // Scale context for high resolution
+    ctx2.scale(pdfScale, pdfScale);
 
     // Background
     ctx2.fillStyle = '#fef7cd';
@@ -1208,51 +1234,154 @@ export async function downloadAsPDF(
       yPos2 += 18;
     });
 
-    // Current Antardasha details
-    if (chartData.dashas.current?.antardasha?.sequence) {
-      yPos2 += 20;
+    // Current Antardasha details - Enhanced display
+    if (chartData.dashas.current?.antardasha?.sequence && chartData.dashas.current.antardasha.sequence.length > 0) {
+      yPos2 += 25;
       if (yPos2 + 200 < contentHeight) {
+        // Highlight box for current Mahadasha
         ctx2.fillStyle = '#B45309';
-        ctx2.font = 'bold 18px Arial';
+        ctx2.font = 'bold 16px Arial';
         ctx2.textAlign = 'left';
-        ctx2.fillText(`Antardasha của ${getViPlanetName(chartData.dashas.current.planet)}`, 30, yPos2);
-        yPos2 += 25;
+        ctx2.fillText(`Tiểu Vận (Antardasha) của ${getViPlanetName(chartData.dashas.current.planet)}`, 25, yPos2);
+        yPos2 += 20;
 
         // Table header
-        ctx2.fillStyle = '#B45309';
-        ctx2.font = 'bold 11px Arial';
+        ctx2.fillStyle = '#f59e0b';
+        ctx2.font = 'bold 10px Arial';
         ctx2.textAlign = 'left';
-        ctx2.fillText('#', 30, yPos2);
+        ctx2.fillText('#', 25, yPos2);
         ctx2.fillText('Hành tinh', 50, yPos2);
-        ctx2.fillText('Bắt đầu', 140, yPos2);
-        ctx2.fillText('Kết thúc', 240, yPos2);
-        ctx2.fillText('Thời gian', 340, yPos2);
-        yPos2 += 15;
+        ctx2.fillText('Ngày Bắt Đầu', 150, yPos2);
+        ctx2.fillText('Ngày Kết Thúc', 280, yPos2);
+        ctx2.fillText('Thời Gian', 420, yPos2);
+        yPos2 += 12;
+
+        // Find current antardasha planet for highlighting
+        const currentAntardashaPlanet = chartData.dashas.current.antardasha.current?.planet;
 
         // Antardasha rows
         chartData.dashas.current.antardasha.sequence.forEach((ad, idx) => {
-          if (yPos2 > contentHeight - 50) return;
+          if (yPos2 > contentHeight - 40) return;
 
-          const bgColor = idx % 2 === 0 ? '#fafafa' : 'white';
-          ctx2.fillStyle = bgColor;
-          ctx2.fillRect(25, yPos2 - 12, contentWidth - 50, 18);
+          // Highlight current antardasha
+          const isCurrentAntardasha = ad.planet === currentAntardashaPlanet;
+          if (isCurrentAntardasha) {
+            ctx2.fillStyle = '#fef3c7';
+            ctx2.fillRect(20, yPos2 - 10, contentWidth - 40, 16);
+          } else {
+            const bgColor = idx % 2 === 0 ? '#fafafa' : 'white';
+            ctx2.fillStyle = bgColor;
+            ctx2.fillRect(20, yPos2 - 10, contentWidth - 40, 16);
+          }
 
-          ctx2.fillStyle = '#000';
-          ctx2.font = '10px Arial';
+          ctx2.fillStyle = isCurrentAntardasha ? '#B45309' : '#000';
+          ctx2.font = isCurrentAntardasha ? 'bold 10px Arial' : '10px Arial';
           ctx2.textAlign = 'left';
-          ctx2.fillText(`${idx + 1}`, 30, yPos2);
-          ctx2.fillText(getViPlanetName(ad.planet), 50, yPos2);
-          ctx2.fillText(formatDate(ad.startDate), 140, yPos2);
-          ctx2.fillText(formatDate(ad.endDate), 240, yPos2);
+          ctx2.fillText(`${idx + 1}`, 27, yPos2);
 
+          // Planet name with indicator for current
+          const planetName = isCurrentAntardasha ? `${getViPlanetName(ad.planet)} ★` : getViPlanetName(ad.planet);
+          ctx2.fillText(planetName, 50, yPos2);
+
+          ctx2.fillText(formatDate(ad.startDate), 150, yPos2);
+          ctx2.fillText(formatDate(ad.endDate), 280, yPos2);
+
+          // Calculate duration
           const start = new Date(ad.startDate);
           const end = new Date(ad.endDate);
-          const years = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 365));
-          const months = Math.floor(((end.getTime() - start.getTime()) % (1000 * 60 * 60 * 24 * 365)) / (1000 * 60 * 60 * 24 * 30));
-          ctx2.fillText(`${years}n ${months}th`, 340, yPos2);
+          const totalDays = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+          const years = Math.floor(totalDays / 365);
+          const months = Math.floor((totalDays % 365) / 30);
+          const days = totalDays % 30;
+          const durationText = years > 0 ? `${years}n ${months}th` : `${months}th ${days}d`;
+          ctx2.fillText(durationText, 420, yPos2);
 
-          yPos2 += 15;
+          yPos2 += 16;
         });
+      }
+    } else {
+      // Calculate Antardasha if not available from API
+      // Vimshottari Dasha ratios for each planet
+      const dashaRatios: Record<string, number> = {
+        'Ketu': 7, 'Venus': 20, 'Sun': 6, 'Moon': 10, 'Mars': 7,
+        'Rahu': 18, 'Jupiter': 16, 'Saturn': 19, 'Mercury': 17
+      };
+
+      // Calculate Antardasha periods for current Mahadasha
+      const mahaDasha = chartData.dashas.current;
+      const mahaStart = new Date(mahaDasha.startDate);
+      const mahaEnd = new Date(mahaDasha.endDate);
+      const mahaDuration = mahaEnd.getTime() - mahaStart.getTime();
+
+      const currentPlanet = mahaDasha.planet;
+      const currentRatio = dashaRatios[currentPlanet] || 1;
+
+      // Calculate elapsed time to find current position
+      const now = new Date();
+      const elapsed = mahaEnd.getTime() - mahaStart.getTime();
+      const elapsedRatio = Math.min(1, Math.max(0, (now.getTime() - mahaStart.getTime()) / elapsed));
+
+      // Get Vimshottari order
+      const vimOrder = ['Ketu', 'Venus', 'Sun', 'Moon', 'Mars', 'Rahu', 'Jupiter', 'Saturn', 'Mercury'];
+      const currentIdx = vimOrder.indexOf(currentPlanet);
+
+      // Calculate all antardashas for current mahadasha
+      yPos2 += 25;
+      ctx2.fillStyle = '#B45309';
+      ctx2.font = 'bold 16px Arial';
+      ctx2.textAlign = 'left';
+      ctx2.fillText(`Tiểu Vận (Antardasha) của ${getViPlanetName(currentPlanet)}`, 25, yPos2);
+      yPos2 += 20;
+
+      ctx2.fillStyle = '#f59e0b';
+      ctx2.font = 'bold 10px Arial';
+      ctx2.fillText('#', 25, yPos2);
+      ctx2.fillText('Hành tinh', 50, yPos2);
+      ctx2.fillText('Ngày Bắt Đầu', 150, yPos2);
+      ctx2.fillText('Ngày Kết Thúc', 280, yPos2);
+      ctx2.fillText('Thời Gian', 420, yPos2);
+      yPos2 += 12;
+
+      let cumulativeTime = 0;
+      for (let i = 0; i < vimOrder.length && yPos2 < contentHeight - 40; i++) {
+        const planet = vimOrder[i];
+        const ratio = dashaRatios[planet] || 1;
+        const planetDuration = (ratio / currentRatio) * (mahaDuration / 1000 / 60 / 60 / 24); // in days
+
+        const adStart = new Date(mahaStart.getTime() + cumulativeTime * 24 * 60 * 60 * 1000);
+        const adEnd = new Date(adStart.getTime() + planetDuration * 24 * 60 * 60 * 1000);
+
+        const isCurrent = adStart <= now && adEnd >= now;
+        const isPast = adEnd < now;
+
+        if (isPast) {
+          cumulativeTime += planetDuration;
+          continue;
+        }
+
+        if (isCurrent) {
+          ctx2.fillStyle = '#fef3c7';
+          ctx2.fillRect(20, yPos2 - 10, contentWidth - 40, 16);
+          ctx2.fillStyle = '#B45309';
+          ctx2.font = 'bold 10px Arial';
+        } else {
+          ctx2.fillStyle = i % 2 === 0 ? '#fafafa' : 'white';
+          ctx2.fillRect(20, yPos2 - 10, contentWidth - 40, 16);
+          ctx2.fillStyle = '#000';
+          ctx2.font = '10px Arial';
+        }
+
+        ctx2.textAlign = 'left';
+        ctx2.fillText(`${i + 1}`, 27, yPos2);
+        ctx2.fillText(`${getViPlanetName(planet)}${isCurrent ? ' ★' : ''}`, 50, yPos2);
+        ctx2.fillText(formatDate(adStart.toISOString()), 150, yPos2);
+        ctx2.fillText(formatDate(adEnd.toISOString()), 280, yPos2);
+
+        const years = Math.floor(planetDuration / 365);
+        const months = Math.floor((planetDuration % 365) / 30);
+        ctx2.fillText(years > 0 ? `${years}n ${months}th` : `${Math.round(planetDuration)}d`, 420, yPos2);
+
+        yPos2 += 16;
       }
     }
 
