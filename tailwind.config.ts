@@ -24,16 +24,6 @@ export default {
 				serif: ['Playfair Display', 'serif'],
 			},
 			colors: {
-				votive: {
-					bg: '#FFFBF0',
-					surface: '#FAF6EE',
-					border: '#EFE9D9',
-					sand: '#E2D5C1',
-					text: '#2C1E16',
-					muted: '#594A42',
-					red: '#A11211',
-					terra: '#D95A4B',
-				},
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
@@ -67,6 +57,15 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				// Mystic & Classic palette - using hsl() for opacity modifier support
+				'votive-bg': 'hsl(var(--votive-bg))',
+				'votive-surface': 'hsl(var(--votive-surface))',
+				'votive-border': 'hsl(var(--votive-border))',
+				'votive-sand': 'hsl(var(--votive-sand))',
+				'votive-text': 'hsl(var(--votive-text))',
+				'votive-muted': 'hsl(var(--votive-muted))',
+				'votive-red': 'hsl(var(--votive-red))',
+				'votive-terra': 'hsl(var(--votive-terra))',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

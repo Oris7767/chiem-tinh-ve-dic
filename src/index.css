@@ -7,15 +7,15 @@
 
 @layer base {
   :root {
-    /* Mystic & Classic Color Palette */
-    --votive-bg: 44 100% 97.6%;        /* Nền chính - Kem nhạt / Ivory */
-    --votive-surface: 40 100% 95.5%;    /* Nền card - Kem */
-    --votive-border: 40 45% 89%;         /* Viền nhạt */
-    --votive-sand: 33 45% 82%;          /* Sand - background table header */
-    --votive-text: 22 38% 14%;          /* Chữ chính - Nâu đen / Espresso */
-    --votive-muted: 20 12% 32%;         /* Chữ phụ */
-    --votive-red: 0 65% 38%;            /* Đỏ Votive - Logo accent */
-    --votive-terra: 6 65% 58%;          /* Đỏ cam nhạt - Terra */
+    /* Mystic & Classic Color Palette - using hsl() for opacity modifier support */
+    --votive-bg: 44 100% 97.6%;
+    --votive-surface: 40 100% 95.5%;
+    --votive-border: 40 45% 89%;
+    --votive-sand: 33 45% 82%;
+    --votive-text: 22 38% 14%;
+    --votive-muted: 20 12% 32%;
+    --votive-red: 0 65% 38%;
+    --votive-terra: 6 65% 58%;
 
     /* Shadcn UI variables using votive colors */
     --background: 44 100% 97.6%;
@@ -68,15 +68,15 @@
 
 @layer components {
   .glass-card {
-    @apply bg-votive-surface/80 backdrop-blur-md border border-votive-border shadow-sm;
+    @apply bg-white/80 backdrop-blur-md border border-[#EFE9D9] shadow-sm;
   }
 
   .input-field {
-    @apply w-full py-3 px-4 bg-white border border-votive-border rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition duration-200;
+    @apply w-full py-3 px-4 bg-white border border-[#EFE9D9] rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition duration-200;
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center px-6 py-3 rounded-lg bg-primary text-white font-medium shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all duration-200;
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-lg bg-[#A11211] text-white font-medium shadow-sm hover:bg-[#A11211]/90 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all duration-200;
   }
 
   .subtle-underline {
