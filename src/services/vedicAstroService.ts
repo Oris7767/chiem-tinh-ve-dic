@@ -11,17 +11,17 @@ const SIGNS = [
 ];
 
 const SIGN_TO_INDEX: Record<string, number> = {
-  "Aries": 0, 
-  "Taurus": 1, 
-  "Gemini": 2, 
-  "Cancer": 3, 
-  "Leo": 4, 
+  "Aries": 0,  // 0-indexed cho hiển thị chart
+  "Taurus": 1,
+  "Gemini": 2,
+  "Cancer": 3,
+  "Leo": 4,
   "Virgo": 5,
-  "Libra": 6, 
-  "Scorpio": 7, 
-  "Sagittarius": 8, 
-  "Capricorn": 9, 
-  "Aquarius": 10, 
+  "Libra": 6,
+  "Scorpio": 7,
+  "Sagittarius": 8,
+  "Capricorn": 9,
+  "Aquarius": 10,
   "Pisces": 11
 };
 
@@ -398,10 +398,12 @@ export async function calculateVedicChart(formData: {
  * Convert API response format to app's VedicChartData format
  */
 function convertApiResponseToChartData(apiData: VedicChartResponse): VedicChartData {
-  // Ascendant
-  const ascSignIdx = SIGN_TO_INDEX[apiData.ascendant.sign.name] || 0;
-  const ascDeg = apiData.ascendant.sign.degree || 0;
-  const ascLongitude = ascSignIdx * 30 + ascDeg;
+  // Ascendant - Ưu tiên dùng longitude ở root (Float chính xác)
+  // Fallback về cách tính từ sign+degree nếu cần
+  const rawAscLongitude = apiData.ascendant.longitude;
+  const ascLongitude = typeof rawAscLongitude === 'number' && rawAscLongitude > 0
+    ? rawAscLongitude
+    : (SIGN_TO_INDEX[apiData.ascendant.sign.name] || 0) * 30 + (apiData.ascendant.sign.degree || 0);
 
   // Planets with aspects and nakshatra info first
   const planets: Planet[] = apiData.planets.map(p => {

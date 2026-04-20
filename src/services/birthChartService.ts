@@ -295,31 +295,32 @@ export const birthChartService = {
       const dashas = typeof savedChart.dashas === 'string' ? JSON.parse(savedChart.dashas) : savedChart.dashas;
 
       // Ensure numerical values are properly converted
+      // IMPORTANT: Use parseFloat to preserve decimal precision
       const parsedPlanets = (planets as any[]).map(planet => ({
         ...planet,
-        longitude: Number(planet.longitude) || 0,
-        latitude: Number(planet.latitude) || 0,
-        longitudeSpeed: Number(planet.longitudeSpeed) || 0,
-        sign: Number(planet.sign) || 0,
-        house: Number(planet.house) || 0,
+        longitude: parseFloat(String(planet.longitude)) || 0,
+        latitude: parseFloat(String(planet.latitude)) || 0,
+        longitudeSpeed: parseFloat(String(planet.longitudeSpeed)) || 0,
+        sign: Math.floor(parseFloat(String(planet.sign)) || 0),
+        house: Math.floor(parseFloat(String(planet.house)) || 0),
         aspectingPlanets: planet.aspectingPlanets || [],
         aspects: (planet.aspects || []).map((aspect: any) => ({
           ...aspect,
-          orb: Number(aspect.orb) || 0
+          orb: parseFloat(String(aspect.orb)) || 0
         })),
         color: planet.color || '#000000'
       }));
 
       const parsedHouses = (houses as any[]).map(house => ({
         ...house,
-        number: Number(house.number) || 0,
-        longitude: Number(house.longitude) || 0,
-        sign: Number(house.sign) || 0,
+        number: Math.floor(parseFloat(String(house.number)) || 0),
+        longitude: parseFloat(String(house.longitude)) || 0,
+        sign: Math.floor(parseFloat(String(house.sign)) || 0),
         planets: house.planets || []
       }));
 
       return {
-        ascendant: Number(savedChart.ascendant) || 0,
+        ascendant: parseFloat(String(savedChart.ascendant)) || 0,
         ascendantNakshatra: nakshatras?.ascendantNakshatra || {
           name: '',
           lord: '',
@@ -330,13 +331,13 @@ export const birthChartService = {
         planets: parsedPlanets,
         houses: parsedHouses,
         moonNakshatra: nakshatras?.moonNakshatra || '',
-        lunarDay: Number(savedChart.lunarDay) || 1,
+        lunarDay: Math.floor(parseFloat(String(savedChart.lunarDay)) || 1),
         metadata: {
-          ayanamsa: Number(metadata?.ayanamsa) || 24,
+          ayanamsa: parseFloat(String(metadata?.ayanamsa)) || 24,
           date: metadata?.date || '',
           time: metadata?.time || '',
-          latitude: Number(metadata?.latitude) || 0,
-          longitude: Number(metadata?.longitude) || 0,
+          latitude: parseFloat(String(metadata?.latitude)) || 0,
+          longitude: parseFloat(String(metadata?.longitude)) || 0,
           timezone: metadata?.timezone || 'UTC',
           houseSystem: metadata?.houseSystem || 'W'
         },

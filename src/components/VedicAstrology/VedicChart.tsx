@@ -8,6 +8,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Download, Loader2, LogOut, ChevronDown, Image, FileText } from 'lucide-react';
 import SouthIndianChart from './SouthIndianChart';
 import DashaCalculator from './DashaCalculator';
+import VargasCharts from './VargasCharts';
 import { calculateVedicChart } from '@/services/vedicAstroService';
 import { Button } from "@/components/ui/button";
 import {
@@ -651,9 +652,10 @@ const VedicChart = () => {
 
       {chartData && (
         <Tabs defaultValue="chart">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="chart">Bản đồ sao</TabsTrigger>
             <TabsTrigger value="dasha">Vimshottari Dasha</TabsTrigger>
+            <TabsTrigger value="vargas">16 Vargas</TabsTrigger>
           </TabsList>
 
           <TabsContent value="chart">
@@ -675,6 +677,14 @@ const VedicChart = () => {
                 chartData={chartData} 
               />
             )}
+          </TabsContent>
+
+          <TabsContent value="vargas">
+            <VargasCharts 
+              chartData={chartData} 
+              showModernPlanets={showModernPlanets}
+              onToggleModernPlanets={setShowModernPlanets}
+            />
           </TabsContent>
         </Tabs>
       )}

@@ -68,11 +68,32 @@ const NavBar = () => {
                     {t('nav.blog')}
                   </Link>
                 </li>
-                {/* Vedic Chart menu item */}
-                <li>
-                  <Link to="/vedic-chart" className="text-votive-bg/80 hover:text-votive-bg subtle-underline animate-fade-in-delay">
+                {/* Vedic Chart menu with dropdown */}
+                <li className="relative group">
+                  <Link to="/vedic-chart" className="text-votive-bg/80 hover:text-votive-bg subtle-underline animate-fade-in-delay flex items-center gap-1">
                     {language === 'vi' ? 'Chiêm Tinh Vệ Đà' : 'Vedic Astrology'}
+                    <svg className="w-3 h-3 transition-transform group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
                   </Link>
+                  {/* Dropdown */}
+                  <div className="absolute left-0 mt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                    <div className="bg-white/95 backdrop-blur-md border border-votive-border rounded-lg shadow-lg overflow-hidden">
+                      <Link 
+                        to="/vedic-chart" 
+                        className="block px-4 py-2.5 text-sm text-foreground hover:bg-primary hover:text-white transition-colors"
+                      >
+                        Bản đồ sao cá nhân
+                      </Link>
+                      <div className="border-t border-votive-border" />
+                      <Link 
+                        to="/matchmaking" 
+                        className="block px-4 py-2.5 text-sm text-foreground hover:bg-primary hover:text-white transition-colors"
+                      >
+                        Bản đồ cặp đôi
+                      </Link>
+                    </div>
+                  </div>
                 </li>
                 <li>
                   <Link to="/luc-nham" className="text-votive-bg/80 hover:text-votive-bg subtle-underline animate-fade-in-delay">
@@ -92,11 +113,32 @@ const NavBar = () => {
                     {t('nav.blog') || 'Blog'}
                   </Link>
                 </li>
-                {/* Vedic Chart menu item */}
-                <li>
-                  <Link to="/vedic-chart" className="text-votive-bg/80 hover:text-votive-bg subtle-underline animate-fade-in-delay">
+                {/* Vedic Chart menu with dropdown */}
+                <li className="relative group">
+                  <Link to="/vedic-chart" className="text-votive-bg/80 hover:text-votive-bg subtle-underline animate-fade-in-delay flex items-center gap-1">
                     {language === 'vi' ? 'Chiêm Tinh Vệ Đà' : 'Vedic Astrology'}
+                    <svg className="w-3 h-3 transition-transform group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
                   </Link>
+                  {/* Dropdown */}
+                  <div className="absolute left-0 mt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                    <div className="bg-white/95 backdrop-blur-md border border-votive-border rounded-lg shadow-lg overflow-hidden">
+                      <Link 
+                        to="/vedic-chart" 
+                        className="block px-4 py-2.5 text-sm text-foreground hover:bg-primary hover:text-white transition-colors"
+                      >
+                        Bản đồ sao cá nhân
+                      </Link>
+                      <div className="border-t border-votive-border" />
+                      <Link 
+                        to="/matchmaking" 
+                        className="block px-4 py-2.5 text-sm text-foreground hover:bg-primary hover:text-white transition-colors"
+                      >
+                        Bản đồ cặp đôi
+                      </Link>
+                    </div>
+                  </div>
                 </li>
                 <li>
                   <Link to="/luc-nham" className="text-votive-bg/80 hover:text-votive-bg subtle-underline animate-fade-in-delay">
