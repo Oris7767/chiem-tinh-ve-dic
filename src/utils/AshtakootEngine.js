@@ -47,43 +47,39 @@ const NAKSHATRAS = {
   27: { name: 'Revati', lord: 'Mercury', gana: 'Deva', yoni: 'Mushak', nadi: 'Vata', rulingPlanet: 'Mercury' }
 };
 
-// Planet relationship matrix
+// Planet relationship matrix (Vedic astrology standard)
 const PLANETARY_RELATIONS = {
-  Sun: {
-    Sun: 'Same', Moon: 'Enemy', Mars: 'Friend', Mercury: 'Neutral', Jupiter: 'Neutral', Venus: 'Neutral', Saturn: 'Enemy', Rahu: 'Neutral', Ketu: 'Neutral'
-  },
-  Moon: {
-    Sun: 'Enemy', Moon: 'Same', Mars: 'Neutral', Mercury: 'Friend', Jupiter: 'Neutral', Venus: 'Friend', Saturn: 'Enemy', Rahu: 'Neutral', Ketu: 'Neutral'
-  },
-  Mars: {
-    Sun: 'Friend', Moon: 'Neutral', Mars: 'Same', Mercury: 'Enemy', Jupiter: 'Enemy', Venus: 'Neutral', Saturn: 'Neutral', Rahu: 'Neutral', Ketu: 'Neutral'
-  },
-  Mercury: {
-    Sun: 'Neutral', Moon: 'Friend', Mars: 'Enemy', Mercury: 'Same', Jupiter: 'Neutral', Venus: 'Neutral', Saturn: 'Enemy', Rahu: 'Neutral', Ketu: 'Neutral'
-  },
-  Jupiter: {
-    Sun: 'Neutral', Moon: 'Neutral', Mars: 'Enemy', Mercury: 'Neutral', Jupiter: 'Same', Venus: 'Neutral', Saturn: 'Neutral', Rahu: 'Neutral', Ketu: 'Neutral'
-  },
-  Venus: {
-    Sun: 'Neutral', Moon: 'Friend', Mars: 'Neutral', Mercury: 'Neutral', Jupiter: 'Neutral', Venus: 'Same', Saturn: 'Enemy', Rahu: 'Neutral', Ketu: 'Neutral'
-  },
-  Saturn: {
-    Sun: 'Enemy', Moon: 'Enemy', Mars: 'Neutral', Mercury: 'Enemy', Jupiter: 'Neutral', Venus: 'Enemy', Saturn: 'Same', Rahu: 'Neutral', Ketu: 'Neutral'
-  },
-  Rahu: {
-    Sun: 'Neutral', Moon: 'Neutral', Mars: 'Neutral', Mercury: 'Neutral', Jupiter: 'Neutral', Venus: 'Neutral', Saturn: 'Neutral', Rahu: 'Same', Ketu: 'Neutral'
-  },
-  Ketu: {
-    Sun: 'Neutral', Moon: 'Neutral', Mars: 'Neutral', Mercury: 'Neutral', Jupiter: 'Neutral', Venus: 'Neutral', Saturn: 'Neutral', Rahu: 'Neutral', Ketu: 'Same'
-  }
+  Sun: { friends: ["Moon", "Mars", "Jupiter"], neutrals: ["Mercury"], enemies: ["Venus", "Saturn"] },
+  Moon: { friends: ["Sun", "Mercury"], neutrals: ["Mars", "Jupiter", "Venus", "Saturn"], enemies: [] },
+  Mars: { friends: ["Sun", "Moon", "Jupiter"], neutrals: ["Venus", "Saturn"], enemies: ["Mercury"] },
+  Mercury: { friends: ["Sun", "Venus"], neutrals: ["Mars", "Jupiter", "Saturn"], enemies: ["Moon"] },
+  Jupiter: { friends: ["Sun", "Moon", "Mars"], neutrals: ["Saturn"], enemies: ["Mercury", "Venus"] },
+  Venus: { friends: ["Mercury", "Saturn"], neutrals: ["Mars", "Jupiter"], enemies: ["Sun", "Moon"] },
+  Saturn: { friends: ["Mercury", "Venus"], neutrals: ["Jupiter"], enemies: ["Sun", "Moon", "Mars"] }
+};
+
+// Bitter enemies for Yoni (animal compatibility)
+const BITTER_ENEMIES = [
+  ['Ashwa', 'Mahish'], ['Gaja', 'Singh'], ['Mesh', 'Vanar'],
+  ['Sarpa', 'Nakul'], ['Shwan', 'Mriga'], ['Marjara', 'Mushak'], ['Vyaghra', 'Gau']
+];
+
+/**
+ * Check single-direction relationship between two planets
+ */
+const getSingleRelation = (planetA, planetB) => {
+  if (planetA === planetB) return 'Same';
+  if (PLANETARY_RELATIONS[planetA]?.friends?.includes(planetB)) return 'Friend';
+  if (PLANETARY_RELATIONS[planetA]?.enemies?.includes(planetB)) return 'Enemy';
+  return 'Neutral';
 };
 
 /**
- * Check the relationship between two planets
+ * Check the relationship between two planets (legacy function for backward compatibility)
  */
 const checkRelation = (planetA, planetB) => {
   if (!planetA || !planetB) return 'Neutral';
-  return PLANETARY_RELATIONS[planetA]?.[planetB] || 'Neutral';
+  return getSingleRelation(planetA, planetB);
 };
 
 // Varna hierarchy (higher rank = better)
@@ -94,44 +90,19 @@ const VARNA_RANK = {
   Shudra: 1
 };
 
-// Yoni compatibility matrix (animal relationships)
-const YONI_RELATIONS = {
-  Ashwa: { Ashwa: 4, Gaja: 1, Sarpa: 1, Shwan: 1, Marjara: 2, Mesh: 2, Mushak: 1, Mahish: 1, Vyaghra: 1, Mriga: 1, Vanar: 1, Nakul: 1, Singh: 1 },
-  Gaja: { Ashwa: 1, Gaja: 4, Sarpa: 1, Shwan: 2, Marjara: 1, Mesh: 1, Mushak: 1, Mahish: 2, Vyaghra: 1, Mriga: 1, Vanar: 1, Nakul: 1, Singh: 1 },
-  Sarpa: { Ashwa: 1, Gaja: 1, Sarpa: 4, Shwan: 1, Marjara: 2, Mesh: 1, Mushak: 1, Mahish: 2, Vyaghra: 2, Mriga: 2, Vanar: 1, Nakul: 1, Singh: 1 },
-  Shwan: { Ashwa: 1, Gaja: 2, Sarpa: 1, Shwan: 4, Marjara: 1, Mesh: 1, Mushak: 2, Mahish: 1, Vyaghra: 1, Mriga: 2, Vanar: 2, Nakul: 2, Singh: 1 },
-  Marjara: { Ashwa: 2, Gaja: 1, Sarpa: 2, Shwan: 1, Marjara: 4, Mesh: 1, Mushak: 2, Mahish: 1, Vyaghra: 1, Mriga: 1, Vanar: 1, Nakul: 1, Singh: 1 },
-  Mesh: { Ashwa: 2, Gaja: 1, Sarpa: 1, Shwan: 1, Marjara: 1, Mesh: 4, Mushak: 1, Mahish: 1, Vyaghra: 1, Mriga: 1, Vanar: 1, Nakul: 1, Singh: 2 },
-  Mushak: { Ashwa: 1, Gaja: 1, Sarpa: 1, Shwan: 2, Marjara: 2, Mesh: 1, Mushak: 4, Mahish: 1, Vyaghra: 1, Mriga: 1, Vanar: 2, Nakul: 2, Singh: 1 },
-  Mahish: { Ashwa: 1, Gaja: 2, Sarpa: 2, Shwan: 1, Marjara: 1, Mesh: 1, Mushak: 1, Mahish: 4, Vyaghra: 1, Mriga: 1, Vanar: 1, Nakul: 1, Singh: 1 },
-  Vyaghra: { Ashwa: 1, Gaja: 1, Sarpa: 2, Shwan: 1, Marjara: 1, Mesh: 1, Mushak: 1, Mahish: 1, Vyaghra: 4, Mriga: 2, Vanar: 1, Nakul: 1, Singh: 1 },
-  Mriga: { Ashwa: 1, Gaja: 1, Sarpa: 2, Shwan: 2, Marjara: 1, Mesh: 1, Mushak: 1, Mahish: 1, Vyaghra: 2, Mriga: 4, Vanar: 1, Nakul: 1, Singh: 2 },
-  Vanar: { Ashwa: 1, Gaja: 1, Sarpa: 1, Shwan: 2, Marjara: 1, Mesh: 1, Mushak: 2, Mahish: 1, Vyaghra: 1, Mriga: 1, Vanar: 4, Nakul: 2, Singh: 1 },
-  Nakul: { Ashwa: 1, Gaja: 1, Sarpa: 1, Shwan: 2, Marjara: 1, Mesh: 1, Mushak: 2, Mahish: 1, Vyaghra: 1, Mriga: 1, Vanar: 2, Nakul: 4, Singh: 1 },
-  Singh: { Ashwa: 1, Gaja: 1, Sarpa: 1, Shwan: 1, Marjara: 1, Mesh: 2, Mushak: 1, Mahish: 1, Vyaghra: 1, Mriga: 2, Vanar: 1, Nakul: 1, Singh: 4 }
-};
+// Yoni relations will be calculated dynamically using BITTER_ENEMIES
 
-// Bhakoot (Rashi) axis scores
-const BHAKOOT_AXIS_SCORE = {
-  1: { 1: 7, 2: 7, 3: 7, 4: 6, 5: 5, 6: 4, 7: 7, 8: 0, 9: 0, 10: 7, 11: 6, 12: 5 },
-  2: { 1: 7, 2: 7, 3: 6, 4: 5, 5: 4, 6: 7, 7: 0, 8: 0, 9: 7, 10: 0, 11: 5, 12: 6 },
-  3: { 1: 7, 2: 6, 3: 7, 4: 7, 5: 0, 6: 0, 7: 0, 8: 7, 9: 0, 10: 6, 11: 5, 12: 4 },
-  4: { 1: 6, 2: 5, 3: 7, 4: 7, 5: 0, 6: 0, 7: 0, 8: 7, 9: 6, 10: 7, 11: 4, 12: 5 },
-  5: { 1: 5, 2: 4, 3: 0, 4: 0, 5: 7, 6: 7, 7: 0, 8: 0, 9: 7, 10: 0, 11: 0, 12: 6 },
-  6: { 1: 4, 2: 7, 3: 0, 4: 0, 5: 7, 6: 7, 7: 0, 8: 0, 9: 0, 10: 7, 11: 0, 12: 7 },
-  7: { 1: 7, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 7, 8: 7, 9: 7, 10: 0, 11: 0, 12: 0 },
-  8: { 1: 0, 2: 0, 3: 7, 4: 7, 5: 0, 6: 0, 7: 7, 8: 7, 9: 0, 10: 0, 11: 7, 12: 0 },
-  9: { 1: 0, 2: 7, 3: 0, 4: 6, 5: 7, 6: 0, 7: 7, 8: 0, 9: 7, 10: 0, 11: 0, 12: 7 },
-  10: { 1: 7, 2: 0, 3: 6, 4: 7, 5: 0, 6: 7, 7: 0, 8: 0, 9: 0, 10: 7, 11: 7, 12: 0 },
-  11: { 1: 6, 2: 5, 3: 5, 4: 4, 5: 0, 6: 0, 7: 0, 8: 7, 9: 0, 10: 7, 11: 7, 12: 7 },
-  12: { 1: 5, 2: 6, 3: 4, 4: 5, 5: 6, 6: 7, 7: 0, 8: 0, 9: 7, 10: 0, 11: 7, 12: 7 }
-};
 
 // ============== HELPER FUNCTIONS ==============
 
 const areLordsFriendly = (lordA, lordB) => {
-  const relation = checkRelation(lordA, lordB);
-  return relation === 'Same' || relation === 'Friend';
+  if (lordA === lordB) return true;
+  const relA = getSingleRelation(lordA, lordB);
+  const relB = getSingleRelation(lordB, lordA);
+  // If both see each other as friends, or one is friend + other is neutral, it's considered harmonious
+  return (relA === 'Friend' && relB === 'Friend') ||
+         (relA === 'Friend' && relB === 'Neutral') ||
+         (relA === 'Neutral' && relB === 'Friend');
 };
 
 const calculateTaraBase = (boyNakshatra, girlNakshatra) => {
@@ -159,7 +130,18 @@ const calculateTaraBase = (boyNakshatra, girlNakshatra) => {
 };
 
 const getYoniScore = (boyYoni, girlYoni) => {
-  return YONI_RELATIONS[boyYoni]?.[girlYoni] ?? 0;
+  if (boyYoni === girlYoni) return 4;
+
+  // Check if bitter enemies (check both directions)
+  const isBitterEnemy = BITTER_ENEMIES.some(pair =>
+    (pair[0] === boyYoni && pair[1] === girlYoni) ||
+    (pair[1] === boyYoni && pair[0] === girlYoni)
+  );
+
+  if (isBitterEnemy) return 0;
+
+  // Other relations default to 2 points (can be upgraded with full matrix later)
+  return 2;
 };
 
 // ============== KOOTA CALCULATORS WITH PARIHAR ==============
@@ -322,38 +304,48 @@ const calculateYoniKoota = (boyMoon, girlMoon, bhakootScore) => {
 const calculateGrahaMaitriKoota = (boyMoon, girlMoon, bhakootScore) => {
   const boyLord = RASHIS[boyMoon.rashi].lord;
   const girlLord = RASHIS[girlMoon.rashi].lord;
-  const relation = checkRelation(boyLord, girlLord);
-  
+  const relA = getSingleRelation(boyLord, girlLord);
+  const relB = getSingleRelation(girlLord, boyLord);
+
   let baseScore = 0;
   let baseDescription = '';
-  
-  if (relation === 'Same' || relation === 'Friend') {
+
+  if (relA === 'Same') {
     baseScore = 5;
-    baseDescription = `Lords are ${relation}: ${boyLord} & ${girlLord}`;
-  } else if (relation === 'Neutral') {
+    baseDescription = `Lords are Same: ${boyLord} & ${girlLord}`;
+  } else if (relA === 'Friend' && relB === 'Friend') {
+    baseScore = 5;
+    baseDescription = `Lords are mutual Friends: ${boyLord} & ${girlLord}`;
+  } else if ((relA === 'Friend' && relB === 'Neutral') || (relA === 'Neutral' && relB === 'Friend')) {
+    baseScore = 4;
+    baseDescription = `Lords are Friend+Neutral: ${boyLord} & ${girlLord} (${relA}/${relB})`;
+  } else if (relA === 'Neutral' && relB === 'Neutral') {
     baseScore = 3;
-    baseDescription = `Lords are Neutral: ${boyLord} & ${girlLord}`;
+    baseDescription = `Lords are neutral: ${boyLord} & ${girlLord}`;
+  } else if ((relA === 'Enemy' && relB === 'Neutral') || (relA === 'Neutral' && relB === 'Enemy')) {
+    baseScore = 1;
+    baseDescription = `Lords are Neutral+Enemy: ${boyLord} & ${girlLord} (${relA}/${relB})`;
   } else {
-    baseScore = 0;
+    baseScore = 0.5;
     baseDescription = `Lords are Enemies: ${boyLord} & ${girlLord}`;
   }
-  
+
   let finalScore = baseScore;
   let pariharActive = false;
   let pariharReason = '';
-  
+
   if (baseScore < 3) {
     const sameNakshatraDifferentRashi = boyMoon.nakshatra === girlMoon.nakshatra && boyMoon.rashi !== girlMoon.rashi;
-    
+
     if (bhakootScore === 7 || sameNakshatraDifferentRashi) {
       finalScore = 3;
       pariharActive = true;
-      pariharReason = bhakootScore === 7 
-        ? 'Bhakoot score is maximum' 
+      pariharReason = bhakootScore === 7
+        ? 'Bhakoot score is maximum'
         : 'Same Nakshatra but different Rashi';
     }
   }
-  
+
   return {
     name: 'Graha Maitri Koota',
     maxPoints: 5,
@@ -424,20 +416,32 @@ const calculateBhakootKoota = (boyMoon, girlMoon) => {
   const girlRashi = girlMoon.rashi;
   const boyLord = RASHIS[boyRashi].lord;
   const girlLord = RASHIS[girlRashi].lord;
-  
-  let baseScore = BHAKOOT_AXIS_SCORE[boyRashi]?.[girlRashi] ?? 0;
-  const baseDescription = `Boy in ${RASHIS[boyRashi].name}, Girl in ${RASHIS[girlRashi].name}`;
-  
+
+  // Calculate distance between 2 signs (one direction is enough to determine axis)
+  let distance = (girlRashi - boyRashi + 12) % 12;
+  if (distance === 0) distance = 12; // Same sign = axis 1/1
+
+  // Check if it falls into bad axes: 2/12, 5/9, 6/8
+  const isBadAxis = [2, 12, 5, 9, 6, 8].includes(distance);
+
+  let baseScore = isBadAxis ? 0 : 7;
+  const axisName = isBadAxis
+    ? (distance === 2 || distance === 12 ? '2/12' : distance === 5 || distance === 9 ? '5/9' : '6/8')
+    : 'Tốt';
+
+  const baseDescription = `Trục ${axisName}: Boy ở ${RASHIS[boyRashi].nameVN}, Girl ở ${RASHIS[girlRashi].nameVN}`;
+
   let finalScore = baseScore;
   let pariharActive = false;
   let pariharReason = '';
-  
+
+  // Parihar rule
   if (areLordsFriendly(boyLord, girlLord)) {
     finalScore = 7;
     pariharActive = true;
-    pariharReason = 'Rashi Lords are same/friends';
+    pariharReason = 'Chủ tinh 2 cung là Bạn bè/Giống nhau';
   }
-  
+
   return {
     name: 'Bhakoot Koota',
     maxPoints: 7,
@@ -445,7 +449,7 @@ const calculateBhakootKoota = (boyMoon, girlMoon) => {
     points: finalScore,
     description: baseDescription,
     parihar: pariharActive ? { active: true, reason: pariharReason, overridden: baseScore !== finalScore } : null,
-    dosha: null
+    dosha: baseScore === 0 && !pariharActive ? { type: 'Bhakoot Dosha', severity: 'High', description: 'Trục cung xấu gây hao tài hoặc bất đồng' } : null
   };
 };
 
