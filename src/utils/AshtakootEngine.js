@@ -710,12 +710,20 @@ export const extractMoonPosition = (chartData) => {
     }
   
     let rashi = moon.sign;
-  
-    // 2. VÁ LỖI: Ưu tiên xử lý object sign có chứa thuộc tính name
+
+    // Handle different sign formats from various sources
     if (moon.sign && typeof moon.sign === 'object' && moon.sign.name) {
+      // Object with name property like {name: 'Pisces'}
       rashi = RASHI_NAME_MAP[moon.sign.name];
     } else if (typeof moon.sign === 'string') {
+      // String like 'Pisces' or '12'
       rashi = RASHI_NAME_MAP[moon.sign] || parseInt(moon.sign);
+    } else if (typeof moon.sign === 'number') {
+      // Numeric - API trả về 0-indexed (0=Aries, 11=Pisces)
+      // Nhưng AshtakootEngine dùng 1-indexed (1=Aries, 12=Pisces)
+      if (moon.sign >= 0 && moon.sign <= 11) {
+        rashi = moon.sign + 1;
+      }
     }
   
     // Chỉ fallback về tính toán bằng longitude nếu cả 2 bước trên đều thất bại
