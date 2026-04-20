@@ -16,7 +16,7 @@ interface House {
 }
 
 interface VedicChartData {
-  ascendant: number;
+  ascendant: number | { longitude: number; nakshatra?: { name: string; lord: string; startDegree: number; endDegree: number; pada: number } };
   planets: Planet[];
   houses: House[];
   moonNakshatra: string;
@@ -31,19 +31,37 @@ interface MiniSouthIndianChartProps {
   vargaPlanets?: Planet[];
   vargaAscendantSign?: number;
   title?: string;
+  // Tùy chọn hiển thị
+  showCoordinates?: boolean; // Hiển thị tọa độ độ của hành tinh
 }
+
+// Hàm trích xuất ascendant longitude từ API response
+const getAscendantLongitude = (ascendant: VedicChartData['ascendant']): number => {
+  if (typeof ascendant === 'number') {
+    return ascendant;
+  }
+  return (ascendant as any).longitude;
+};
 
 const MiniSouthIndianChart: React.FC<MiniSouthIndianChartProps> = ({ 
   chartData, 
   vargaPlanets,
   vargaAscendantSign,
   title = '',
+  showCoordinates = true, // Mặc định bật hiển thị tọa độ
 }) => {
   // Shortened sign abbreviations (2 characters)
   const shortSignAbbr = [
     "Ar", "Ta", "Ge", "Ca", "Le", "Vi",
     "Li", "Sc", "Sg", "Cp", "Aq", "Pi"
   ];
+
+  // Hàm format độ để hiển thị (ví dụ: 15°30')
+  const formatDegree = (degree: number) => {
+    const deg = Math.floor(degree);
+    const min = Math.floor((degree - deg) * 60);
+    return `${deg}°${min.toString().padStart(2, '0')}'`;
+  };
 
   // Planet abbreviations
   const getPlanetAbbr = (name: string) => {
@@ -70,7 +88,7 @@ const MiniSouthIndianChart: React.FC<MiniSouthIndianChartProps> = ({
   
   // Xác định ascendant sign
   // Nếu có vargaAscendantSign -> dùng nó, ngược lại tính từ chartData.ascendant
-  const ascendantSign = vargaAscendantSign ?? Math.floor(chartData.ascendant / 30);
+  const ascendantSign = vargaAscendantSign ?? getAscendantLongitude(chartData.ascendant);
 
   // Map planets to houses
   const planetsByHouse = planetsToRender.reduce((acc, planet) => {
@@ -104,15 +122,15 @@ const MiniSouthIndianChart: React.FC<MiniSouthIndianChartProps> = ({
       )}
       <div className="flex-1 min-h-0">
         <svg
-          viewBox="0 0 300 300"
+          viewBox="0 0 350 350"
           className="w-full h-full border border-votive-border rounded"
           preserveAspectRatio="xMidYMid meet"
         >
           {/* White background */}
-          <rect x="0" y="0" width="300" height="300" fill="white" />
+          <rect x="0" y="0" width="350" height="350" fill="white" />
           
           {/* Main Chart Grid */}
-          <g transform="translate(30, 40)">
+          <g transform="translate(25, 35)">
             {/* Draw the 4x4 grid with middle cells removed */}
             {Array.from({ length: 12 }, (_, index) => {
               const signIndex = index;
@@ -121,16 +139,16 @@ const MiniSouthIndianChart: React.FC<MiniSouthIndianChartProps> = ({
               
               const planetsInHouse = planetsByHouse[houseNumber] || [];
               
-              const x = col * 60;
-              const y = row * 60;
+              const x = col * 70;
+              const y = row * 70;
               
               return (
                 <g key={`cell-${row}-${col}`}>
                   <rect
                     x={x}
                     y={y}
-                    width={60}
-                    height={60}
+                    width={70}
+                    height={70}
                     fill="none"
                     stroke="#B45309"
                     strokeWidth="0.5"
@@ -138,9 +156,9 @@ const MiniSouthIndianChart: React.FC<MiniSouthIndianChartProps> = ({
                   
                   {/* Show fixed sign abbreviation and moving house number */}
                   <text
-                    x={x + 2}
-                    y={y + 10}
-                    fontSize="6"
+                    x={x + 3}
+                    y={y + 12}
+                    fontSize="8"
                     fill="#B45309"
                     fontWeight="bold"
                   >
@@ -149,16 +167,22 @@ const MiniSouthIndianChart: React.FC<MiniSouthIndianChartProps> = ({
                   
                   {/* Display planets in this house */}
                   <g>
-                    {planetsInHouse.slice(0, 4).map((planet, idx) => (
+                    {planetsInHouse.slice(0, 3).map((planet, idx) => (
                       <text
                         key={planet.id}
                         x={x + 2}
-                        y={y + 22 + idx * 9}
-                        fontSize="5"
+                        y={y + 14 + idx * 12}
+                        fontSize="7"
+                        fontWeight="bold"
                         fill="#000000"
                       >
                         {getPlanetAbbr(planet.name)}
                         {planet.retrograde ? 'ᴿ' : ''}
+                        {showCoordinates && (
+                          <tspan fontSize="5" fontWeight="normal" fill="#666">
+                            {formatDegree(planet.vargaDegree || planet.longitude % 30)}
+                          </tspan>
+                        )}
                       </text>
                     ))}
                   </g>
