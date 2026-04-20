@@ -257,6 +257,16 @@ export const calculateD45Sign = (longitude: number): number => {
 };
 
 /**
+ * D60 - Shashtiamsa (Nghiệp quả vi tế / Karma)
+ * Chia 60 phần (0.5 độ). Bắt đầu đếm thuận từ cung hiện tại của hành tinh.
+ */
+export const calculateD60Sign = (longitude: number): number => {
+  const { sign, degreeInSign } = getBaseSignAndDegree(longitude);
+  const part = Math.floor(degreeInSign * 2); // Mỗi phần 0.5 độ => nhân 2
+  return (sign + part) % 12;
+};
+
+/**
  * Tính toán tất cả Vargas từ D1 chart data
  * @param planets - Mảng các planet từ D1
  * @param ascendantLongitude - Kinh độ Cung Mọc từ D1
@@ -304,6 +314,7 @@ export interface VargaCharts {
   D30: VargaChartData;
   D40: VargaChartData;
   D45: VargaChartData;
+  D60: VargaChartData;
 }
 
 // Công thức tính số Nhà (1-12) trong chiêm tinh Vệ Đà
@@ -376,5 +387,6 @@ export const calculateAllVargas = (
     D30: toVargaChart(planets, calculateD30Sign, ascendantLongitude),
     D40: toVargaChart(planets, calculateD40Sign, ascendantLongitude),
     D45: toVargaChart(planets, calculateD45Sign, ascendantLongitude),
+    D60: toVargaChart(planets, calculateD60Sign, ascendantLongitude),
   };
 };

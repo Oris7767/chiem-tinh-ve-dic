@@ -54,6 +54,7 @@ const VARGAS_DATA = [
   { id: 'D30', name: 'Trimsamsa', key: 'D30' as const },
   { id: 'D40', name: 'Khavedamsa', key: 'D40' as const },
   { id: 'D45', name: 'Akshvedamsa', key: 'D45' as const },
+  { id: 'D60', name: 'Shashtiamsa', key: 'D60' as const },
 ];
 
 // Large chart component for Modal
