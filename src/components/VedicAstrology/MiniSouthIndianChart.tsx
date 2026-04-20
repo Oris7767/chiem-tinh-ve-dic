@@ -181,7 +181,7 @@ const MiniSouthIndianChart: React.FC<MiniSouthIndianChartProps> = ({
                     y={y + 12}
                     fontSize="8"
                     fill="#B45309"
-                    fontWeight="bold"
+                    fontWeight="normal"
                   >
                     {shortSignAbbr[signIndex]} {houseNumber}
                   </text>
@@ -194,7 +194,7 @@ const MiniSouthIndianChart: React.FC<MiniSouthIndianChartProps> = ({
                         x={x + 3}
                         y={y + 24 + idx * 11}
                         fontSize="7"
-                        fontWeight="bold"
+                        fontWeight="normal"
                         fill={item.color}
                       >
                         {item.label}

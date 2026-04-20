@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import MiniSouthIndianChart from './MiniSouthIndianChart';
 import { calculateAllVargas, PlanetInput, VargaChartData } from '@/utils/vargaCalculations';
+import { LOGO_DATA_URL } from '@/utils/logoDataUrl';
 
 interface Planet {
   id: string;
@@ -192,9 +193,8 @@ const LargeSouthIndianChart: React.FC<{
           );
         })}
         
-        {/* Center logo placeholder */}
-        <rect x="150" y="150" width="100" height="100" fill="#FFF8E7" stroke="#B45309" strokeWidth="1" />
-        <text x="200" y="205" fontSize="24" textAnchor="middle" fill="#B45309">☀️</text>
+        {/* Center logo */}
+        <image href={LOGO_DATA_URL} x="150" y="150" width="100" height="100" />
       </g>
     </svg>
   );
