@@ -763,31 +763,42 @@ export const extractMoonPosition = (chartData) => {
     };
   };
 
-export const extractMoonFromApiResponse = (apiData) => {
-  if (!apiData || !apiData.planets) {
-    throw new Error('Invalid API response: planets array is required');
-  }
-
-  const moonPlanet = apiData.planets.find(p => 
-    p.planet === 'Moon' || p.planet === 'MOON' || p.planet === 'moon'
-  );
-
-  if (!moonPlanet) {
-    throw new Error('Moon not found in API response');
-  }
-
-  let rashi = moonPlanet.sign?.name ? RASHI_NAME_MAP[moonPlanet.sign.name] : moonPlanet.sign;
-  if (typeof rashi !== 'number') rashi = 1;
-
-  let nakshatra = NAKSHATRA_NAME_MAP[moonPlanet.nakshatra?.name] || 1;
-  let pada = moonPlanet.nakshatra?.pada || 1;
-
-  return {
-    rashi: Number(rashi),
-    nakshatra: Number(nakshatra),
-    pada: Number(pada),
-    rashiName: RASHIS[rashi]?.name || 'Unknown',
-    nakshatraName: NAKSHATRAS[nakshatra]?.name || 'Unknown',
-    degree: moonPlanet.longitude % 30
+  export const extractMoonFromApiResponse = (apiData) => {
+    if (!apiData || !apiData.planets) {
+      throw new Error('Invalid API response: planets array is required');
+    }
+  
+    // Quét rộng các key để không lọt
+    const moonPlanet = apiData.planets.find(p => 
+      p.planet === 'Moon' || p.planet === 'MOON' || p.planet === 'moon' || p.name === 'Moon'
+    );
+  
+    if (!moonPlanet) {
+      throw new Error('Moon not found in API response');
+    }
+  
+    // Ép kiểu chuẩn xác cho Rashi
+    let rashi = 1;
+    if (moonPlanet.sign && typeof moonPlanet.sign === 'object' && moonPlanet.sign.name) {
+      rashi = RASHI_NAME_MAP[moonPlanet.sign.name] || 1;
+    } else if (typeof moonPlanet.sign === 'string') {
+      rashi = RASHI_NAME_MAP[moonPlanet.sign] || parseInt(moonPlanet.sign) || 1;
+    }
+  
+    // Ép kiểu chuẩn xác cho Nakshatra
+    let nakshatra = 1;
+    if (moonPlanet.nakshatra && typeof moonPlanet.nakshatra === 'object' && moonPlanet.nakshatra.name) {
+      nakshatra = NAKSHATRA_NAME_MAP[moonPlanet.nakshatra.name] || 1;
+    }
+  
+    let pada = moonPlanet.nakshatra?.pada || 1;
+  
+    return {
+      rashi: Number(rashi),
+      nakshatra: Number(nakshatra),
+      pada: Number(pada),
+      rashiName: RASHIS[rashi]?.name || 'Unknown',
+      nakshatraName: NAKSHATRAS[nakshatra]?.name || 'Unknown',
+      degree: (moonPlanet.longitude || 0) % 30
+    };
   };
-};
