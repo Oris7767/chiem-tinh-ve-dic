@@ -136,11 +136,32 @@ const MiniSouthIndianChart: React.FC<MiniSouthIndianChartProps> = ({
               const signIndex = index;
               const [row, col] = positions[index];
               const houseNumber = getHouseNumber(signIndex);
+              const isAscendant = houseNumber === 1;
               
               const planetsInHouse = planetsByHouse[houseNumber] || [];
               
               const x = col * 70;
               const y = row * 70;
+              
+              // Build render items list: ASC first, then planets
+              const renderItems: Array<{ id: string; label: string; color: string; subLabel?: string }> = [];
+              
+              if (isAscendant) {
+                renderItems.push({
+                  id: 'asc',
+                  label: 'ASC',
+                  color: '#B45309',
+                });
+              }
+              
+              planetsInHouse.slice(0, 3).forEach(planet => {
+                renderItems.push({
+                  id: planet.id,
+                  label: `${getPlanetAbbr(planet.name)}${planet.retrograde ? 'ᴿ' : ''}`,
+                  color: '#000000',
+                  subLabel: showCoordinates ? formatDegree(planet.vargaDegree || planet.longitude % 30) : undefined,
+                });
+              });
               
               return (
                 <g key={`cell-${row}-${col}`}>
@@ -165,22 +186,21 @@ const MiniSouthIndianChart: React.FC<MiniSouthIndianChartProps> = ({
                     {shortSignAbbr[signIndex]} {houseNumber}
                   </text>
                   
-                  {/* Display planets in this house */}
+                  {/* Display ASC and planets in this house */}
                   <g>
-                    {planetsInHouse.slice(0, 3).map((planet, idx) => (
+                    {renderItems.map((item, idx) => (
                       <text
-                        key={planet.id}
-                        x={x + 2}
-                        y={y + 14 + idx * 12}
+                        key={item.id}
+                        x={x + 3}
+                        y={y + 24 + idx * 11}
                         fontSize="7"
                         fontWeight="bold"
-                        fill="#000000"
+                        fill={item.color}
                       >
-                        {getPlanetAbbr(planet.name)}
-                        {planet.retrograde ? 'ᴿ' : ''}
-                        {showCoordinates && (
+                        {item.label}
+                        {item.subLabel && (
                           <tspan fontSize="5" fontWeight="normal" fill="#666">
-                            {formatDegree(planet.vargaDegree || planet.longitude % 30)}
+                            {' '}{item.subLabel}
                           </tspan>
                         )}
                       </text>

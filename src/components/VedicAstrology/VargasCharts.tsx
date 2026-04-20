@@ -121,10 +121,31 @@ const LargeSouthIndianChart: React.FC<{
           const signIndex = index;
           const [row, col] = positions[index];
           const houseNumber = getHouseNumber(signIndex);
+          const isAscendant = houseNumber === 1;
           const planetsInHouse = planetsByHouse[houseNumber] || [];
           
           const x = col * 100;
           const y = row * 100;
+          
+          // Build render items list: ASC first, then planets
+          const renderItems: Array<{ id: string; label: string; color: string; subLabel?: string }> = [];
+          
+          if (isAscendant) {
+            renderItems.push({
+              id: 'asc',
+              label: 'ASC',
+              color: '#B45309',
+            });
+          }
+          
+          planetsInHouse.slice(0, 3).forEach(planet => {
+            renderItems.push({
+              id: planet.id,
+              label: `${getPlanetAbbr(planet.name)}${planet.retrograde ? 'ᴿ' : ''}`,
+              color: '#000000',
+              subLabel: formatDegree(planet.vargaDegree),
+            });
+          });
           
           return (
             <g key={`cell-${row}-${col}`}>
@@ -149,20 +170,21 @@ const LargeSouthIndianChart: React.FC<{
               </text>
               
               <g>
-                {planetsInHouse.slice(0, 3).map((planet, idx) => (
+                {renderItems.map((item, idx) => (
                   <text
-                    key={planet.id}
+                    key={item.id}
                     x={x + 5}
                     y={y + 40 + idx * 14}
                     fontSize="10"
                     fontWeight="bold"
-                    fill="#000000"
+                    fill={item.color}
                   >
-                    {getPlanetAbbr(planet.name)}
-                    {planet.retrograde ? 'ᴿ' : ''}
-                    <tspan fontSize="8" fontWeight="normal" fill="#666">
-                      {formatDegree(planet.vargaDegree)}
-                    </tspan>
+                    {item.label}
+                    {item.subLabel && (
+                      <tspan fontSize="8" fontWeight="normal" fill="#666">
+                        {' '}{item.subLabel}
+                      </tspan>
+                    )}
                   </text>
                 ))}
               </g>
