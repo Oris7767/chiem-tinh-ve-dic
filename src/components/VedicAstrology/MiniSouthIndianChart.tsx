@@ -23,16 +23,21 @@ interface VedicChartData {
   lunarDay: number;
 }
 
+// Props cho MiniSouthIndianChart
 interface MiniSouthIndianChartProps {
+  // Dữ liệu gốc từ D1
   chartData: VedicChartData;
+  // Props tùy chọn cho Varga charts
+  vargaPlanets?: Planet[];
+  vargaAscendantSign?: number;
   title?: string;
-  showDetails?: boolean;
 }
 
 const MiniSouthIndianChart: React.FC<MiniSouthIndianChartProps> = ({ 
   chartData, 
+  vargaPlanets,
+  vargaAscendantSign,
   title = '',
-  showDetails = false 
 }) => {
   // Shortened sign abbreviations (2 characters)
   const shortSignAbbr = [
@@ -59,8 +64,16 @@ const MiniSouthIndianChart: React.FC<MiniSouthIndianChartProps> = ({
     return map[name] || name.substring(0, 2);
   };
 
+  // Xác định dữ liệu để render
+  // Nếu có vargaPlanets -> dùng vargaPlanets, ngược lại dùng chartData.planets
+  const planetsToRender = vargaPlanets || chartData.planets;
+  
+  // Xác định ascendant sign
+  // Nếu có vargaAscendantSign -> dùng nó, ngược lại tính từ chartData.ascendant
+  const ascendantSign = vargaAscendantSign ?? Math.floor(chartData.ascendant / 30);
+
   // Map planets to houses
-  const planetsByHouse = chartData.planets.reduce((acc, planet) => {
+  const planetsByHouse = planetsToRender.reduce((acc, planet) => {
     const houseNumber = planet.house;
     if (!acc[houseNumber]) {
       acc[houseNumber] = [];
@@ -69,9 +82,6 @@ const MiniSouthIndianChart: React.FC<MiniSouthIndianChartProps> = ({
     return acc;
   }, {} as Record<number, Planet[]>);
 
-  // Determine the ascendant sign and house
-  const ascSign = Math.floor(chartData.ascendant / 30);
-  
   // In South Indian Chart, the signs are fixed, houses move based on the ascendant
   const positions = [
     [0, 1], [0, 2], [0, 3], [1, 3],
@@ -81,22 +91,14 @@ const MiniSouthIndianChart: React.FC<MiniSouthIndianChartProps> = ({
 
   // Calculate which house goes in each position
   const getHouseNumber = (signIndex: number) => {
-    const distance = (signIndex - ascSign + 12) % 12;
+    const distance = (signIndex - ascendantSign + 12) % 12;
     return ((distance + 1) % 12) || 12;
-  };
-
-  // Calculate degrees within sign (0-29.99)
-  const getDegreesInSign = (longitude: number) => {
-    const totalDegrees = longitude % 30;
-    const constDegrees = Math.floor(totalDegrees);
-    const minutes = Math.floor((totalDegrees - constDegrees) * 60);
-    return `${constDegrees}.${minutes.toString().padStart(2, '0')}`;
   };
 
   return (
     <div className="relative w-full h-full flex flex-col">
       {title && (
-        <h3 className="text-center text-sm font-semibold text-votive-red mb-1 truncate">
+        <h3 className="text-center text-sm font-semibold text-votive-red mb-1 truncate px-1">
           {title}
         </h3>
       )}
