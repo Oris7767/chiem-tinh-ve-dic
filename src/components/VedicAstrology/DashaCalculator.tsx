@@ -7,6 +7,8 @@ import { VedicChartData, DashaPeriod } from './VedicChart';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import AntarDashaTable from './AntarDashaTable';
+import PratyantarDashaTable from './PratyantarDashaTable';
+import SookshmaDashaTable from './SookshmaDashaTable';
 
 interface DashaCalculatorProps {
   chartData: VedicChartData;
@@ -112,6 +114,8 @@ const DashaCalculator: React.FC<DashaCalculatorProps> = ({ chartData }) => {
 
   // State để biết mahadasha nào đang được chọn
   const [selectedMahadasha, setSelectedMahadasha] = useState<string | null>(currentDasha.planet);
+  // State để biết antardasha nào đang được mở rộng (hiện pratyantar/sookshma)
+  const [expandedAntardasha, setExpandedAntardasha] = useState<string | null>(null);
 
   return (
     <Card>
@@ -168,6 +172,44 @@ const DashaCalculator: React.FC<DashaCalculatorProps> = ({ chartData }) => {
                       </div>
                     </div>
                   </div>
+                  {/* Current Pratyantar */}
+                  {currentDasha.currentAntardasha.currentPratyantar && (
+                    <div className="mt-3 pl-3 border-l-2 border-amber-400">
+                      <div className="text-xs font-medium text-amber-700">Pratyantar hiện tại:</div>
+                      <div className="text-xs">
+                        {currentDasha.currentAntardasha.currentPratyantar.planet} ({getPlanetAbbr(currentDasha.currentAntardasha.currentPratyantar.planet)})
+                        <div className="text-xs text-gray-500">
+                          {formatDate(currentDasha.currentAntardasha.currentPratyantar.startDate)} - {formatDate(currentDasha.currentAntardasha.currentPratyantar.endDate)}
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 mt-1">
+                          <div>
+                            <span className="text-xs font-medium">Đã qua: </span>
+                            <span className="text-xs">
+                              {currentDasha.currentAntardasha.currentPratyantar.elapsed.days} ngày
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-xs font-medium">Còn lại: </span>
+                            <span className="text-xs">
+                              {currentDasha.currentAntardasha.currentPratyantar.remaining.days} ngày
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      {/* Current Sookshma */}
+                      {currentDasha.currentAntardasha.currentPratyantar.currentSookshma && (
+                        <div className="mt-2 pl-3 border-l-2 border-orange-400">
+                          <div className="text-xs font-medium text-orange-700">Sookshma hiện tại:</div>
+                          <div className="text-xs">
+                            {currentDasha.currentAntardasha.currentPratyantar.currentSookshma.planet} ({getPlanetAbbr(currentDasha.currentAntardasha.currentPratyantar.currentSookshma.planet)})
+                            <div className="text-xs text-gray-500">
+                              {formatDate(currentDasha.currentAntardasha.currentPratyantar.currentSookshma.startDate)} - {formatDate(currentDasha.currentAntardasha.currentPratyantar.currentSookshma.endDate)}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
