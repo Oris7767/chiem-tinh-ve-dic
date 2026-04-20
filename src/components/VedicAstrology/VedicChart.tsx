@@ -680,7 +680,11 @@ const VedicChart = () => {
           </TabsContent>
 
           <TabsContent value="vargas">
-            <VargasCharts chartData={chartData} showModernPlanets={showModernPlanets} />
+            <VargasCharts 
+              chartData={chartData} 
+              showModernPlanets={showModernPlanets}
+              onToggleModernPlanets={setShowModernPlanets}
+            />
           </TabsContent>
         </Tabs>
       )}

@@ -276,19 +276,13 @@ const VargasCharts: React.FC<VargasChartsProps> = ({ chartData, showModernPlanet
   // State quản lý lá số được chọn để phóng to
   const [selectedVarga, setSelectedVarga] = useState<SelectedVarga | null>(null);
   
-  // State cục bộ cho hành tinh hiện đại (khởi tạo từ external hoặc mặc định false)
-  const [localShowModern, setLocalShowModern] = useState(externalShowModern ?? false);
-  
-  // Sử dụng external state nếu có prop truyền vào, ngược lại dùng local state
-  const showModern = externalShowModern !== undefined ? externalShowModern : localShowModern;
+  // Sử dụng state từ parent
+  const showModern = externalShowModern ?? false;
   
   const toggleModernPlanets = () => {
+    // Gọi callback của parent để toggle
     if (onToggleModernPlanets) {
-      // Nếu có callback từ parent, gọi callback
-      onToggleModernPlanets(!externalShowModern);
-    } else {
-      // Ngược lại, toggle local state
-      setLocalShowModern(prev => !prev);
+      onToggleModernPlanets(!showModern);
     }
   };
 
@@ -340,11 +334,13 @@ const VargasCharts: React.FC<VargasChartsProps> = ({ chartData, showModernPlanet
         </div>
         
         {/* Modern Planets Toggle */}
-        <div className="flex items-center gap-2">
+        <div className="relative z-10 flex items-center gap-2">
           <span className="text-sm font-medium">Hành tinh hiện đại:</span>
           <button
+            type="button"
             onClick={toggleModernPlanets}
-            className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+            onMouseDown={(e) => e.preventDefault()}
+            className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 cursor-pointer select-none ${
               showModern ? 'bg-primary' : 'bg-input'
             }`}
           >
@@ -354,6 +350,9 @@ const VargasCharts: React.FC<VargasChartsProps> = ({ chartData, showModernPlanet
               }`}
             />
           </button>
+          <span className="text-xs text-muted-foreground">
+            {showModern ? 'Hiện' : 'Ẩn'}
+          </span>
         </div>
       </div>
       
