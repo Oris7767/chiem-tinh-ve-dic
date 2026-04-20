@@ -39,21 +39,21 @@ interface SelectedVarga {
 
 // 16 Vargas tiêu chuẩn trong chiêm tinh Vệ Đà
 const VARGAS_DATA = [
-  { id: 'D1', name: 'Rasi (Bản thể)', key: 'D1' as const },
-  { id: 'D2', name: 'Hora (Tài lộc)', key: 'D2' as const },
-  { id: 'D3', name: 'Drekkana (Bạn bè)', key: 'D3' as const },
-  { id: 'D4', name: 'Chaturamsa (May mắn)', key: 'D4' as const },
-  { id: 'D7', name: 'Saptamsa (Con cái)', key: 'D7' as const },
-  { id: 'D9', name: 'Navamsa (Hôn nhân)', key: 'D9' as const },
-  { id: 'D10', name: 'Dasamsa (Sự nghiệp)', key: 'D10' as const },
-  { id: 'D12', name: 'Dwadamsa (Cha mẹ)', key: 'D12' as const },
-  { id: 'D16', name: 'Shodasamsa (Phúc lộc)', key: 'D16' as const },
-  { id: 'D20', name: 'Vimsamsa (Đạo đức)', key: 'D20' as const },
-  { id: 'D24', name: 'Siddhamsa (Học vấn)', key: 'D24' as const },
-  { id: 'D27', name: 'Nakshatramsa (Năng lực)', key: 'D27' as const },
-  { id: 'D30', name: 'Trimsamsa (Karma)', key: 'D30' as const },
-  { id: 'D40', name: 'Khavedamsa (An khang)', key: 'D40' as const },
-  { id: 'D45', name: 'Akshvedamsa (Tổng thể)', key: 'D45' as const },
+  { id: 'D1', name: 'Rasi', key: 'D1' as const },
+  { id: 'D2', name: 'Hora', key: 'D2' as const },
+  { id: 'D3', name: 'Drekkana', key: 'D3' as const },
+  { id: 'D4', name: 'Chaturamsa', key: 'D4' as const },
+  { id: 'D7', name: 'Saptamsa', key: 'D7' as const },
+  { id: 'D9', name: 'Navamsa', key: 'D9' as const },
+  { id: 'D10', name: 'Dasamsa', key: 'D10' as const },
+  { id: 'D12', name: 'Dwadamsa', key: 'D12' as const },
+  { id: 'D16', name: 'Shodasamsa', key: 'D16' as const },
+  { id: 'D20', name: 'Vimsamsa', key: 'D20' as const },
+  { id: 'D24', name: 'Siddhamsa', key: 'D24' as const },
+  { id: 'D27', name: 'Nakshatramsa', key: 'D27' as const },
+  { id: 'D30', name: 'Trimsamsa', key: 'D30' as const },
+  { id: 'D40', name: 'Khavedamsa', key: 'D40' as const },
+  { id: 'D45', name: 'Akshvedamsa', key: 'D45' as const },
 ];
 
 // Large chart component for Modal
