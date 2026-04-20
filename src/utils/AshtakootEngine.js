@@ -696,66 +696,72 @@ const RASHI_NAME_MAP = {
 };
 
 export const extractMoonPosition = (chartData) => {
-  if (!chartData || !chartData.planets) {
-    throw new Error('Invalid chart data: planets array is required');
-  }
-
-  const moon = chartData.planets.find(p => 
-    p.id === 'mo' || p.name === 'Moon' || p.name === 'MOON'
-  );
-
-  if (!moon) {
-    throw new Error('Moon not found in chart data');
-  }
-
-  let rashi = moon.sign;
-  if (typeof moon.sign === 'string') {
-    rashi = RASHI_NAME_MAP[moon.sign] || parseInt(moon.sign);
-  }
-  if (typeof rashi !== 'number' || rashi < 1 || rashi > 12) {
-    const longitude = moon.longitude || 0;
-    rashi = Math.floor(longitude / 30) + 1;
-    if (rashi > 12) rashi = rashi - 12;
-  }
-
-  let nakshatra = 1;
-  let nakshatraName = '';
-
-  if (moon.nakshatra && typeof moon.nakshatra === 'object') {
-    nakshatraName = moon.nakshatra.name || '';
-    if (NAKSHATRA_NAME_MAP[nakshatraName]) {
-      nakshatra = NAKSHATRA_NAME_MAP[nakshatraName];
+    if (!chartData || !chartData.planets) {
+      throw new Error('Invalid chart data: planets array is required');
     }
-  } else if (moon.nakshatra && typeof moon.nakshatra === 'string') {
-    nakshatraName = moon.nakshatra;
-    nakshatra = NAKSHATRA_NAME_MAP[nakshatraName] || 1;
-  }
-
-  if (nakshatra === 1 && nakshatraName === '' && chartData.moonNakshatra) {
-    nakshatraName = chartData.moonNakshatra;
-    nakshatra = NAKSHATRA_NAME_MAP[nakshatraName] || 1;
-  }
-
-  let pada = 1;
-  if (moon.nakshatra && typeof moon.nakshatra === 'object') {
-    if (moon.nakshatra.pada) {
+  
+    // 1. Cập nhật điều kiện find để bắt chính xác key "planet" từ API
+    const moon = chartData.planets.find(p => 
+      p.id === 'mo' || p.name === 'Moon' || p.name === 'MOON' || p.planet === 'Moon' || p.planet === 'MOON'
+    );
+  
+    if (!moon) {
+      throw new Error('Moon not found in chart data');
+    }
+  
+    let rashi = moon.sign;
+  
+    // 2. VÁ LỖI: Ưu tiên xử lý object sign có chứa thuộc tính name
+    if (moon.sign && typeof moon.sign === 'object' && moon.sign.name) {
+      rashi = RASHI_NAME_MAP[moon.sign.name];
+    } else if (typeof moon.sign === 'string') {
+      rashi = RASHI_NAME_MAP[moon.sign] || parseInt(moon.sign);
+    }
+  
+    // Chỉ fallback về tính toán bằng longitude nếu cả 2 bước trên đều thất bại
+    if (typeof rashi !== 'number' || rashi < 1 || rashi > 12) {
+      const longitude = moon.longitude || 0;
+      rashi = Math.floor(longitude / 30) + 1;
+      if (rashi > 12) rashi = rashi - 12;
+    }
+  
+    let nakshatra = 1;
+    let nakshatraName = '';
+  
+    if (moon.nakshatra && typeof moon.nakshatra === 'object') {
+      nakshatraName = moon.nakshatra.name || '';
+      if (NAKSHATRA_NAME_MAP[nakshatraName]) {
+        nakshatra = NAKSHATRA_NAME_MAP[nakshatraName];
+      }
+    } else if (moon.nakshatra && typeof moon.nakshatra === 'string') {
+      nakshatraName = moon.nakshatra;
+      nakshatra = NAKSHATRA_NAME_MAP[nakshatraName] || 1;
+    }
+  
+    if (nakshatra === 1 && nakshatraName === '' && chartData.moonNakshatra) {
+      nakshatraName = chartData.moonNakshatra;
+      nakshatra = NAKSHATRA_NAME_MAP[nakshatraName] || 1;
+    }
+  
+    let pada = 1;
+    if (moon.nakshatra && typeof moon.nakshatra === 'object' && moon.nakshatra.pada) {
       pada = moon.nakshatra.pada;
     } else {
-      const degreeInNakshatra = (moon.longitude % 30) % 13.333;
+      const longitude = moon.longitude || 0;
+      const degreeInNakshatra = (longitude % 30) % 13.333;
       pada = Math.floor(degreeInNakshatra / 3.333) + 1;
       if (pada > 4) pada = 4;
     }
-  }
-
-  return {
-    rashi: Number(rashi),
-    nakshatra: Number(nakshatra),
-    pada: Number(pada),
-    rashiName: RASHIS[rashi]?.name || 'Unknown',
-    nakshatraName: NAKSHATRAS[nakshatra]?.name || 'Unknown',
-    degree: moon.longitude % 30
+  
+    return {
+      rashi: Number(rashi),
+      nakshatra: Number(nakshatra),
+      pada: Number(pada),
+      rashiName: RASHIS[rashi]?.name || 'Unknown',
+      nakshatraName: NAKSHATRAS[nakshatra]?.name || 'Unknown',
+      degree: (moon.longitude || 0) % 30
+    };
   };
-};
 
 export const extractMoonFromApiResponse = (apiData) => {
   if (!apiData || !apiData.planets) {
