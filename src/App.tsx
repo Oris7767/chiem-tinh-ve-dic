@@ -16,6 +16,7 @@ import BlogPostPage from "./pages/BlogPostPage";
 import BlogLoginPage from "./pages/BlogLoginPage";
 import SubscribersAdminPage from "./pages/SubscribersAdminPage";
 import VedicChartPage from "./pages/VedicChartPage";
+import MatchmakingPage from "./pages/MatchmakingPage";
 import PanchangPage from "./pages/Panchang";
 import TradingViewPage from "./pages/TradingViewPage";
 import LucNhamPage from "./pages/LucNhamPage";
@@ -54,6 +55,7 @@ const App = () => (
                   <Route path="/numerology" element={<NumerologyPage />} />
                   <Route path="/numerology/admin" element={<NumerologyAdminPage />} />
                   <Route path="/vedic-chart" element={<VedicChartPage />} />
+                  <Route path="/matchmaking" element={<MatchmakingPage />} />
                   <Route path="/panchang" element={<PanchangPage />} />
                   <Route path="/luc-nham" element={<LucNhamPage />} />
                   <Route path="/trading" element={<TradingViewPage />} />
