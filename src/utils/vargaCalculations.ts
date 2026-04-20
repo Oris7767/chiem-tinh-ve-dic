@@ -329,15 +329,16 @@ export const calculateAllVargas = (
   
   // Tính D1
   const d1AscendantSign = getBaseSignAndDegree(ascendantLongitude).sign;
+  // IMPORTANT: Parse float to ensure precision is preserved
   const d1Planets: PlanetVarga[] = planets.map(planet => ({
     id: planet.id,
     name: planet.name,
-    longitude: planet.longitude,
+    longitude: parseFloat(String(planet.longitude)) || 0,
     house: planet.house,
     sign: planet.sign,
     retrograde: planet.retrograde || false,
     vargaSign: planet.sign,
-    vargaDegree: planet.longitude % 30,
+    vargaDegree: parseFloat(String(planet.longitude)) % 30,
   }));
 
   const toVargaChart = (
@@ -349,14 +350,16 @@ export const calculateAllVargas = (
     const newAscendantSign = calculator(ascendantLong);
 
     // 2. Tính cung mới và Nhà mới cho các hành tinh
+    // IMPORTANT: Giữ nguyên longitude gốc để preserve precision
     const vargaPlanets: PlanetVarga[] = planets.map(planet => {
-      const vargaSign = calculator(planet.longitude);
-      const { degreeInSign } = getBaseSignAndDegree(planet.longitude);
+      const originalLongitude = parseFloat(String(planet.longitude)) || 0;
+      const vargaSign = calculator(originalLongitude);
+      const { degreeInSign } = getBaseSignAndDegree(originalLongitude);
       
       return {
         id: planet.id,
         name: planet.name,
-        longitude: (vargaSign * 30) + 15, // Đặt vào giữa cung mới để UI vẽ
+        longitude: originalLongitude, // Giữ nguyên longitude gốc
         sign: vargaSign,
         house: calculateHouse(vargaSign, newAscendantSign), // GHI ĐÈ SỐ NHÀ MỚI
         retrograde: planet.retrograde || false,

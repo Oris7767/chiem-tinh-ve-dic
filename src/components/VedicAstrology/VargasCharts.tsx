@@ -273,16 +273,20 @@ const VargasCharts: React.FC<VargasChartsProps> = ({ chartData }) => {
 
   // Tính toán tất cả Vargas từ D1 data
   const vargaCharts = useMemo(() => {
+    // Safeguard: Ensure longitude is a proper float to preserve precision
     const planetsInput: PlanetInput[] = chartData.planets.map(planet => ({
       id: planet.id,
       name: planet.name,
-      longitude: planet.longitude,
+      longitude: parseFloat(String(planet.longitude)) || 0,
       house: planet.house,
       sign: planet.sign,
       retrograde: planet.retrograde,
     }));
 
-    return calculateAllVargas(planetsInput, ascendantLongitude);
+    // Safeguard: Ensure ascendant is a proper float
+    const ascLong = parseFloat(String(ascendantLongitude)) || 0;
+
+    return calculateAllVargas(planetsInput, ascLong);
   }, [chartData, ascendantLongitude]);
 
   const handleVargaClick = (varga: typeof VARGAS_DATA[0]) => {
@@ -297,7 +301,7 @@ const VargasCharts: React.FC<VargasChartsProps> = ({ chartData }) => {
   return (
     <div className="space-y-4">
       <div className="text-center mb-6">
-        <h2 className="text-xl font-bold text-votive-red">16 Bản đồ sao phụ (Vargas)</h2>
+        <h2 className="text-xl font-bold text-votive-red">17 Bản đồ sao phụ (Vargas)</h2>
         <p className="text-sm text-muted-foreground mt-1">
           Các divisional charts theo hệ thống Parashara. Click vào lá số để phóng to.
         </p>
