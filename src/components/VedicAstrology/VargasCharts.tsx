@@ -29,7 +29,17 @@ interface VedicChartData {
 
 interface VargasChartsProps {
   chartData: VedicChartData;
+  showModernPlanets?: boolean;
+  onToggleModernPlanets?: (show: boolean) => void;
 }
+
+// Hàm lọc hành tinh hiện đại
+const MODERN_PLANET_IDS = ['ur', 'ne', 'pl'];
+
+const filterModernPlanets = (planets: Planet[], showModern: boolean): Planet[] => {
+  if (showModern) return planets;
+  return planets.filter(p => !MODERN_PLANET_IDS.includes(p.id));
+};
 
 interface SelectedVarga {
   key: string;
@@ -262,19 +272,45 @@ const VargaModal: React.FC<{
   );
 };
 
-const VargasCharts: React.FC<VargasChartsProps> = ({ chartData }) => {
+const VargasCharts: React.FC<VargasChartsProps> = ({ chartData, showModernPlanets: externalShowModern, onToggleModernPlanets }) => {
   // State quản lý lá số được chọn để phóng to
   const [selectedVarga, setSelectedVarga] = useState<SelectedVarga | null>(null);
+  
+  // State cục bộ cho hành tinh hiện đại
+  const [localShowModern, setLocalShowModern] = useState(externalShowModern ?? false);
+  
+  // Sync với external state khi thay đổi
+  useEffect(() => {
+    if (externalShowModern !== undefined) {
+      setLocalShowModern(externalShowModern);
+    }
+  }, [externalShowModern]);
+  
+  // Sử dụng external state nếu có, fallback về local state
+  const showModern = externalShowModern !== undefined ? externalShowModern : localShowModern;
+  
+  const toggleModernPlanets = () => {
+    if (onToggleModernPlanets) {
+      onToggleModernPlanets(!showModern);
+    } else {
+      setLocalShowModern(!localShowModern);
+    }
+  };
 
   // Trích xuất ascendant longitude từ API response
   const ascendantLongitude = typeof chartData.ascendant === 'number' 
     ? chartData.ascendant 
     : (chartData.ascendant as any).longitude;
 
+  // Lọc hành tinh dựa trên showModernPlanets
+  const filteredPlanets = useMemo(() => {
+    return filterModernPlanets(chartData.planets, showModern);
+  }, [chartData.planets, showModern]);
+
   // Tính toán tất cả Vargas từ D1 data
   const vargaCharts = useMemo(() => {
     // Safeguard: Ensure longitude is a proper float to preserve precision
-    const planetsInput: PlanetInput[] = chartData.planets.map(planet => ({
+    const planetsInput: PlanetInput[] = filteredPlanets.map(planet => ({
       id: planet.id,
       name: planet.name,
       longitude: parseFloat(String(planet.longitude)) || 0,
@@ -287,7 +323,7 @@ const VargasCharts: React.FC<VargasChartsProps> = ({ chartData }) => {
     const ascLong = parseFloat(String(ascendantLongitude)) || 0;
 
     return calculateAllVargas(planetsInput, ascLong);
-  }, [chartData, ascendantLongitude]);
+  }, [filteredPlanets, ascendantLongitude]);
 
   const handleVargaClick = (varga: typeof VARGAS_DATA[0]) => {
     const vargaData = vargaCharts[varga.key];
@@ -300,11 +336,30 @@ const VargasCharts: React.FC<VargasChartsProps> = ({ chartData }) => {
 
   return (
     <div className="space-y-4">
-      <div className="text-center mb-6">
-        <h2 className="text-xl font-bold text-votive-red">17 Bản đồ sao phụ (Vargas)</h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Các divisional charts theo hệ thống Parashara. Click vào lá số để phóng to.
-        </p>
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+        <div className="text-center sm:text-left">
+          <h2 className="text-xl font-bold text-votive-red">16 Bản đồ sao phụ (Vargas)</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Các divisional charts theo hệ thống Parashara. Click vào lá số để phóng to.
+          </p>
+        </div>
+        
+        {/* Modern Planets Toggle */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">Hành tinh hiện đại:</span>
+          <button
+            onClick={toggleModernPlanets}
+            className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+              showModern ? 'bg-primary' : 'bg-input'
+            }`}
+          >
+            <span
+              className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform shadow-sm ${
+                showModern ? 'translate-x-7' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
       </div>
       
       {/* Grid layout: 4 columns desktop, 3 tablet, 2 mobile */}
@@ -326,7 +381,7 @@ const VargasCharts: React.FC<VargasChartsProps> = ({ chartData }) => {
               }}
             >
               <MiniSouthIndianChart
-                chartData={chartData}
+                chartData={{ ...chartData, planets: filteredPlanets }}
                 vargaPlanets={vargaData.planets}
                 vargaAscendantSign={vargaData.ascendantSign}
                 title={`${varga.id} - ${varga.name}`}
