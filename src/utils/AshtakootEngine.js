@@ -9,7 +9,7 @@ const RASHIS = {
   5: { name: 'Leo', nameVN: 'Sư Tử', lord: 'Sun', symbol: '♌', varna: 'Kshatriya', vashya: ['Vanchar'], element: 'Fire' },
   6: { name: 'Virgo', nameVN: 'Xử Nữ', lord: 'Mercury', symbol: '♍', varna: 'Shudra', vashya: ['Dwipad'], element: 'Earth' },
   7: { name: 'Libra', nameVN: 'Thiên Bình', lord: 'Venus', symbol: '♎', varna: 'Vaishya', vashya: ['Dwipad'], element: 'Air' },
-  8: { name: 'Scorpio', nameVN: 'Thiên Yết', lord: 'Mars', symbol: '♏', varna: 'Kshatriya', vashya: ['Keet'], element: 'Water' },
+  8: { name: 'Scorpio', nameVN: 'Bọ Cạp', lord: 'Mars', symbol: '♏', varna: 'Kshatriya', vashya: ['Keet'], element: 'Water' },
   9: { name: 'Sagittarius', nameVN: 'Nhân Mã', lord: 'Jupiter', symbol: '♐', varna: 'Kshatriya', vashya: ['Chatushpad'], element: 'Fire' },
   10: { name: 'Capricorn', nameVN: 'Ma Kết', lord: 'Saturn', symbol: '♑', varna: 'Shudra', vashya: ['Chatushpad'], element: 'Earth' },
   11: { name: 'Aquarius', nameVN: 'Bảo Bình', lord: 'Saturn', symbol: '♒', varna: 'Shudra', vashya: ['Dwipad'], element: 'Air' },
@@ -64,24 +64,6 @@ const BITTER_ENEMIES = [
   ['Sarpa', 'Nakul'], ['Shwan', 'Mriga'], ['Marjara', 'Mushak'], ['Vyaghra', 'Gau']
 ];
 
-/**
- * Check single-direction relationship between two planets
- */
-const getSingleRelation = (planetA, planetB) => {
-  if (planetA === planetB) return 'Same';
-  if (PLANETARY_RELATIONS[planetA]?.friends?.includes(planetB)) return 'Friend';
-  if (PLANETARY_RELATIONS[planetA]?.enemies?.includes(planetB)) return 'Enemy';
-  return 'Neutral';
-};
-
-/**
- * Check the relationship between two planets (legacy function for backward compatibility)
- */
-const checkRelation = (planetA, planetB) => {
-  if (!planetA || !planetB) return 'Neutral';
-  return getSingleRelation(planetA, planetB);
-};
-
 // Varna hierarchy (higher rank = better)
 const VARNA_RANK = {
   Brahmin: 4,
@@ -90,16 +72,24 @@ const VARNA_RANK = {
   Shudra: 1
 };
 
-// Yoni relations will be calculated dynamically using BITTER_ENEMIES
-
-
 // ============== HELPER FUNCTIONS ==============
+
+const getSingleRelation = (planetA, planetB) => {
+  if (planetA === planetB) return 'Same';
+  if (PLANETARY_RELATIONS[planetA]?.friends?.includes(planetB)) return 'Friend';
+  if (PLANETARY_RELATIONS[planetA]?.enemies?.includes(planetB)) return 'Enemy';
+  return 'Neutral';
+};
+
+const checkRelation = (planetA, planetB) => {
+  if (!planetA || !planetB) return 'Neutral';
+  return getSingleRelation(planetA, planetB);
+};
 
 const areLordsFriendly = (lordA, lordB) => {
   if (lordA === lordB) return true;
   const relA = getSingleRelation(lordA, lordB);
   const relB = getSingleRelation(lordB, lordA);
-  // If both see each other as friends, or one is friend + other is neutral, it's considered harmonious
   return (relA === 'Friend' && relB === 'Friend') ||
          (relA === 'Friend' && relB === 'Neutral') ||
          (relA === 'Neutral' && relB === 'Friend');
@@ -132,7 +122,6 @@ const calculateTaraBase = (boyNakshatra, girlNakshatra) => {
 const getYoniScore = (boyYoni, girlYoni) => {
   if (boyYoni === girlYoni) return 4;
 
-  // Check if bitter enemies (check both directions)
   const isBitterEnemy = BITTER_ENEMIES.some(pair =>
     (pair[0] === boyYoni && pair[1] === girlYoni) ||
     (pair[1] === boyYoni && pair[0] === girlYoni)
@@ -140,7 +129,6 @@ const getYoniScore = (boyYoni, girlYoni) => {
 
   if (isBitterEnemy) return 0;
 
-  // Other relations default to 2 points (can be upgraded with full matrix later)
   return 2;
 };
 
@@ -417,11 +405,9 @@ const calculateBhakootKoota = (boyMoon, girlMoon) => {
   const boyLord = RASHIS[boyRashi].lord;
   const girlLord = RASHIS[girlRashi].lord;
 
-  // Calculate distance between 2 signs (one direction is enough to determine axis)
   let distance = (girlRashi - boyRashi + 12) % 12;
-  if (distance === 0) distance = 12; // Same sign = axis 1/1
+  if (distance === 0) distance = 12;
 
-  // Check if it falls into bad axes: 2/12, 5/9, 6/8
   const isBadAxis = [2, 12, 5, 9, 6, 8].includes(distance);
 
   let baseScore = isBadAxis ? 0 : 7;
@@ -435,7 +421,6 @@ const calculateBhakootKoota = (boyMoon, girlMoon) => {
   let pariharActive = false;
   let pariharReason = '';
 
-  // Parihar rule
   if (areLordsFriendly(boyLord, girlLord)) {
     finalScore = 7;
     pariharActive = true;
@@ -516,6 +501,8 @@ const calculateNadiKoota = (boyMoon, girlMoon) => {
   };
 };
 
+import { getFullInterpretation, getOverallInterpretation } from '@/data/AshtaKootInterpretations';
+
 // ============== MAIN FUNCTION ==============
 
 export const calculateAshtakoota = (boyMoon, girlMoon) => {
@@ -589,6 +576,17 @@ export const calculateAshtakoota = (boyMoon, girlMoon) => {
     compatibilityLevel,
     compatibilityDescription,
     kootaBreakdown: kootaResults,
+    kootaWithInterpretation: getFullInterpretation(kootaResults),
+    overallInterpretation: getOverallInterpretation({
+      percentage,
+      totalPoints,
+      maxPoints,
+      compatibilityLevel,
+      hasDoshas: doshas.length > 0,
+      hasParihar: parihars.length > 0,
+      totalDoshas: doshas.length,
+      totalParihars: parihars.length
+    }),
     doshas,
     hasDoshas: doshas.length > 0,
     totalDoshas: doshas.length,
@@ -696,117 +694,107 @@ const RASHI_NAME_MAP = {
 };
 
 export const extractMoonPosition = (chartData) => {
-    if (!chartData || !chartData.planets) {
-      throw new Error('Invalid chart data: planets array is required');
-    }
+  if (!chartData || !chartData.planets) {
+    throw new Error('Invalid chart data: planets array is required');
+  }
   
-    // 1. Cập nhật điều kiện find để bắt chính xác key "planet" từ API
-    const moon = chartData.planets.find(p => 
-      p.id === 'mo' || p.name === 'Moon' || p.name === 'MOON' || p.planet === 'Moon' || p.planet === 'MOON'
-    );
-  
-    if (!moon) {
-      throw new Error('Moon not found in chart data');
-    }
-  
-    let rashi = moon.sign;
+  const moon = chartData.planets.find(p => 
+    p.id === 'mo' || p.name === 'Moon' || p.name === 'MOON' || p.planet === 'Moon' || p.planet === 'MOON'
+  );
 
-    // Handle different sign formats from various sources
-    if (moon.sign && typeof moon.sign === 'object' && moon.sign.name) {
-      // Object with name property like {name: 'Pisces'}
-      rashi = RASHI_NAME_MAP[moon.sign.name];
-    } else if (typeof moon.sign === 'string') {
-      // String like 'Pisces' or '12'
-      rashi = RASHI_NAME_MAP[moon.sign] || parseInt(moon.sign);
-    } else if (typeof moon.sign === 'number') {
-      // Numeric - API trả về 0-indexed (0=Aries, 11=Pisces)
-      // Nhưng AshtakootEngine dùng 1-indexed (1=Aries, 12=Pisces)
-      if (moon.sign >= 0 && moon.sign <= 11) {
-        rashi = moon.sign + 1;
-      }
-    }
-  
-    // Chỉ fallback về tính toán bằng longitude nếu cả 2 bước trên đều thất bại
-    if (typeof rashi !== 'number' || rashi < 1 || rashi > 12) {
-      const longitude = moon.longitude || 0;
-      rashi = Math.floor(longitude / 30) + 1;
-      if (rashi > 12) rashi = rashi - 12;
-    }
-  
-    let nakshatra = 1;
-    let nakshatraName = '';
-  
-    if (moon.nakshatra && typeof moon.nakshatra === 'object') {
-      nakshatraName = moon.nakshatra.name || '';
-      if (NAKSHATRA_NAME_MAP[nakshatraName]) {
-        nakshatra = NAKSHATRA_NAME_MAP[nakshatraName];
-      }
-    } else if (moon.nakshatra && typeof moon.nakshatra === 'string') {
-      nakshatraName = moon.nakshatra;
-      nakshatra = NAKSHATRA_NAME_MAP[nakshatraName] || 1;
-    }
-  
-    if (nakshatra === 1 && nakshatraName === '' && chartData.moonNakshatra) {
-      nakshatraName = chartData.moonNakshatra;
-      nakshatra = NAKSHATRA_NAME_MAP[nakshatraName] || 1;
-    }
-  
-    let pada = 1;
-    if (moon.nakshatra && typeof moon.nakshatra === 'object' && moon.nakshatra.pada) {
-      pada = moon.nakshatra.pada;
-    } else {
-      const longitude = moon.longitude || 0;
-      const degreeInNakshatra = (longitude % 30) % 13.333;
-      pada = Math.floor(degreeInNakshatra / 3.333) + 1;
-      if (pada > 4) pada = 4;
-    }
-  
-    return {
-      rashi: Number(rashi),
-      nakshatra: Number(nakshatra),
-      pada: Number(pada),
-      rashiName: RASHIS[rashi]?.name || 'Unknown',
-      nakshatraName: NAKSHATRAS[nakshatra]?.name || 'Unknown',
-      degree: (moon.longitude || 0) % 30
-    };
-  };
+  if (!moon) {
+    throw new Error('Moon not found in chart data');
+  }
 
-  export const extractMoonFromApiResponse = (apiData) => {
-    if (!apiData || !apiData.planets) {
-      throw new Error('Invalid API response: planets array is required');
+  let rashi = moon.sign;
+
+  if (moon.sign && typeof moon.sign === 'object' && moon.sign.name) {
+    rashi = RASHI_NAME_MAP[moon.sign.name];
+  } else if (typeof moon.sign === 'string') {
+    rashi = RASHI_NAME_MAP[moon.sign] || parseInt(moon.sign);
+  } else if (typeof moon.sign === 'number') {
+    if (moon.sign >= 0 && moon.sign <= 11) {
+      rashi = moon.sign + 1;
     }
-  
-    // Quét rộng các key để không lọt
-    const moonPlanet = apiData.planets.find(p => 
-      p.planet === 'Moon' || p.planet === 'MOON' || p.planet === 'moon' || p.name === 'Moon'
-    );
-  
-    if (!moonPlanet) {
-      throw new Error('Moon not found in API response');
+  }
+
+  if (typeof rashi !== 'number' || rashi < 1 || rashi > 12) {
+    const longitude = moon.longitude || 0;
+    rashi = Math.floor(longitude / 30) + 1;
+    if (rashi > 12) rashi = rashi - 12;
+  }
+
+  let nakshatra = 1;
+  let nakshatraName = '';
+
+  if (moon.nakshatra && typeof moon.nakshatra === 'object') {
+    nakshatraName = moon.nakshatra.name || '';
+    if (NAKSHATRA_NAME_MAP[nakshatraName]) {
+      nakshatra = NAKSHATRA_NAME_MAP[nakshatraName];
     }
-  
-    // Ép kiểu chuẩn xác cho Rashi
-    let rashi = 1;
-    if (moonPlanet.sign && typeof moonPlanet.sign === 'object' && moonPlanet.sign.name) {
-      rashi = RASHI_NAME_MAP[moonPlanet.sign.name] || 1;
-    } else if (typeof moonPlanet.sign === 'string') {
-      rashi = RASHI_NAME_MAP[moonPlanet.sign] || parseInt(moonPlanet.sign) || 1;
-    }
-  
-    // Ép kiểu chuẩn xác cho Nakshatra
-    let nakshatra = 1;
-    if (moonPlanet.nakshatra && typeof moonPlanet.nakshatra === 'object' && moonPlanet.nakshatra.name) {
-      nakshatra = NAKSHATRA_NAME_MAP[moonPlanet.nakshatra.name] || 1;
-    }
-  
-    let pada = moonPlanet.nakshatra?.pada || 1;
-  
-    return {
-      rashi: Number(rashi),
-      nakshatra: Number(nakshatra),
-      pada: Number(pada),
-      rashiName: RASHIS[rashi]?.name || 'Unknown',
-      nakshatraName: NAKSHATRAS[nakshatra]?.name || 'Unknown',
-      degree: (moonPlanet.longitude || 0) % 30
-    };
+  } else if (moon.nakshatra && typeof moon.nakshatra === 'string') {
+    nakshatraName = moon.nakshatra;
+    nakshatra = NAKSHATRA_NAME_MAP[nakshatraName] || 1;
+  }
+
+  if (nakshatra === 1 && nakshatraName === '' && chartData.moonNakshatra) {
+    nakshatraName = chartData.moonNakshatra;
+    nakshatra = NAKSHATRA_NAME_MAP[nakshatraName] || 1;
+  }
+
+  let pada = 1;
+  if (moon.nakshatra && typeof moon.nakshatra === 'object' && moon.nakshatra.pada) {
+    pada = moon.nakshatra.pada;
+  } else {
+    const longitude = moon.longitude || 0;
+    const degreeInNakshatra = (longitude % 30) % 13.333;
+    pada = Math.floor(degreeInNakshatra / 3.333) + 1;
+    if (pada > 4) pada = 4;
+  }
+
+  return {
+    rashi: Number(rashi),
+    nakshatra: Number(nakshatra),
+    pada: Number(pada),
+    rashiName: RASHIS[rashi]?.name || 'Unknown',
+    nakshatraName: NAKSHATRAS[nakshatra]?.name || 'Unknown',
+    degree: (moon.longitude || 0) % 30
   };
+};
+
+export const extractMoonFromApiResponse = (apiData) => {
+  if (!apiData || !apiData.planets) {
+    throw new Error('Invalid API response: planets array is required');
+  }
+  
+  const moonPlanet = apiData.planets.find(p => 
+    p.planet === 'Moon' || p.planet === 'MOON' || p.planet === 'moon' || p.name === 'Moon'
+  );
+
+  if (!moonPlanet) {
+    throw new Error('Moon not found in API response');
+  }
+
+  let rashi = 1;
+  if (moonPlanet.sign && typeof moonPlanet.sign === 'object' && moonPlanet.sign.name) {
+    rashi = RASHI_NAME_MAP[moonPlanet.sign.name] || 1;
+  } else if (typeof moonPlanet.sign === 'string') {
+    rashi = RASHI_NAME_MAP[moonPlanet.sign] || parseInt(moonPlanet.sign) || 1;
+  }
+
+  let nakshatra = 1;
+  if (moonPlanet.nakshatra && typeof moonPlanet.nakshatra === 'object' && moonPlanet.nakshatra.name) {
+    nakshatra = NAKSHATRA_NAME_MAP[moonPlanet.nakshatra.name] || 1;
+  }
+
+  let pada = moonPlanet.nakshatra?.pada || 1;
+
+  return {
+    rashi: Number(rashi),
+    nakshatra: Number(nakshatra),
+    pada: Number(pada),
+    rashiName: RASHIS[rashi]?.name || 'Unknown',
+    nakshatraName: NAKSHATRAS[nakshatra]?.name || 'Unknown',
+    degree: (moonPlanet.longitude || 0) % 30
+  };
+};

@@ -2,6 +2,32 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+
+interface KootaInterpretation {
+  nameVN: string;
+  subtitle: string;
+  meaning: string;
+  maxScore?: {
+    score: string;
+    threshold: string;
+    text: string;
+  };
+  zeroScore?: {
+    threshold: string;
+    text: string;
+  };
+  lowScore?: {
+    threshold: string;
+    text: string;
+  };
+  parihar: string;
+  interpretationType: string;
+  interpretationText: string | null;
+  threshold: string;
+  points: number;
+  maxPoints: number;
+}
 
 interface KootaResult {
   name: string;
@@ -19,6 +45,18 @@ interface KootaResult {
     reason: string;
     overridden: boolean;
   } | null;
+  interpretation?: KootaInterpretation;
+}
+
+interface OverallInterpretation {
+  type: string;
+  message: string;
+  score: string;
+  percentage: number;
+  hasDoshas: boolean;
+  hasParihar: boolean;
+  totalDoshas: number;
+  totalParihars: number;
 }
 
 interface Dosha {
@@ -50,11 +88,14 @@ interface MatchmakingResult {
   compatibilityLevel: string;
   compatibilityDescription: string;
   kootaBreakdown: KootaResult[];
+  kootaWithInterpretation?: KootaResult[];
+  overallInterpretation?: OverallInterpretation;
   doshas: Dosha[];
   hasDoshas: boolean;
   totalDoshas: number;
   parihars: Parihar[];
   hasParihar: boolean;
+  totalParihars: number;
   recommendations: Recommendation[];
   boyDetails: {
     rashi: { name: string; nameVN: string; lord: string };
@@ -109,6 +150,9 @@ const COMPAT_LEVEL_COLORS: Record<string, { bg: string; text: string; border: st
 
 const MatchmakingChart = ({ result, maleName, femaleName }: MatchmakingChartProps) => {
   const levelColors = COMPAT_LEVEL_COLORS[result.compatibilityLevel] || COMPAT_LEVEL_COLORS.Moderate;
+  
+  // Sử dụng kootaWithInterpretation nếu có, ngược lại fallback sang kootaBreakdown
+  const kootaData = result.kootaWithInterpretation || result.kootaBreakdown;
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -157,6 +201,15 @@ const MatchmakingChart = ({ result, maleName, femaleName }: MatchmakingChartProp
               </div>
             </div>
           </div>
+
+          {/* Overall Interpretation Message */}
+          {result.overallInterpretation && (
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-4 rounded-lg border border-amber-200">
+              <p className="text-sm text-amber-800 leading-relaxed text-center">
+                {result.overallInterpretation.message}
+              </p>
+            </div>
+          )}
 
           {/* Score breakdown */}
           <div className="flex justify-center gap-4 text-sm">
@@ -282,77 +335,120 @@ const MatchmakingChart = ({ result, maleName, femaleName }: MatchmakingChartProp
         </Card>
       </div>
 
-      {/* Koota Breakdown */}
+      {/* Koota Breakdown with Interpretations */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Chi Tiết 8 Koota</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
-          {result.kootaBreakdown.map((koota, index) => {
-            const isFullScore = koota.points === koota.maxPoints;
-            const isZeroScore = koota.points === 0;
-            const hasDosha = koota.dosha !== null;
-            const hasParihar = koota.parihar?.active === true;
-            const wasOverridden = koota.parihar?.overridden === true;
-            const kootaName = KOOTA_NAMES[koota.name] || koota.name;
+        <CardContent>
+          <Accordion type="single" collapsible className="w-full">
+            {kootaData.map((koota, index) => {
+              const isFullScore = koota.points === koota.maxPoints;
+              const isZeroScore = koota.points === 0;
+              const hasDosha = koota.dosha !== null;
+              const hasParihar = koota.parihar?.active === true;
+              const wasOverridden = koota.parihar?.overridden === true;
+              const kootaName = KOOTA_NAMES[koota.name] || koota.name;
+              const interpretation = koota.interpretation;
 
-            return (
-              <div key={index} className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-sm">{kootaName}</span>
-                    {hasDosha && (
-                      <Badge variant="destructive" className="text-xs">Dosha</Badge>
-                    )}
-                    {hasParihar && wasOverridden && (
-                      <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                        Parihar ✓
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {wasOverridden && (
-                      <span className="text-xs text-muted-foreground line-through">
-                        {koota.baseScore}đ
-                      </span>
-                    )}
-                    <span className={`text-sm font-bold ${
-                      isFullScore ? 'text-green-600' : isZeroScore ? 'text-red-600' : 'text-amber-600'
-                    }`}>
-                      {koota.points}/{koota.maxPoints}đ
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Progress 
-                    value={(koota.points / koota.maxPoints) * 100} 
-                    className={`h-2 flex-1 ${
-                      hasDosha ? '[&>div]:bg-red-500' : isFullScore ? '[&>div]:bg-green-500' : '[&>div]:bg-amber-500'
-                    }`}
-                  />
-                  {hasDosha && !hasParihar && (
-                    <span className="text-xs text-red-600 font-medium whitespace-nowrap">
-                      {koota.dosha?.type}
-                    </span>
-                  )}
-                </div>
-                
-                <p className="text-xs text-muted-foreground">{koota.description}</p>
-                
-                {hasParihar && wasOverridden && koota.parihar.reason && (
-                  <div className="flex items-start gap-1 text-xs text-green-600 bg-green-50 p-2 rounded">
-                    <span className="font-medium shrink-0">Hóa giải:</span>
-                    <span>{koota.parihar.reason}</span>
-                  </div>
-                )}
-                
-                {index < result.kootaBreakdown.length - 1 && (
-                  <Separator className="mt-3" />
-                )}
-              </div>
-            );
-          })}
+              return (
+                <AccordionItem key={index} value={`koota-${index}`} className="border-b last:border-b-0">
+                  <AccordionTrigger className="hover:no-underline py-4">
+                    <div className="flex items-center justify-between w-full pr-4">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-sm">{kootaName}</span>
+                        {hasDosha && !hasParihar && (
+                          <Badge variant="destructive" className="text-xs">Dosha</Badge>
+                        )}
+                        {hasParihar && wasOverridden && (
+                          <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                            Parihar ✓
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {wasOverridden && (
+                          <span className="text-xs text-muted-foreground line-through">
+                            {koota.baseScore}đ
+                          </span>
+                        )}
+                        <span className={`text-sm font-bold ${
+                          isFullScore ? 'text-green-600' : isZeroScore ? 'text-red-600' : 'text-amber-600'
+                        }`}>
+                          {koota.points}/{koota.maxPoints}đ
+                        </span>
+                      </div>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-4 pb-4 px-1">
+                      {/* Progress bar */}
+                      <div className="flex items-center gap-2">
+                        <Progress 
+                          value={(koota.points / koota.maxPoints) * 100} 
+                          className={`h-2 flex-1 ${
+                            hasDosha && !hasParihar ? '[&>div]:bg-red-500' : isFullScore ? '[&>div]:bg-green-500' : '[&>div]:bg-amber-500'
+                          }`}
+                        />
+                        {hasDosha && !hasParihar && (
+                          <span className="text-xs text-red-600 font-medium whitespace-nowrap">
+                            {koota.dosha?.type}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Interpretation Header */}
+                      {interpretation && (
+                        <div className="bg-gradient-to-r from-slate-50 to-slate-100 p-4 rounded-lg border border-slate-200">
+                          <h4 className="font-semibold text-primary mb-1">
+                            {interpretation.nameVN}
+                          </h4>
+                          <p className="text-sm text-muted-foreground mb-2">
+                            {interpretation.subtitle}
+                          </p>
+                          <p className="text-sm text-slate-600 leading-relaxed">
+                            <span className="font-medium text-slate-700">Ý nghĩa: </span>
+                            {interpretation.meaning}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Detailed Description */}
+                      <p className="text-xs text-muted-foreground">{koota.description}</p>
+                      
+                      {/* Parihar Reason */}
+                      {hasParihar && wasOverridden && koota.parihar.reason && (
+                        <div className="flex items-start gap-2 text-xs text-green-700 bg-green-50 p-3 rounded-lg border border-green-200">
+                          <span className="font-semibold shrink-0">Hóa giải:</span>
+                          <span>{koota.parihar.reason}</span>
+                        </div>
+                      )}
+
+                      {/* Full Interpretation Text */}
+                      {interpretation?.interpretationText && (
+                        <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+                          <h5 className="font-semibold text-amber-800 text-sm mb-2 flex items-center gap-2">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Diễn giải chi tiết
+                            {interpretation.interpretationType === 'parihar' && (
+                              <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300 ml-2">
+                                Đã được hóa giải
+                              </Badge>
+                            )}
+                          </h5>
+                          <p className="text-sm text-amber-900 leading-relaxed">
+                            {interpretation.interpretationText}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              );
+            })}
+          </Accordion>
         </CardContent>
       </Card>
 
