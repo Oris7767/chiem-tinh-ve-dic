@@ -160,20 +160,6 @@ const AntarDashaTable: React.FC<AntarDashaTableProps> = ({ antarDashas, currentP
                             <TableCell className="py-1 text-xs">{formatDate(subDasha.endDate)}</TableCell>
                           </TableRow>
                         ))}
-                        {/* Sookshma rows */}
-                        {isPratyExpanded && hasSookshmas && pratyantar.sookshmas?.map((sookshma, sIndex) => (
-                          <TableRow 
-                            key={`sookshma-${pratyKey}-${sIndex}`}
-                            className="bg-orange-50 dark:bg-orange-950/20"
-                          >
-                            <TableCell className="py-1"></TableCell>
-                            <TableCell className="py-1 pl-12 text-xs">
-                              {getViPlanetName(sookshma.planet)}
-                            </TableCell>
-                            <TableCell className="py-1 text-xs">{formatDate(sookshma.startDate)}</TableCell>
-                            <TableCell className="py-1 text-xs">{formatDate(sookshma.endDate)}</TableCell>
-                          </TableRow>
-                        ))}
                       </React.Fragment>
                     );
                   })}
