@@ -770,7 +770,7 @@ export const extractMoonFromApiResponse = (apiData) => {
     throw new Error('Moon not found in API response');
   }
 
-  let rashi = RASHI_NAME_MAP[moonPlanet.sign?.name] || moonPlanet.sign;
+  let rashi = moonPlanet.sign?.name ? RASHI_NAME_MAP[moonPlanet.sign.name] : moonPlanet.sign;
   if (typeof rashi !== 'number') rashi = 1;
 
   let nakshatra = NAKSHATRA_NAME_MAP[moonPlanet.nakshatra?.name] || 1;
