@@ -276,24 +276,19 @@ const VargasCharts: React.FC<VargasChartsProps> = ({ chartData, showModernPlanet
   // State quản lý lá số được chọn để phóng to
   const [selectedVarga, setSelectedVarga] = useState<SelectedVarga | null>(null);
   
-  // State cục bộ cho hành tinh hiện đại
+  // State cục bộ cho hành tinh hiện đại (khởi tạo từ external hoặc mặc định false)
   const [localShowModern, setLocalShowModern] = useState(externalShowModern ?? false);
   
-  // Sync với external state khi thay đổi
-  useEffect(() => {
-    if (externalShowModern !== undefined) {
-      setLocalShowModern(externalShowModern);
-    }
-  }, [externalShowModern]);
-  
-  // Sử dụng external state nếu có, fallback về local state
+  // Sử dụng external state nếu có prop truyền vào, ngược lại dùng local state
   const showModern = externalShowModern !== undefined ? externalShowModern : localShowModern;
   
   const toggleModernPlanets = () => {
     if (onToggleModernPlanets) {
-      onToggleModernPlanets(!showModern);
+      // Nếu có callback từ parent, gọi callback
+      onToggleModernPlanets(!externalShowModern);
     } else {
-      setLocalShowModern(!localShowModern);
+      // Ngược lại, toggle local state
+      setLocalShowModern(prev => !prev);
     }
   };
 
