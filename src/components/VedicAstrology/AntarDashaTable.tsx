@@ -164,18 +164,33 @@ const AntarDashaTable: React.FC<AntarDashaTableProps> = ({ antarDashas, currentP
                         </TableRow>
                         {/* Sookshma rows */}
                         {isPratyExpanded && hasSookshmas && pratyantar.sookshmas?.map((sookshma, sIndex) => (
-                          <TableRow 
-                            key={`sookshma-${pratyKey}-${sIndex}`}
-                            className="bg-orange-50 dark:bg-orange-950/20"
-                          >
-                            <TableCell className="py-1"></TableCell>
-                            <TableCell className="py-1 pl-12 text-xs">
-                              {getViPlanetName(sookshma.planet)}
-                            </TableCell>
-                            <TableCell className="py-1 text-xs">{formatDate(sookshma.startDate)}</TableCell>
-                            <TableCell className="py-1 text-xs">{formatDate(sookshma.endDate)}</TableCell>
-                          </TableRow>
+                          <React.Fragment key={`sookshma-${pratyKey}-${sIndex}`}>
+                            <TableRow className="bg-orange-50 dark:bg-orange-950/20">
+                              <TableCell className="py-1 pl-8"></TableCell>
+                              <TableCell className="py-1 pl-8 text-xs font-medium text-orange-700">
+                                {getViPlanetName(sookshma.planet)}
+                              </TableCell>
+                              <TableCell className="py-1 text-xs">{formatDate(sookshma.startDate)}</TableCell>
+                              <TableCell className="py-1 text-xs">{formatDate(sookshma.endDate)}</TableCell>
+                            </TableRow>
+                          </React.Fragment>
                         ))}
+                        {/* Hiển thị currentSookshma nếu có */}
+                        {pratyantar.currentSookshma && (
+                          <TableRow className="bg-red-50 dark:bg-red-950/20 border-t border-orange-200">
+                            <TableCell className="py-1 pl-8 text-center" colSpan={4}>
+                              <div className="text-xs">
+                                <span className="font-medium text-red-600">Sookshma hiện tại: </span>
+                                <span className="text-red-700">
+                                  {getViPlanetName(pratyantar.currentSookshma.planet)}
+                                </span>
+                                <span className="text-gray-500 ml-2">
+                                  ({formatDate(pratyantar.currentSookshma.startDate)} - {formatDate(pratyantar.currentSookshma.endDate)})
+                                </span>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
                       </React.Fragment>
                     );
                   })}
