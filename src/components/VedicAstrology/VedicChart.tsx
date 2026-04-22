@@ -21,7 +21,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Json } from '@/integrations/supabase/types';
 import { DateTime } from 'luxon';
 import { downloadCompleteSVG, downloadSeparateSVGs } from '@/utils/svgExportUtils';
-import { downloadAsPNG, downloadAsPDF } from '@/utils/imageExportUtils';
+import { downloadAsPNG, exportVedicChartPDF, openPrintablePage, printVedicChart } from '@/utils/imageExportUtils';
 import { Progress } from "@/components/ui/progress";
 import PlanetAspectsTable from './PlanetAspectsTable';
 import PlanetDetailsTable from './PlanetDetailsTable';
@@ -512,7 +512,7 @@ const VedicChart = () => {
 
     try {
       console.log('Starting PDF download with chart data:', chartData);
-      await downloadAsPDF(chartData, formData);
+      await exportVedicChartPDF(chartData, formData);
       
       toast({
         title: "Tải xuống thành công",
@@ -522,10 +522,20 @@ const VedicChart = () => {
       console.error('Error downloading PDF:', error);
       toast({
         title: "Lỗi tải xuống",
-        description: error.message || "Không thể tải file PDF. Vui lòng thử lại.",
+        description: error instanceof Error ? error.message : "Không thể tải file PDF. Vui lòng thử lại.",
         variant: "destructive",
       });
     }
+  };
+
+  const handleOpenPrintable = () => {
+    if (!chartData) return;
+    openPrintablePage(chartData, formData);
+  };
+
+  const handlePrint = () => {
+    if (!chartData) return;
+    printVedicChart(chartData, formData);
   };
 
   return (
