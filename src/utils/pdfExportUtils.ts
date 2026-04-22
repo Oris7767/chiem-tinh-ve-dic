@@ -88,8 +88,8 @@ export interface BirthDataFormValues {
 
 // Constants
 const ZODIAC_SIGNS_VI = [
-  "Bạch Dương", "Kim Ngưu", "Song Tử", "Cự Giải", "Sư Tử", "Xử Nữ",
-  "Thiên Bình", "Bọ Cạp", "Nhân Mã", "Ma Kết", "Bảo Bình", "Song Ngư"
+  "Bach Duong", "Kim Nguu", "Song Tu", "Cu Giai", "Su Tu", "Xu Nu",
+  "Thien Binh", "Bo Cap", "Nhan Ma", "Ma Ket", "Bao Binh", "Song Ngu"
 ];
 
 const ZODIAC_SIGNS_SHORT = [
@@ -97,20 +97,22 @@ const ZODIAC_SIGNS_SHORT = [
   "Li", "Sc", "Sg", "Cp", "Aq", "Pi"
 ];
 
-const PLANET_NAMES_VI: Record<string, string> = {
-  'Sun': 'Mặt Trời', 'Moon': 'Mặt Trăng', 'Mars': 'Sao Hỏa',
-  'Mercury': 'Sao Thủy', 'Jupiter': 'Sao Mộc', 'Venus': 'Sao Kim',
-  'Saturn': 'Sao Thổ', 'Rahu': 'Sao Rahu', 'Ketu': 'Sao Ketu',
-  'Uranus': 'Sao Thiên Vương', 'Neptune': 'Sao Hải Vương', 'Pluto': 'Sao Diêm Vương'
+// Planet names - ASCII safe for PDF
+const PLANET_NAMES_ASCII: Record<string, string> = {
+  'Sun': 'Mat Troi', 'Moon': 'Mat Trang', 'Mars': 'Sao Hoa',
+  'Mercury': 'Sao Thuy', 'Jupiter': 'Sao Moc', 'Venus': 'Sao Kim',
+  'Saturn': 'Sao Tho', 'Rahu': 'Sao Rahu', 'Ketu': 'Sao Ketu',
+  'Uranus': 'Sao Thien Vuong', 'Neptune': 'Sao Hai Vuong', 'Pluto': 'Sao Diem Vuong'
 };
 
-const PLANET_ABBR: Record<string, string> = {
-  "Sun": "Su", "Moon": "Mo", "Mercury": "Me", "Venus": "Ve",
-  "Mars": "Ma", "Jupiter": "Ju", "Saturn": "Sa", "Rahu": "Ra", "Ketu": "Ke",
-  "Uranus": "Ur", "Neptune": "Ne", "Pluto": "Pl"
+// Planet short names
+const PLANET_SHORT_NAMES: Record<string, string> = {
+  'Sun': 'Su', 'Moon': 'Mo', 'Mars': 'Ma', 'Mercury': 'Me',
+  'Jupiter': 'Ju', 'Venus': 'Ve', 'Saturn': 'Sa',
+  'Rahu': 'Ra', 'Ketu': 'Ke', 'Uranus': 'Ur', 'Neptune': 'Ne', 'Pluto': 'Pl'
 };
 
-// 16 Vargas tiêu chuẩn
+// 16 Vargas
 const VARGAS_DATA = [
   { id: 'D1', name: 'Rasi', key: 'D1' as const },
   { id: 'D2', name: 'Hora', key: 'D2' as const },
@@ -148,8 +150,12 @@ function formatDegree(longitude: number): string {
   return `${degrees}°${minutes.toString().padStart(2, '0')}'`;
 }
 
-function getPlanetAbbr(name: string): string {
-  return PLANET_ABBR[name] || name.substring(0, 2);
+function getPlanetShort(name: string): string {
+  return PLANET_SHORT_NAMES[name] || name.substring(0, 2);
+}
+
+function getPlanetName(name: string): string {
+  return PLANET_NAMES_ASCII[name] || name;
 }
 
 // Generate SVG for South Indian Chart
@@ -210,12 +216,12 @@ function generateSouthIndianChartSVG(
       svg += `<text x="${x + 5 * scale}" y="${y + 28 * scale}" font-size="${8 * scale}" fill="#B45309">ASC ${formatDegree(chartData.ascendant)}</text>`;
     }
 
-    // Planets
+    // Planets - use short names
     planetsInHouse.slice(0, 3).forEach((planet, idx) => {
       const planetY = y + (42 + idx * 12) * scale;
-      const suffix = planet.retrograde ? 'ᴿ' : '';
+      const suffix = planet.retrograde ? 'R' : '';
       const degreeText = showCoords ? ` ${formatDegree(planet.longitude)}` : '';
-      svg += `<text x="${x + 5 * scale}" y="${planetY}" font-size="${8 * scale}" fill="#000000">${getPlanetAbbr(planet.name)}${suffix}${degreeText}</text>`;
+      svg += `<text x="${x + 5 * scale}" y="${planetY}" font-size="${8 * scale}" fill="#000000">${getPlanetShort(planet.name)}${suffix}${degreeText}</text>`;
     });
   }
 
@@ -272,12 +278,12 @@ function generateMiniChartSVG(
     svg += `<rect x="${x}" y="${y}" width="${cellSize}" height="${cellSize}" fill="none" stroke="#B45309" stroke-width="0.5"/>`;
     svg += `<text x="${x + 3 * scale}" y="${y + 12 * scale}" font-size="${8 * scale}" fill="#B45309">${ZODIAC_SIGNS_SHORT[signIndex]} ${houseNumber}</text>`;
 
-    // Planets with degree
+    // Planets with degree - use short names
     planetsInHouse.slice(0, 3).forEach((planet, idx) => {
       const planetY = y + (24 + idx * 11) * scale;
-      const suffix = planet.retrograde ? 'ᴿ' : '';
+      const suffix = planet.retrograde ? 'R' : '';
       const degreeText = formatDegree(planet.vargaDegree || 0);
-      svg += `<text x="${x + 3 * scale}" y="${planetY}" font-size="${7 * scale}" fill="#000000">${getPlanetAbbr(planet.name)}${suffix} <tspan font-size="5" fill="#666">${degreeText}</tspan></text>`;
+      svg += `<text x="${x + 3 * scale}" y="${planetY}" font-size="${7 * scale}" fill="#000000">${getPlanetShort(planet.name)}${suffix} <tspan font-size="5" fill="#666">${degreeText}</tspan></text>`;
     });
   }
 
@@ -338,29 +344,30 @@ export async function exportVedicChartPDF(
 
   // Header Background
   pdf.setFillColor(180, 83, 9); // votive-red
-  pdf.rect(0, 0, pageWidth, 25, 'F');
+  pdf.rect(0, 0, pageWidth, 22, 'F');
 
   // Title
   pdf.setTextColor(255, 255, 255);
   pdf.setFontSize(14);
   pdf.setFont('helvetica', 'bold');
-  pdf.text('LÁ SỐ CHIÊM TINH VỆ ĐÀ', pageWidth / 2, 10, { align: 'center' });
+  pdf.text('LA SO CHIEM TINH VE DA', pageWidth / 2, 9, { align: 'center' });
 
   // User info
-  pdf.setFontSize(9);
+  pdf.setFontSize(8);
   pdf.setFont('helvetica', 'normal');
   if (userData) {
-    const birthInfo = `${userData.name || 'Không tên'} - ${userData.birthDate || ''} ${userData.birthTime || ''} - ${userData.location || ''}`;
-    pdf.text(birthInfo, pageWidth / 2, 18, { align: 'center' });
+    const birthInfo = `${userData.name || 'Khong ten'} - ${userData.birthDate || ''} ${userData.birthTime || ''} - ${userData.location || ''}`;
+    pdf.text(birthInfo, pageWidth / 2, 16, { align: 'center' });
   }
 
   // Reset text color
   pdf.setTextColor(0, 0, 0);
 
   // Top Section: Grid Layout (2 columns)
-  const topSectionY = 30;
-  const chartWidth = contentWidth * 0.65; // 2/3 width
-  const dasaWidth = contentWidth * 0.35; // 1/3 width
+  const topSectionY = 27;
+  const chartWidth = contentWidth * 0.62; // 2/3 width
+  const dasaWidth = contentWidth * 0.38; // 1/3 width
+  const dasaX = margin + chartWidth + 3;
 
   // === LEFT: South Indian Chart ===
   const chartSvg = generateSouthIndianChartSVG(chartData, 500, 500, true);
@@ -372,177 +379,178 @@ export async function exportVedicChartPDF(
   pdf.addImage(chartImgData, 'PNG', margin, topSectionY, chartWidth, chartHeightMM);
 
   // === RIGHT: Dasa System (Flat List) ===
-  let dasaY = topSectionY + 3;
+  let dasaY = topSectionY + 2;
 
   // Current Dasha Header
   pdf.setFillColor(255, 250, 240);
-  pdf.rect(margin + chartWidth + 3, dasaY, dasaWidth - 3, 25, 'F');
+  pdf.rect(dasaX, dasaY, dasaWidth - 3, 20, 'F');
 
-  pdf.setFontSize(8);
+  pdf.setFontSize(7);
   pdf.setFont('helvetica', 'bold');
   pdf.setTextColor(180, 83, 9);
-  pdf.text('ĐẠI VẬN HIỆN TẠI', margin + chartWidth + 5, dasaY + 5);
+  pdf.text('DAI VAN HIEN TAI', dasaX + 2, dasaY + 4);
 
   if (chartData.dashas?.current) {
-    pdf.setFontSize(7);
+    pdf.setFontSize(6);
     pdf.setFont('helvetica', 'bold');
     pdf.setTextColor(0, 0, 0);
-    pdf.text(PLANET_NAMES_VI[chartData.dashas.current.planet] || chartData.dashas.current.planet, margin + chartWidth + 5, dasaY + 10);
+    pdf.text(getPlanetName(chartData.dashas.current.planet), dasaX + 2, dasaY + 9);
 
     pdf.setFont('helvetica', 'normal');
     pdf.setTextColor(80, 80, 80);
-    pdf.text(`${formatDate(chartData.dashas.current.startDate)} - ${formatDate(chartData.dashas.current.endDate)}`, margin + chartWidth + 5, dasaY + 15);
+    pdf.text(`${formatDate(chartData.dashas.current.startDate)} - ${formatDate(chartData.dashas.current.endDate)}`, dasaX + 2, dasaY + 13);
 
-    pdf.text(`Qua: ${chartData.dashas.current.elapsed?.years || 0}y ${chartData.dashas.current.elapsed?.months || 0}m`, margin + chartWidth + 5, dasaY + 20);
-    pdf.text(`Còn: ${chartData.dashas.current.remaining?.years || 0}y ${chartData.dashas.current.remaining?.months || 0}m`, margin + chartWidth + dasaWidth - 20, dasaY + 20);
+    pdf.text(`Qua: ${chartData.dashas.current.elapsed?.years || 0}y ${chartData.dashas.current.elapsed?.months || 0}m`, dasaX + 2, dasaY + 17);
+    pdf.text(`Con: ${chartData.dashas.current.remaining?.years || 0}y ${chartData.dashas.current.remaining?.months || 0}m`, dasaX + dasaWidth - 25, dasaY + 17);
   }
 
-  dasaY += 28;
+  dasaY += 23;
 
   // === Maha Dasha Table ===
   pdf.setFillColor(180, 83, 9);
-  pdf.rect(margin + chartWidth + 3, dasaY, dasaWidth - 3, 6, 'F');
+  pdf.rect(dasaX, dasaY, dasaWidth - 3, 5, 'F');
   pdf.setTextColor(255, 255, 255);
-  pdf.setFontSize(7);
+  pdf.setFontSize(6);
   pdf.setFont('helvetica', 'bold');
-  pdf.text('VIMSHOTTARI MAHA DASA', margin + chartWidth + 5, dasaY + 4);
-  dasaY += 8;
+  pdf.text('VIMSHOTTARI MAHA DASA', dasaX + 2, dasaY + 3.5);
+  dasaY += 7;
 
   // Table header
   pdf.setTextColor(0, 0, 0);
-  pdf.setFontSize(6);
+  pdf.setFontSize(5);
   pdf.setFont('helvetica', 'bold');
-  pdf.text('STT', margin + chartWidth + 5, dasaY);
-  pdf.text('Hành Tinh', margin + chartWidth + 13, dasaY);
-  pdf.text('Bắt Đầu', margin + chartWidth + 38, dasaY);
-  pdf.text('Kết Thúc', margin + chartWidth + 58, dasaY);
-  dasaY += 5;
+  pdf.text('STT', dasaX + 2, dasaY);
+  pdf.text('Hanh Tinh', dasaX + 10, dasaY);
+  pdf.text('Bat Dau', dasaX + 38, dasaY);
+  dasaY += 4;
 
   // Table rows
   pdf.setFont('helvetica', 'normal');
   if (chartData.dashas?.sequence) {
     chartData.dashas.sequence.forEach((dasha, index) => {
-      if (dasaY > pageHeight - 50) return; // Avoid overflow
-      pdf.setFontSize(6);
-      pdf.text(`${index + 1}`, margin + chartWidth + 5, dasaY);
-      pdf.text(PLANET_NAMES_VI[dasha.planet] || dasha.planet, margin + chartWidth + 13, dasaY);
-      pdf.text(formatDate(dasha.startDate).substring(0, 10), margin + chartWidth + 38, dasaY);
-      pdf.text(formatDate(dasha.endDate).substring(0, 10), margin + chartWidth + 58, dasaY);
-      dasaY += 4;
+      if (dasaY > pageHeight - 50) return;
+      pdf.setFontSize(5);
+      pdf.text(`${index + 1}`, dasaX + 2, dasaY);
+      pdf.text(getPlanetName(dasha.planet), dasaX + 10, dasaY);
+      pdf.text(formatDate(dasha.startDate).substring(0, 10), dasaX + 38, dasaY);
+      dasaY += 3.5;
     });
   }
 
-  dasaY += 4;
+  dasaY += 3;
 
   // === Antar Dasha Table ===
   pdf.setFillColor(180, 83, 9);
-  pdf.rect(margin + chartWidth + 3, dasaY, dasaWidth - 3, 6, 'F');
+  pdf.rect(dasaX, dasaY, dasaWidth - 3, 5, 'F');
   pdf.setTextColor(255, 255, 255);
-  pdf.setFontSize(7);
+  pdf.setFontSize(6);
   pdf.setFont('helvetica', 'bold');
-  pdf.text('ANTAR DASA (TIỂU VẬN)', margin + chartWidth + 5, dasaY + 4);
-  dasaY += 8;
+  pdf.text('ANTAR DASA (TIEU VAN)', dasaX + 2, dasaY + 3.5);
+  dasaY += 7;
 
   // Table header
   pdf.setTextColor(0, 0, 0);
-  pdf.setFontSize(6);
+  pdf.setFontSize(5);
   pdf.setFont('helvetica', 'bold');
-  pdf.text('Hành Tinh', margin + chartWidth + 5, dasaY);
-  pdf.text('Bắt Đầu', margin + chartWidth + 25, dasaY);
-  pdf.text('Kết Thúc', margin + chartWidth + 50, dasaY);
-  dasaY += 5;
+  pdf.text('Hanh Tinh', dasaX + 2, dasaY);
+  pdf.text('Bat Dau', dasaX + 25, dasaY);
+  dasaY += 4;
 
-  // Table rows
+  // Table rows - Flat list of ALL antardashas
   pdf.setFont('helvetica', 'normal');
   const antardashaSequence = chartData.dashas?.current?.antardasha?.sequence || [];
   antardashaSequence.forEach((dasha) => {
     if (dasaY > pageHeight - 50) return;
-    pdf.setFontSize(6);
-    pdf.text(PLANET_NAMES_VI[dasha.planet] || dasha.planet, margin + chartWidth + 5, dasaY);
-    pdf.text(formatDate(dasha.startDate).substring(0, 10), margin + chartWidth + 25, dasaY);
-    pdf.text(formatDate(dasha.endDate).substring(0, 10), margin + chartWidth + 50, dasaY);
-    dasaY += 4;
+    pdf.setFontSize(5);
+    pdf.text(getPlanetName(dasha.planet), dasaX + 2, dasaY);
+    pdf.text(formatDate(dasha.startDate).substring(0, 10), dasaX + 25, dasaY);
+    dasaY += 3.5;
   });
 
-  dasaY += 4;
+  dasaY += 3;
 
   // === Pratyantar Dasha Table ===
   pdf.setFillColor(180, 83, 9);
-  pdf.rect(margin + chartWidth + 3, dasaY, dasaWidth - 3, 6, 'F');
+  pdf.rect(dasaX, dasaY, dasaWidth - 3, 5, 'F');
   pdf.setTextColor(255, 255, 255);
-  pdf.setFontSize(7);
+  pdf.setFontSize(6);
   pdf.setFont('helvetica', 'bold');
-  pdf.text('PRATYANTAR DASA (PHÂN VẬN)', margin + chartWidth + 5, dasaY + 4);
-  dasaY += 8;
+  pdf.text('PRATYANTAR DASA (PHAN VAN)', dasaX + 2, dasaY + 3.5);
+  dasaY += 7;
 
   // Table header
   pdf.setTextColor(0, 0, 0);
-  pdf.setFontSize(6);
+  pdf.setFontSize(5);
   pdf.setFont('helvetica', 'bold');
-  pdf.text('Hành Tinh', margin + chartWidth + 5, dasaY);
-  pdf.text('Bắt Đầu', margin + chartWidth + 25, dasaY);
-  pdf.text('Kết Thúc', margin + chartWidth + 50, dasaY);
-  dasaY += 5;
+  pdf.text('Hanh Tinh', dasaX + 2, dasaY);
+  pdf.text('Bat Dau', dasaX + 25, dasaY);
+  dasaY += 4;
 
-  // Table rows
+  // Table rows - ALL pratyantardashas of current antardasha
   pdf.setFont('helvetica', 'normal');
   const currentAntardasha = antardashaSequence[0]; // Current antardasha
-  if (currentAntardasha?.pratyantardasha) {
+  if (currentAntardasha?.pratyantardasha && currentAntardasha.pratyantardasha.length > 0) {
     currentAntardasha.pratyantardasha.forEach((dasha) => {
       if (dasaY > pageHeight - 50) return;
-      pdf.setFontSize(6);
-      pdf.text(PLANET_NAMES_VI[dasha.planet] || dasha.planet, margin + chartWidth + 5, dasaY);
-      pdf.text(formatDate(dasha.startDate).substring(0, 10), margin + chartWidth + 25, dasaY);
-      pdf.text(formatDate(dasha.endDate).substring(0, 10), margin + chartWidth + 50, dasaY);
-      dasaY += 4;
+      pdf.setFontSize(5);
+      pdf.text(getPlanetName(dasha.planet), dasaX + 2, dasaY);
+      pdf.text(formatDate(dasha.startDate).substring(0, 10), dasaX + 25, dasaY);
+      dasaY += 3.5;
     });
+  } else {
+    // If no pratyantardasha data, show message
+    pdf.setFontSize(5);
+    pdf.setTextColor(128, 128, 128);
+    pdf.text('(Dang tinh toan...)', dasaX + 2, dasaY);
+    dasaY += 3.5;
   }
 
   // === Bottom Section: Planetary Details Table ===
-  const planetTableY = chartHeightMM + topSectionY + 5;
+  // Add gap between Dasa section and Planet Details
+  const planetTableY = topSectionY + chartHeightMM + 6;
 
   // Section Header
   pdf.setFillColor(180, 83, 9);
-  pdf.rect(margin, planetTableY, contentWidth, 7, 'F');
+  pdf.rect(margin, planetTableY, contentWidth, 6, 'F');
   pdf.setTextColor(255, 255, 255);
-  pdf.setFontSize(9);
+  pdf.setFontSize(8);
   pdf.setFont('helvetica', 'bold');
-  pdf.text('CHI TIẾT CÁC HÀNH TINH (GRAHA)', pageWidth / 2, planetTableY + 5, { align: 'center' });
+  pdf.text('CHI TIET CAC HANH TINH (GRAHA)', pageWidth / 2, planetTableY + 4, { align: 'center' });
 
-  let tableY = planetTableY + 10;
+  let tableY = planetTableY + 9;
 
-  // Table header
+  // Table header - 8 columns
   pdf.setTextColor(0, 0, 0);
-  pdf.setFontSize(7);
+  pdf.setFontSize(6);
   pdf.setFont('helvetica', 'bold');
-  const colWidths = [25, 12, 35, 20, 15, 35, 12, 20];
-  const cols = ['Hành Tinh', 'Cung', 'Vị trí', 'Nhà', 'Nakshatra', 'Chủ', 'Pada', 'Chuyển động'];
+  const colWidths = [22, 12, 30, 12, 28, 20, 10, 20];
+  const cols = ['Hanh Tinh', 'Cung', 'Vi tri', 'Nha', 'Nakshatra', 'Chu Nha', 'Pada', 'Chuyen Dong'];
   let colX = margin;
   cols.forEach((header, i) => {
     pdf.text(header, colX, tableY);
     colX += colWidths[i];
   });
 
-  tableY += 5;
+  tableY += 4;
   pdf.setDrawColor(180, 83, 9);
-  pdf.line(margin, tableY - 2, margin + contentWidth, tableY - 2);
+  pdf.line(margin, tableY - 1, margin + contentWidth, tableY - 1);
 
   // Table rows
   pdf.setFont('helvetica', 'normal');
   chartData.planets.forEach((planet) => {
-    if (tableY > pageHeight - 20) return;
+    if (tableY > pageHeight - 15) return;
 
-    pdf.setFontSize(7);
+    pdf.setFontSize(6);
     colX = margin;
 
-    // Planet name
+    // Planet name - use short name
     pdf.setFont('helvetica', 'bold');
-    pdf.text(`${planet.symbol} ${planet.name}`, colX, tableY);
+    pdf.text(`${getPlanetShort(planet.name)} ${planet.name}`, colX, tableY);
     colX += colWidths[0];
 
     // Zodiac sign
     pdf.setFont('helvetica', 'normal');
-    pdf.text(ZODIAC_SIGNS_VI[planet.sign], colX, tableY);
+    pdf.text(ZODIAC_SIGNS_SHORT[planet.sign], colX, tableY);
     colX += colWidths[1];
 
     // Position (degree)
@@ -553,11 +561,11 @@ export async function exportVedicChartPDF(
     pdf.text(`${planet.house}`, colX, tableY);
     colX += colWidths[3];
 
-    // Nakshatra
+    // Nakshatra (separated from Lord)
     pdf.text(planet.nakshatra.name, colX, tableY);
     colX += colWidths[4];
 
-    // Lord
+    // Lord (separate column)
     pdf.text(planet.nakshatra.lord, colX, tableY);
     colX += colWidths[5];
 
@@ -566,11 +574,11 @@ export async function exportVedicChartPDF(
     colX += colWidths[6];
 
     // Motion
-    pdf.setTextColor(planet.retrograde ? 200 : 0, planet.retrograde ? 0 : 150, planet.retrograde ? 0 : 0);
-    pdf.text(planet.retrograde ? 'R (Nghịch)' : 'D (Thuận)', colX, tableY);
+    pdf.setTextColor(planet.retrograde ? 200 : 0, planet.retrograde ? 0 : 100, planet.retrograde ? 0 : 0);
+    pdf.text(planet.retrograde ? 'Nghich' : 'Thuan', colX, tableY);
     pdf.setTextColor(0, 0, 0);
 
-    tableY += 5;
+    tableY += 4.5;
   });
 
   // === PAGE 2: 16 D-Varga Charts ===
@@ -578,14 +586,14 @@ export async function exportVedicChartPDF(
 
   // Header
   pdf.setFillColor(180, 83, 9);
-  pdf.rect(0, 0, pageWidth, 18, 'F');
+  pdf.rect(0, 0, pageWidth, 16, 'F');
   pdf.setTextColor(255, 255, 255);
-  pdf.setFontSize(12);
+  pdf.setFontSize(11);
   pdf.setFont('helvetica', 'bold');
-  pdf.text('HỆ THỐNG 16 D-VARGA (PHÂN CUNG)', pageWidth / 2, 8, { align: 'center' });
-  pdf.setFontSize(8);
+  pdf.text('HE THONG 16 D-VARGA (PHAN CUNG)', pageWidth / 2, 7, { align: 'center' });
+  pdf.setFontSize(7);
   pdf.setFont('helvetica', 'normal');
-  pdf.text('Theo hệ thống Parashara - Divisional Charts', pageWidth / 2, 14, { align: 'center' });
+  pdf.text('Theo he thong Parashara - Divisional Charts', pageWidth / 2, 12, { align: 'center' });
 
   // Calculate Varga charts
   const planetsInput: PlanetInput[] = chartData.planets.map(planet => ({
@@ -603,12 +611,14 @@ export async function exportVedicChartPDF(
   );
 
   // Grid layout: 4 columns x 4 rows
-  const gridStartY = 22;
+  const gridStartY = 20;
   const gridCols = 4;
   const gridRows = 4;
-  const chartSpacingX = contentWidth / gridCols;
-  const chartSpacingY = (pageHeight - gridStartY - 15) / gridRows;
-  const miniChartSize = Math.min(chartSpacingX - 3, chartSpacingY - 8);
+  const availableWidth = contentWidth - 6; // Account for gaps
+  const availableHeight = pageHeight - gridStartY - 12;
+  const cellWidth = availableWidth / gridCols;
+  const cellHeight = availableHeight / gridRows;
+  const miniChartSize = Math.min(cellWidth, cellHeight) - 2;
 
   for (let i = 0; i < VARGAS_DATA.length; i++) {
     const varga = VARGAS_DATA[i];
@@ -617,36 +627,39 @@ export async function exportVedicChartPDF(
     const col = i % gridCols;
     const row = Math.floor(i / gridCols);
 
-    const chartX = margin + col * chartSpacingX + (chartSpacingX - miniChartSize) / 2;
-    const chartY = gridStartY + row * chartSpacingY + 4;
+    // Center the chart in its cell
+    const cellCenterX = margin + 3 + col * cellWidth + cellWidth / 2;
+    const cellCenterY = gridStartY + row * cellHeight + cellHeight / 2;
+    const chartX = cellCenterX - miniChartSize / 2;
+    const chartY = cellCenterY - miniChartSize / 2;
 
     // Chart background
     pdf.setFillColor(255, 255, 255);
     pdf.setDrawColor(180, 83, 9);
-    pdf.roundedRect(chartX, chartY, miniChartSize, miniChartSize - 3, 1, 1, 'FD');
+    pdf.roundedRect(chartX, chartY, miniChartSize, miniChartSize, 1, 1, 'FD');
 
-    // Title
-    pdf.setFontSize(6);
+    // Title - ensure D7 shows as "D7" not "07"
+    pdf.setFontSize(5);
     pdf.setFont('helvetica', 'bold');
     pdf.setTextColor(180, 83, 9);
     const titleText = `${varga.id} - ${varga.name}`;
-    pdf.text(titleText, chartX + miniChartSize / 2, chartY + 3, { align: 'center' });
+    pdf.text(titleText, cellCenterX, chartY + 3, { align: 'center' });
 
     // Generate mini chart SVG
     const miniSvg = generateMiniChartSVG(vargaData, 350, 350);
     const miniCanvas = await svgToCanvas(miniSvg, 350, 350);
     const miniImgData = miniCanvas.toDataURL('image/png', 1.0);
 
-    // Draw mini chart
-    const chartPadding = 4;
-    pdf.addImage(miniImgData, 'PNG', chartX + chartPadding, chartY + 5, miniChartSize - chartPadding * 2, miniChartSize - 12);
+    // Draw mini chart with padding
+    const chartPadding = 3;
+    pdf.addImage(miniImgData, 'PNG', chartX + chartPadding, chartY + 5, miniChartSize - chartPadding * 2, miniChartSize - 8);
   }
 
   // Footer
   pdf.setTextColor(100, 100, 100);
-  pdf.setFontSize(8);
+  pdf.setFontSize(7);
   pdf.setFont('helvetica', 'italic');
-  pdf.text('Chiêm Tinh Vệ Đà - Vedic Astrology', pageWidth / 2, pageHeight - 8, { align: 'center' });
+  pdf.text('ChiEm Tinh Ve Da - Vedic Astrology', pageWidth / 2, pageHeight - 5, { align: 'center' });
 
   // Save the PDF
   const fileName = userData?.name
@@ -673,7 +686,7 @@ export async function exportVedicChartPNG(
   link.click();
 }
 
-// Generate HTML for printing
+// Generate HTML for printing (with full Unicode support)
 export function generatePrintableHTML(
   chartData: VedicChartData,
   userData?: BirthDataFormValues | null
@@ -693,8 +706,8 @@ export function generatePrintableHTML(
     parseFloat(String(chartData.ascendant)) || 0
   );
 
-  // Generate HTML
-  let html = `
+  // Generate HTML with proper Vietnamese
+  const html = `
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -716,9 +729,16 @@ export function generatePrintableHTML(
     .mini-chart { width: 100%; max-width: 180px; }
     .votive-border { border-color: #B45309; }
     .votive-bg { background-color: #B45309; }
+    .votive-text { color: #B45309; }
+    table { border-collapse: collapse; }
+    th, td { border: 1px solid #ddd; padding: 4px 6px; text-align: left; font-size: 10px; }
+    th { background-color: #fef3c7; }
+    .vargas-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .varga-item { border: 1px solid #B45309; border-radius: 4px; padding: 4px; text-align: center; }
+    .varga-title { font-size: 9px; font-weight: bold; color: #B45309; margin-bottom: 2px; }
   </style>
 </head>
-<body class="bg-white text-black p-4">
+<body class="bg-white text-black p-4 font-sans">
   <!-- PAGE 1 -->
   <div class="max-w-[210mm] mx-auto">
     <!-- Header -->
@@ -730,9 +750,9 @@ export function generatePrintableHTML(
     </div>
 
     <!-- Top Section: Grid -->
-    <div class="grid grid-cols-3 gap-2 mt-2">
-      <!-- Chart (2/3) -->
-      <div class="col-span-2">
+    <div class="flex mt-2 gap-2">
+      <!-- Chart (larger) -->
+      <div class="flex-[2]">
         <div class="border-2 border-votive-border rounded-lg p-2 flex justify-center">
           <div class="chart-container">
             ${generateSouthIndianChartSVG(chartData, 500, 500, true)}
@@ -740,16 +760,17 @@ export function generatePrintableHTML(
         </div>
       </div>
 
-      <!-- Dasa System (1/3) -->
-      <div class="border-2 border-votive-border rounded-lg p-2">
+      <!-- Dasa System -->
+      <div class="flex-[1] border-2 border-votive-border rounded-lg p-2">
         <!-- Current Dasha -->
         <div class="bg-amber-50 p-2 rounded mb-2">
-          <h3 class="text-xs font-bold text-votive-bg">ĐẠI VẬN HIỆN TẠI</h3>
+          <h3 class="text-xs font-bold votive-text">ĐẠI VẬN HIỆN TẠI</h3>
           ${chartData.dashas?.current ? `
-            <p class="font-bold">${PLANET_NAMES_VI[chartData.dashas.current.planet]}</p>
+            <p class="font-bold text-sm">${PLANET_NAMES_ASCII[chartData.dashas.current.planet]}</p>
             <p class="text-xs">${formatDate(chartData.dashas.current.startDate)} - ${formatDate(chartData.dashas.current.endDate)}</p>
             <p class="text-xs">Qua: ${chartData.dashas.current.elapsed?.years || 0}y ${chartData.dashas.current.elapsed?.months || 0}m</p>
-          ` : ''}
+            <p class="text-xs">Còn: ${chartData.dashas.current.remaining?.years || 0}y ${chartData.dashas.current.remaining?.months || 0}m</p>
+          ` : '<p class="text-xs text-gray-500">(Không có dữ liệu)</p>'}
         </div>
 
         <!-- Maha Dasha -->
@@ -758,16 +779,16 @@ export function generatePrintableHTML(
           <table class="w-full text-xs mt-1">
             <thead>
               <tr class="bg-amber-100">
-                <th class="p-1 text-left">STT</th>
-                <th class="p-1 text-left">Hành Tinh</th>
-                <th class="p-1 text-left">Bắt Đầu</th>
+                <th class="p-1">STT</th>
+                <th class="p-1">Hành Tinh</th>
+                <th class="p-1">Bắt Đầu</th>
               </tr>
             </thead>
             <tbody>
               ${(chartData.dashas?.sequence || []).map((d, i) => `
-                <tr class="border-b">
+                <tr>
                   <td class="p-1">${i + 1}</td>
-                  <td class="p-1 font-medium">${PLANET_NAMES_VI[d.planet]}</td>
+                  <td class="p-1 font-medium">${PLANET_NAMES_ASCII[d.planet]}</td>
                   <td class="p-1">${formatDate(d.startDate)}</td>
                 </tr>
               `).join('')}
@@ -781,14 +802,14 @@ export function generatePrintableHTML(
           <table class="w-full text-xs mt-1">
             <thead>
               <tr class="bg-amber-100">
-                <th class="p-1 text-left">Hành Tinh</th>
-                <th class="p-1 text-left">Bắt Đầu</th>
+                <th class="p-1">Hành Tinh</th>
+                <th class="p-1">Bắt Đầu</th>
               </tr>
             </thead>
             <tbody>
               ${(chartData.dashas?.current?.antardasha?.sequence || []).map(d => `
-                <tr class="border-b">
-                  <td class="p-1 font-medium">${PLANET_NAMES_VI[d.planet]}</td>
+                <tr>
+                  <td class="p-1 font-medium">${PLANET_NAMES_ASCII[d.planet]}</td>
                   <td class="p-1">${formatDate(d.startDate)}</td>
                 </tr>
               `).join('')}
@@ -802,14 +823,14 @@ export function generatePrintableHTML(
           <table class="w-full text-xs mt-1">
             <thead>
               <tr class="bg-amber-100">
-                <th class="p-1 text-left">Hành Tinh</th>
-                <th class="p-1 text-left">Bắt Đầu</th>
+                <th class="p-1">Hành Tinh</th>
+                <th class="p-1">Bắt Đầu</th>
               </tr>
             </thead>
             <tbody>
               ${(chartData.dashas?.current?.antardasha?.sequence[0]?.pratyantardasha || []).map(d => `
-                <tr class="border-b">
-                  <td class="p-1 font-medium">${PLANET_NAMES_VI[d.planet]}</td>
+                <tr>
+                  <td class="p-1 font-medium">${PLANET_NAMES_ASCII[d.planet]}</td>
                   <td class="p-1">${formatDate(d.startDate)}</td>
                 </tr>
               `).join('')}
@@ -827,27 +848,27 @@ export function generatePrintableHTML(
       <table class="w-full text-xs">
         <thead class="bg-amber-100">
           <tr>
-            <th class="p-2 text-left">Hành Tinh</th>
-            <th class="p-2 text-left">Cung</th>
-            <th class="p-2 text-left">Vị trí</th>
-            <th class="p-2 text-left">Nhà</th>
-            <th class="p-2 text-left">Nakshatra</th>
-            <th class="p-2 text-left">Chủ</th>
-            <th class="p-2 text-left">Pada</th>
-            <th class="p-2 text-left">Chuyển động</th>
+            <th class="p-2">Hành Tinh</th>
+            <th class="p-2">Cung</th>
+            <th class="p-2">Vị trí</th>
+            <th class="p-2">Nhà</th>
+            <th class="p-2">Nakshatra</th>
+            <th class="p-2">Chủ Nhà</th>
+            <th class="p-2">Pada</th>
+            <th class="p-2">Chuyển động</th>
           </tr>
         </thead>
         <tbody>
           ${chartData.planets.map(p => `
-            <tr class="border-b hover:bg-amber-50">
-              <td class="p-2 font-bold">${p.symbol} ${p.name}</td>
+            <tr class="hover:bg-amber-50">
+              <td class="p-2 font-bold">${getPlanetShort(p.name)} ${PLANET_NAMES_ASCII[p.name]}</td>
               <td class="p-2">${ZODIAC_SIGNS_VI[p.sign]}</td>
               <td class="p-2">${formatDegree(p.longitude)}</td>
               <td class="p-2">${p.house}</td>
               <td class="p-2">${p.nakshatra.name}</td>
               <td class="p-2">${p.nakshatra.lord}</td>
               <td class="p-2">${p.nakshatra.pada}</td>
-              <td class="p-2 ${p.retrograde ? 'text-red-600' : 'text-green-600'}">${p.retrograde ? 'R' : 'D'}</td>
+              <td class="p-2 ${p.retrograde ? 'text-red-600' : 'text-green-600'}">${p.retrograde ? 'Nghịch' : 'Thuận'}</td>
             </tr>
           `).join('')}
         </tbody>
@@ -864,12 +885,12 @@ export function generatePrintableHTML(
     </div>
 
     <!-- Vargas Grid -->
-    <div class="grid grid-cols-4 gap-2 mt-2 border-2 border-votive-border rounded-b-lg p-2">
+    <div class="vargas-grid border-2 border-votive-border rounded-b-lg p-2">
       ${VARGAS_DATA.map(varga => {
         const vargaData = vargaCharts[varga.key];
         return `
-          <div class="border border-votive-border rounded p-1 flex flex-col items-center no-break">
-            <h4 class="text-xs font-bold text-votive-bg mb-1">${varga.id} - ${varga.name}</h4>
+          <div class="varga-item">
+            <div class="varga-title">${varga.id} - ${varga.name}</div>
             <div class="mini-chart">
               ${generateMiniChartSVG(vargaData, 350, 350)}
             </div>
@@ -883,11 +904,6 @@ export function generatePrintableHTML(
       Chiêm Tinh Vệ Đà - Vedic Astrology
     </div>
   </div>
-
-  <script>
-    // Auto-print when opened
-    // window.onload = () => window.print();
-  </script>
 </body>
 </html>`;
 
