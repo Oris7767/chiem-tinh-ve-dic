@@ -1,7 +1,7 @@
 import { LOGO_DATA_URL } from './logoDataUrl';
 import { calculateAllVargas, PlanetInput, VargaCharts } from './vargaCalculations';
 
-// Types
+// Types - Updated to match actual API response
 export interface NakshatraInfo {
   name: string;
   lord: string;
@@ -31,39 +31,42 @@ export interface House {
   planets: string[];
 }
 
+// Updated Dasha structure to match API response
+export interface CurrentAntardasha {
+  planet: string;
+  startDate: string;
+  endDate: string;
+  elapsed: { years: number; months: number; days: number };
+  remaining: { years: number; months: number; days: number };
+  currentPratyantar?: {
+    planet: string;
+    startDate: string;
+    endDate: string;
+    elapsed: { years: number; months: number; days: number };
+    remaining: { years: number; months: number; days: number };
+    currentSookshma?: any;
+  };
+}
+
 export interface DashaPeriod {
   planet: string;
   startDate: string;
   endDate: string;
-  elapsed?: {
-    years: number;
-    months: number;
-    days: number;
-  };
-  remaining?: {
-    years: number;
-    months: number;
-    days: number;
-  };
-  antardasha?: {
-    current?: {
+  elapsed: { years: number; months: number; days: number };
+  remaining: { years: number; months: number; days: number };
+  currentAntardasha?: CurrentAntardasha;
+  antardashas?: Array<{
+    planet: string;
+    startDate: string;
+    endDate: string;
+    duration: number;
+    pratyantars?: Array<{
       planet: string;
       startDate: string;
       endDate: string;
-      elapsed: { years: number; months: number; days: number };
-      remaining: { years: number; months: number; days: number };
-    };
-    sequence: Array<{
-      planet: string;
-      startDate: string;
-      endDate: string;
-      pratyantardasha?: Array<{
-        planet: string;
-        startDate: string;
-        endDate: string;
-      }>;
+      duration: number;
     }>;
-  };
+  }>;
 }
 
 export interface VedicChartData {
@@ -158,11 +161,10 @@ function getPlanetName(name: string): string {
   return PLANET_NAMES_ASCII[name] || name;
 }
 
-// Generate SVG for South Indian Chart
+// Generate SVG for South Indian Chart with HIGH RESOLUTION
 function generateSouthIndianChartSVG(
   chartData: VedicChartData,
-  width: number = 500,
-  height: number = 500,
+  size: number = 800, // Increased from 500
   showCoords: boolean = true
 ): string {
   const positions = [
@@ -183,15 +185,14 @@ function generateSouthIndianChartSVG(
   const ascSign = Math.floor(chartData.ascendant / 30);
   const getHouseNumber = (signIndex: number) => ((signIndex - ascSign + 12) % 12) + 1;
 
-  // Grid settings
-  const gridSize = 100;
-  const offsetX = 50;
-  const offsetY = 70;
-  const scale = width / 500;
+  // Grid settings - scaled to SVG size
+  const gridSize = 160; // Increased cell size
+  const offsetX = 80;
+  const offsetY = 112;
 
-  let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">
-    <rect x="0" y="0" width="${width}" height="${height}" fill="white"/>
-    <g transform="translate(${offsetX * scale}, ${offsetY * scale})">`;
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">
+    <rect x="0" y="0" width="${size}" height="${size}" fill="white"/>
+    <g transform="translate(${offsetX}, ${offsetY})">`;
 
   // Draw grid cells
   for (let index = 0; index < 12; index++) {
@@ -201,45 +202,43 @@ function generateSouthIndianChartSVG(
     const planetsInHouse = planetsByHouse[houseNumber] || [];
     const isAscendant = houseNumber === 1;
 
-    const x = col * gridSize * scale;
-    const y = row * gridSize * scale;
-    const cellSize = gridSize * scale;
+    const x = col * gridSize;
+    const y = row * gridSize;
 
     // Cell border
-    svg += `<rect x="${x}" y="${y}" width="${cellSize}" height="${cellSize}" fill="none" stroke="#B45309" stroke-width="1"/>`;
+    svg += `<rect x="${x}" y="${y}" width="${gridSize}" height="${gridSize}" fill="none" stroke="#B45309" stroke-width="1.5"/>`;
 
     // Sign and house number
-    svg += `<text x="${x + 5 * scale}" y="${y + 15 * scale}" font-size="${10 * scale}" fill="#B45309" font-weight="bold">${ZODIAC_SIGNS_SHORT[signIndex]} ${houseNumber}</text>`;
+    svg += `<text x="${x + 8}" y="${y + 24}" font-size="16" fill="#B45309" font-weight="bold" font-family="Arial">${ZODIAC_SIGNS_SHORT[signIndex]} ${houseNumber}</text>`;
 
     // ASC coordinates
     if (isAscendant) {
-      svg += `<text x="${x + 5 * scale}" y="${y + 28 * scale}" font-size="${8 * scale}" fill="#B45309">ASC ${formatDegree(chartData.ascendant)}</text>`;
+      svg += `<text x="${x + 8}" y="${y + 45}" font-size="12" fill="#B45309" font-family="Arial">ASC ${formatDegree(chartData.ascendant)}</text>`;
     }
 
     // Planets - use short names
     planetsInHouse.slice(0, 3).forEach((planet, idx) => {
-      const planetY = y + (42 + idx * 12) * scale;
+      const planetY = y + 65 + idx * 18;
       const suffix = planet.retrograde ? 'R' : '';
       const degreeText = showCoords ? ` ${formatDegree(planet.longitude)}` : '';
-      svg += `<text x="${x + 5 * scale}" y="${planetY}" font-size="${8 * scale}" fill="#000000">${getPlanetShort(planet.name)}${suffix}${degreeText}</text>`;
+      svg += `<text x="${x + 8}" y="${planetY}" font-size="12" fill="#000000" font-family="Arial">${getPlanetShort(planet.name)}${suffix}${degreeText}</text>`;
     });
   }
 
   // Center logo
-  const logoSize = 100 * scale;
-  const logoX = 150 * scale;
-  const logoY = 150 * scale;
+  const logoSize = 160;
+  const logoX = 160;
+  const logoY = 160;
   svg += `<image href="${LOGO_DATA_URL}" x="${logoX}" y="${logoY}" width="${logoSize}" height="${logoSize}"/>`;
 
   svg += '</g></svg>';
   return svg;
 }
 
-// Generate mini South Indian Chart SVG for Vargas
+// Generate mini South Indian Chart SVG for Vargas - NO BORDERS, MAX SIZE
 function generateMiniChartSVG(
   vargaData: { planets: Array<{ id: string; name: string; house: number; vargaDegree: number; retrograde: boolean }>; ascendantSign: number },
-  width: number = 350,
-  height: number = 350
+  size: number = 200
 ): string {
   const positions = [
     [0, 1], [0, 2], [0, 3], [1, 3],
@@ -256,14 +255,14 @@ function generateMiniChartSVG(
 
   const getHouseNumber = (signIndex: number) => ((signIndex - vargaData.ascendantSign + 12) % 12) + 1;
 
-  const gridSize = 70;
-  const offsetX = 25;
-  const offsetY = 35;
-  const scale = width / 350;
+  // Scale grid to SVG size
+  const gridSize = size / 4; // 4 rows
+  const offsetX = gridSize * 0.7 / 2;
+  const offsetY = gridSize * 1.0 / 2;
 
-  let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">
-    <rect x="0" y="0" width="${width}" height="${height}" fill="white"/>
-    <g transform="translate(${offsetX * scale}, ${offsetY * scale})">`;
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">
+    <rect x="0" y="0" width="${size}" height="${size}" fill="white"/>
+    <g transform="translate(${offsetX}, ${offsetY})">`;
 
   for (let index = 0; index < 12; index++) {
     const [row, col] = positions[index];
@@ -271,19 +270,21 @@ function generateMiniChartSVG(
     const houseNumber = getHouseNumber(signIndex);
     const planetsInHouse = planetsByHouse[houseNumber] || [];
 
-    const x = col * gridSize * scale;
-    const y = row * gridSize * scale;
-    const cellSize = gridSize * scale;
+    const x = col * gridSize;
+    const y = row * gridSize;
 
-    svg += `<rect x="${x}" y="${y}" width="${cellSize}" height="${cellSize}" fill="none" stroke="#B45309" stroke-width="0.5"/>`;
-    svg += `<text x="${x + 3 * scale}" y="${y + 12 * scale}" font-size="${8 * scale}" fill="#B45309">${ZODIAC_SIGNS_SHORT[signIndex]} ${houseNumber}</text>`;
+    // Cell border - thinner
+    svg += `<rect x="${x}" y="${y}" width="${gridSize}" height="${gridSize}" fill="none" stroke="#B45309" stroke-width="0.3"/>`;
+    
+    // Sign and house number - scaled
+    svg += `<text x="${x + gridSize * 0.08}" y="${y + gridSize * 0.17}" font-size="${size * 0.022}" fill="#B45309" font-family="Arial">${ZODIAC_SIGNS_SHORT[signIndex]}${houseNumber}</text>`;
 
-    // Planets with degree - use short names
+    // Planets with degree - scaled
     planetsInHouse.slice(0, 3).forEach((planet, idx) => {
-      const planetY = y + (24 + idx * 11) * scale;
+      const planetY = y + gridSize * (0.35 + idx * 0.22);
       const suffix = planet.retrograde ? 'R' : '';
       const degreeText = formatDegree(planet.vargaDegree || 0);
-      svg += `<text x="${x + 3 * scale}" y="${planetY}" font-size="${7 * scale}" fill="#000000">${getPlanetShort(planet.name)}${suffix} <tspan font-size="5" fill="#666">${degreeText}</tspan></text>`;
+      svg += `<text x="${x + gridSize * 0.08}" y="${planetY}" font-size="${size * 0.018}" fill="#000000" font-family="Arial">${getPlanetShort(planet.name)}${suffix} <tspan font-size="${size * 0.014}" fill="#666">${degreeText}</tspan></text>`;
     });
   }
 
@@ -291,25 +292,30 @@ function generateMiniChartSVG(
   return svg;
 }
 
-// SVG to Canvas converter
-async function svgToCanvas(svgString: string, width: number, height: number): Promise<HTMLCanvasElement> {
+// SVG to Canvas converter with HIGH RESOLUTION
+async function svgToCanvas(svgString: string, size: number): Promise<HTMLCanvasElement> {
   return new Promise((resolve, reject) => {
     const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
+    // Use 3x resolution for sharp output
+    const scale = 3;
+    canvas.width = size * scale;
+    canvas.height = size * scale;
     const ctx = canvas.getContext('2d');
     if (!ctx) {
       reject(new Error('Cannot get canvas context'));
       return;
     }
+    
+    // Enable high-quality image rendering
+    ctx.scale(scale, scale);
 
     const img = new Image();
     const svgUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`;
 
     img.onload = () => {
       ctx.fillStyle = 'white';
-      ctx.fillRect(0, 0, width, height);
-      ctx.drawImage(img, 0, 0, width, height);
+      ctx.fillRect(0, 0, size, size);
+      ctx.drawImage(img, 0, 0, size, size);
       resolve(canvas);
     };
 
@@ -369,9 +375,9 @@ export async function exportVedicChartPDF(
   const dasaWidth = contentWidth * 0.38; // 1/3 width
   const dasaX = margin + chartWidth + 3;
 
-  // === LEFT: South Indian Chart ===
-  const chartSvg = generateSouthIndianChartSVG(chartData, 500, 500, true);
-  const chartCanvas = await svgToCanvas(chartSvg, 500, 500);
+  // === LEFT: South Indian Chart - HIGH RES ===
+  const chartSvg = generateSouthIndianChartSVG(chartData, 800, true);
+  const chartCanvas = await svgToCanvas(chartSvg, 800);
   const chartImgData = chartCanvas.toDataURL('image/png', 1.0);
 
   // Calculate chart size to fit in the allocated space
@@ -391,17 +397,18 @@ export async function exportVedicChartPDF(
   pdf.text('DAI VAN HIEN TAI', dasaX + 2, dasaY + 4);
 
   if (chartData.dashas?.current) {
+    const current = chartData.dashas.current;
     pdf.setFontSize(6);
     pdf.setFont('helvetica', 'bold');
     pdf.setTextColor(0, 0, 0);
-    pdf.text(getPlanetName(chartData.dashas.current.planet), dasaX + 2, dasaY + 9);
+    pdf.text(getPlanetName(current.planet), dasaX + 2, dasaY + 9);
 
     pdf.setFont('helvetica', 'normal');
     pdf.setTextColor(80, 80, 80);
-    pdf.text(`${formatDate(chartData.dashas.current.startDate)} - ${formatDate(chartData.dashas.current.endDate)}`, dasaX + 2, dasaY + 13);
+    pdf.text(`${formatDate(current.startDate)} - ${formatDate(current.endDate)}`, dasaX + 2, dasaY + 13);
 
-    pdf.text(`Qua: ${chartData.dashas.current.elapsed?.years || 0}y ${chartData.dashas.current.elapsed?.months || 0}m`, dasaX + 2, dasaY + 17);
-    pdf.text(`Con: ${chartData.dashas.current.remaining?.years || 0}y ${chartData.dashas.current.remaining?.months || 0}m`, dasaX + dasaWidth - 25, dasaY + 17);
+    pdf.text(`Qua: ${current.elapsed?.years || 0}y ${current.elapsed?.months || 0}m`, dasaX + 2, dasaY + 17);
+    pdf.text(`Con: ${current.remaining?.years || 0}y ${current.remaining?.months || 0}m`, dasaX + dasaWidth - 25, dasaY + 17);
   }
 
   dasaY += 23;
@@ -439,7 +446,7 @@ export async function exportVedicChartPDF(
 
   dasaY += 3;
 
-  // === Antar Dasha Table ===
+  // === Antar Dasha Table - Use antardashas array from current ===
   pdf.setFillColor(180, 83, 9);
   pdf.rect(dasaX, dasaY, dasaWidth - 3, 5, 'F');
   pdf.setTextColor(255, 255, 255);
@@ -456,16 +463,25 @@ export async function exportVedicChartPDF(
   pdf.text('Bat Dau', dasaX + 25, dasaY);
   dasaY += 4;
 
-  // Table rows - Flat list of ALL antardashas
+  // Table rows - Use antardashas array from current Dasha
   pdf.setFont('helvetica', 'normal');
-  const antardashaSequence = chartData.dashas?.current?.antardasha?.sequence || [];
-  antardashaSequence.forEach((dasha) => {
-    if (dasaY > pageHeight - 50) return;
+  const antardashas = chartData.dashas?.current?.antardashas || [];
+  if (antardashas.length > 0) {
+    antardashas.forEach((dasha) => {
+      if (dasaY > pageHeight - 50) return;
+      pdf.setFontSize(5);
+      pdf.text(getPlanetName(dasha.planet), dasaX + 2, dasaY);
+      pdf.text(formatDate(dasha.startDate).substring(0, 10), dasaX + 25, dasaY);
+      dasaY += 3.5;
+    });
+  } else if (chartData.dashas?.current?.currentAntardasha) {
+    // Fallback: show current antardasha
+    const currentAnt = chartData.dashas.current.currentAntardasha;
     pdf.setFontSize(5);
-    pdf.text(getPlanetName(dasha.planet), dasaX + 2, dasaY);
-    pdf.text(formatDate(dasha.startDate).substring(0, 10), dasaX + 25, dasaY);
+    pdf.text(getPlanetName(currentAnt.planet), dasaX + 2, dasaY);
+    pdf.text(formatDate(currentAnt.startDate).substring(0, 10), dasaX + 25, dasaY);
     dasaY += 3.5;
-  });
+  }
 
   dasaY += 3;
 
@@ -475,7 +491,7 @@ export async function exportVedicChartPDF(
   pdf.setTextColor(255, 255, 255);
   pdf.setFontSize(6);
   pdf.setFont('helvetica', 'bold');
-  pdf.text('PRATYANTAR DASA (PHAN VAN)', dasaX + 2, dasaY + 3.5);
+  pdf.text('PRATYANTAR DASA', dasaX + 2, dasaY + 3.5);
   dasaY += 7;
 
   // Table header
@@ -486,44 +502,46 @@ export async function exportVedicChartPDF(
   pdf.text('Bat Dau', dasaX + 25, dasaY);
   dasaY += 4;
 
-  // Table rows - ALL pratyantardashas of current antardasha
+  // Table rows - Use pratyantars from first antardasha
   pdf.setFont('helvetica', 'normal');
-  const currentAntardasha = antardashaSequence[0]; // Current antardasha
-  if (currentAntardasha?.pratyantardasha && currentAntardasha.pratyantardasha.length > 0) {
-    currentAntardasha.pratyantardasha.forEach((dasha) => {
+  const pratyantars = antardashas[0]?.pratyantars || [];
+  
+  if (chartData.dashas?.current?.currentAntardasha?.currentPratyantar) {
+    // Show current pratyantar
+    const currentPrat = chartData.dashas.current.currentAntardasha.currentPratyantar;
+    pdf.setFontSize(5);
+    pdf.text(getPlanetName(currentPrat.planet), dasaX + 2, dasaY);
+    pdf.text(formatDate(currentPrat.startDate).substring(0, 10), dasaX + 25, dasaY);
+    dasaY += 3.5;
+  } else if (pratyantars.length > 0) {
+    // Fallback: show pratyantars from first antardasha
+    pratyantars.forEach((dasha) => {
       if (dasaY > pageHeight - 50) return;
       pdf.setFontSize(5);
       pdf.text(getPlanetName(dasha.planet), dasaX + 2, dasaY);
       pdf.text(formatDate(dasha.startDate).substring(0, 10), dasaX + 25, dasaY);
       dasaY += 3.5;
     });
-  } else {
-    // If no pratyantardasha data, show message
-    pdf.setFontSize(5);
-    pdf.setTextColor(128, 128, 128);
-    pdf.text('(Dang tinh toan...)', dasaX + 2, dasaY);
-    dasaY += 3.5;
   }
 
   // === Bottom Section: Planetary Details Table ===
-  // Add gap between Dasa section and Planet Details
   const planetTableY = topSectionY + chartHeightMM + 6;
 
   // Section Header
   pdf.setFillColor(180, 83, 9);
-  pdf.rect(margin, planetTableY, contentWidth, 6, 'F');
+  pdf.rect(margin, planetTableY, contentWidth, 5, 'F');
   pdf.setTextColor(255, 255, 255);
-  pdf.setFontSize(8);
+  pdf.setFontSize(7);
   pdf.setFont('helvetica', 'bold');
-  pdf.text('CHI TIET CAC HANH TINH (GRAHA)', pageWidth / 2, planetTableY + 4, { align: 'center' });
+  pdf.text('CHI TIET CAC HANH TINH (GRAHA)', pageWidth / 2, planetTableY + 3.5, { align: 'center' });
 
-  let tableY = planetTableY + 9;
+  let tableY = planetTableY + 8;
 
-  // Table header - 8 columns
+  // Table header - COMPACT spacing
   pdf.setTextColor(0, 0, 0);
-  pdf.setFontSize(6);
+  pdf.setFontSize(5);
   pdf.setFont('helvetica', 'bold');
-  const colWidths = [22, 12, 30, 12, 28, 20, 10, 20];
+  const colWidths = [18, 10, 28, 10, 24, 18, 8, 18];
   const cols = ['Hanh Tinh', 'Cung', 'Vi tri', 'Nha', 'Nakshatra', 'Chu Nha', 'Pada', 'Chuyen Dong'];
   let colX = margin;
   cols.forEach((header, i) => {
@@ -531,21 +549,20 @@ export async function exportVedicChartPDF(
     colX += colWidths[i];
   });
 
-  tableY += 4;
+  tableY += 3;
   pdf.setDrawColor(180, 83, 9);
-  pdf.line(margin, tableY - 1, margin + contentWidth, tableY - 1);
+  pdf.line(margin, tableY - 0.5, margin + contentWidth, tableY - 0.5);
 
-  // Table rows
+  // Table rows - COMPACT spacing
   pdf.setFont('helvetica', 'normal');
   chartData.planets.forEach((planet) => {
     if (tableY > pageHeight - 15) return;
 
-    pdf.setFontSize(6);
     colX = margin;
 
-    // Planet name - use short name
+    // Planet name - short only to save space
     pdf.setFont('helvetica', 'bold');
-    pdf.text(`${getPlanetShort(planet.name)} ${planet.name}`, colX, tableY);
+    pdf.text(`${getPlanetShort(planet.name)}`, colX, tableY);
     colX += colWidths[0];
 
     // Zodiac sign
@@ -561,11 +578,11 @@ export async function exportVedicChartPDF(
     pdf.text(`${planet.house}`, colX, tableY);
     colX += colWidths[3];
 
-    // Nakshatra (separated from Lord)
+    // Nakshatra
     pdf.text(planet.nakshatra.name, colX, tableY);
     colX += colWidths[4];
 
-    // Lord (separate column)
+    // Lord
     pdf.text(planet.nakshatra.lord, colX, tableY);
     colX += colWidths[5];
 
@@ -578,7 +595,7 @@ export async function exportVedicChartPDF(
     pdf.text(planet.retrograde ? 'Nghich' : 'Thuan', colX, tableY);
     pdf.setTextColor(0, 0, 0);
 
-    tableY += 4.5;
+    tableY += 4;
   });
 
   // === PAGE 2: 16 D-Varga Charts ===
@@ -610,15 +627,15 @@ export async function exportVedicChartPDF(
     parseFloat(String(chartData.ascendant)) || 0
   );
 
-  // Grid layout: 4 columns x 4 rows
-  const gridStartY = 20;
+  // Grid layout: 4 columns x 4 rows - NO BORDERS, MAX SIZE
+  const gridStartY = 18;
   const gridCols = 4;
   const gridRows = 4;
-  const availableWidth = contentWidth - 6; // Account for gaps
-  const availableHeight = pageHeight - gridStartY - 12;
+  const gap = 3; // Small gap between charts
+  const availableWidth = contentWidth - gap * (gridCols - 1);
+  const availableHeight = pageHeight - gridStartY - 8 - gap * (gridRows - 1);
   const cellWidth = availableWidth / gridCols;
   const cellHeight = availableHeight / gridRows;
-  const miniChartSize = Math.min(cellWidth, cellHeight) - 2;
 
   for (let i = 0; i < VARGAS_DATA.length; i++) {
     const varga = VARGAS_DATA[i];
@@ -627,39 +644,32 @@ export async function exportVedicChartPDF(
     const col = i % gridCols;
     const row = Math.floor(i / gridCols);
 
-    // Center the chart in its cell
-    const cellCenterX = margin + 3 + col * cellWidth + cellWidth / 2;
-    const cellCenterY = gridStartY + row * cellHeight + cellHeight / 2;
-    const chartX = cellCenterX - miniChartSize / 2;
-    const chartY = cellCenterY - miniChartSize / 2;
+    // Position each chart
+    const chartX = margin + col * (cellWidth + gap);
+    const chartY = gridStartY + row * (cellHeight + gap);
+    const chartSize = Math.min(cellWidth, cellHeight);
 
-    // Chart background
-    pdf.setFillColor(255, 255, 255);
-    pdf.setDrawColor(180, 83, 9);
-    pdf.roundedRect(chartX, chartY, miniChartSize, miniChartSize, 1, 1, 'FD');
+    // Generate mini chart SVG - larger size for better quality
+    const miniSvg = generateMiniChartSVG(vargaData, 200);
+    const miniCanvas = await svgToCanvas(miniSvg, 200);
+    const miniImgData = miniCanvas.toDataURL('image/png', 1.0);
 
-    // Title - ensure D7 shows as "D7" not "07"
+    // Draw mini chart directly - NO BORDER
+    pdf.addImage(miniImgData, 'PNG', chartX, chartY, chartSize, chartSize);
+
+    // Title ABOVE the chart (not overlaid)
     pdf.setFontSize(5);
     pdf.setFont('helvetica', 'bold');
     pdf.setTextColor(180, 83, 9);
     const titleText = `${varga.id} - ${varga.name}`;
-    pdf.text(titleText, cellCenterX, chartY + 3, { align: 'center' });
-
-    // Generate mini chart SVG
-    const miniSvg = generateMiniChartSVG(vargaData, 350, 350);
-    const miniCanvas = await svgToCanvas(miniSvg, 350, 350);
-    const miniImgData = miniCanvas.toDataURL('image/png', 1.0);
-
-    // Draw mini chart with padding
-    const chartPadding = 3;
-    pdf.addImage(miniImgData, 'PNG', chartX + chartPadding, chartY + 5, miniChartSize - chartPadding * 2, miniChartSize - 8);
+    pdf.text(titleText, chartX + chartSize / 2, chartY - 1.5, { align: 'center' });
   }
 
   // Footer
   pdf.setTextColor(100, 100, 100);
   pdf.setFontSize(7);
   pdf.setFont('helvetica', 'italic');
-  pdf.text('ChiEm Tinh Ve Da - Vedic Astrology', pageWidth / 2, pageHeight - 5, { align: 'center' });
+  pdf.text('ChiEm Tinh Ve Da - Vedic Astrology', pageWidth / 2, pageHeight - 4, { align: 'center' });
 
   // Save the PDF
   const fileName = userData?.name
@@ -675,8 +685,8 @@ export async function exportVedicChartPNG(
   chartData: VedicChartData,
   userData?: BirthDataFormValues | null
 ): Promise<void> {
-  const chartSvg = generateSouthIndianChartSVG(chartData, 1000, 1000, true);
-  const chartCanvas = await svgToCanvas(chartSvg, 1000, 1000);
+  const chartSvg = generateSouthIndianChartSVG(chartData, 1200, true);
+  const chartCanvas = await svgToCanvas(chartSvg, 1200);
 
   const link = document.createElement('a');
   link.download = userData?.name
@@ -723,19 +733,18 @@ export function generatePrintableHTML(
     @media print {
       body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
       .page-break { page-break-before: always; }
-      .no-break { page-break-inside: avoid; }
     }
     .chart-container { width: 100%; max-width: 500px; }
-    .mini-chart { width: 100%; max-width: 180px; }
+    .mini-chart { width: 100%; height: auto; }
     .votive-border { border-color: #B45309; }
     .votive-bg { background-color: #B45309; }
     .votive-text { color: #B45309; }
     table { border-collapse: collapse; }
-    th, td { border: 1px solid #ddd; padding: 4px 6px; text-align: left; font-size: 10px; }
+    th, td { border: 1px solid #ddd; padding: 3px 5px; text-align: left; font-size: 9px; }
     th { background-color: #fef3c7; }
-    .vargas-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-    .varga-item { border: 1px solid #B45309; border-radius: 4px; padding: 4px; text-align: center; }
-    .varga-title { font-size: 9px; font-weight: bold; color: #B45309; margin-bottom: 2px; }
+    .vargas-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+    .varga-item { padding: 2px; text-align: center; }
+    .varga-title { font-size: 8px; font-weight: bold; color: #B45309; margin-bottom: 1px; }
   </style>
 </head>
 <body class="bg-white text-black p-4 font-sans">
@@ -755,7 +764,7 @@ export function generatePrintableHTML(
       <div class="flex-[2]">
         <div class="border-2 border-votive-border rounded-lg p-2 flex justify-center">
           <div class="chart-container">
-            ${generateSouthIndianChartSVG(chartData, 500, 500, true)}
+            ${generateSouthIndianChartSVG(chartData, 600, true)}
           </div>
         </div>
       </div>
@@ -807,7 +816,7 @@ export function generatePrintableHTML(
               </tr>
             </thead>
             <tbody>
-              ${(chartData.dashas?.current?.antardasha?.sequence || []).map(d => `
+              ${(chartData.dashas?.current?.antardashas || []).map(d => `
                 <tr>
                   <td class="p-1 font-medium">${PLANET_NAMES_ASCII[d.planet]}</td>
                   <td class="p-1">${formatDate(d.startDate)}</td>
@@ -828,7 +837,7 @@ export function generatePrintableHTML(
               </tr>
             </thead>
             <tbody>
-              ${(chartData.dashas?.current?.antardasha?.sequence[0]?.pratyantardasha || []).map(d => `
+              ${(chartData.dashas?.current?.antardashas?.[0]?.pratyantars || []).map(d => `
                 <tr>
                   <td class="p-1 font-medium">${PLANET_NAMES_ASCII[d.planet]}</td>
                   <td class="p-1">${formatDate(d.startDate)}</td>
@@ -840,35 +849,35 @@ export function generatePrintableHTML(
       </div>
     </div>
 
-    <!-- Planetary Details -->
-    <div class="mt-4 border-2 border-votive-border rounded-lg overflow-hidden">
+    <!-- Planetary Details - COMPACT -->
+    <div class="mt-3 border-2 border-votive-border rounded-lg overflow-hidden">
       <div class="votive-bg text-white p-2">
         <h2 class="text-sm font-bold text-center">CHI TIẾT CÁC HÀNH TINH (GRAHA)</h2>
       </div>
       <table class="w-full text-xs">
         <thead class="bg-amber-100">
           <tr>
-            <th class="p-2">Hành Tinh</th>
-            <th class="p-2">Cung</th>
-            <th class="p-2">Vị trí</th>
-            <th class="p-2">Nhà</th>
-            <th class="p-2">Nakshatra</th>
-            <th class="p-2">Chủ Nhà</th>
-            <th class="p-2">Pada</th>
-            <th class="p-2">Chuyển động</th>
+            <th class="p-1">Hành Tinh</th>
+            <th class="p-1">Cung</th>
+            <th class="p-1">Vị trí</th>
+            <th class="p-1">Nhà</th>
+            <th class="p-1">Nakshatra</th>
+            <th class="p-1">Chủ Nhà</th>
+            <th class="p-1">Pada</th>
+            <th class="p-1">Chuyển động</th>
           </tr>
         </thead>
         <tbody>
           ${chartData.planets.map(p => `
-            <tr class="hover:bg-amber-50">
-              <td class="p-2 font-bold">${getPlanetShort(p.name)} ${PLANET_NAMES_ASCII[p.name]}</td>
-              <td class="p-2">${ZODIAC_SIGNS_VI[p.sign]}</td>
-              <td class="p-2">${formatDegree(p.longitude)}</td>
-              <td class="p-2">${p.house}</td>
-              <td class="p-2">${p.nakshatra.name}</td>
-              <td class="p-2">${p.nakshatra.lord}</td>
-              <td class="p-2">${p.nakshatra.pada}</td>
-              <td class="p-2 ${p.retrograde ? 'text-red-600' : 'text-green-600'}">${p.retrograde ? 'Nghịch' : 'Thuận'}</td>
+            <tr>
+              <td class="p-1 font-bold">${getPlanetShort(p.name)}</td>
+              <td class="p-1">${ZODIAC_SIGNS_VI[p.sign]}</td>
+              <td class="p-1">${formatDegree(p.longitude)}</td>
+              <td class="p-1">${p.house}</td>
+              <td class="p-1">${p.nakshatra.name}</td>
+              <td class="p-1">${p.nakshatra.lord}</td>
+              <td class="p-1">${p.nakshatra.pada}</td>
+              <td class="p-1 ${p.retrograde ? 'text-red-600' : 'text-green-600'}">${p.retrograde ? 'Nghịch' : 'Thuận'}</td>
             </tr>
           `).join('')}
         </tbody>
@@ -884,7 +893,7 @@ export function generatePrintableHTML(
       <p class="text-center text-xs">Theo hệ thống Parashara - Divisional Charts</p>
     </div>
 
-    <!-- Vargas Grid -->
+    <!-- Vargas Grid - NO BORDERS -->
     <div class="vargas-grid border-2 border-votive-border rounded-b-lg p-2">
       ${VARGAS_DATA.map(varga => {
         const vargaData = vargaCharts[varga.key];
@@ -892,7 +901,7 @@ export function generatePrintableHTML(
           <div class="varga-item">
             <div class="varga-title">${varga.id} - ${varga.name}</div>
             <div class="mini-chart">
-              ${generateMiniChartSVG(vargaData, 350, 350)}
+              ${generateMiniChartSVG(vargaData, 150)}
             </div>
           </div>
         `;
