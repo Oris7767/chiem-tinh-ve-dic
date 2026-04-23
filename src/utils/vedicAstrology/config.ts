@@ -136,6 +136,8 @@ export interface ChartMetadata {
   longitude: number;
   timezone: string;
   houseSystem: string;
+  name?: string;
+  location?: string;
 }
 
 export interface VedicChartResponse {
