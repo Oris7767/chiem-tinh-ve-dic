@@ -3,17 +3,19 @@
  */
 
 import { Font } from '@react-pdf/renderer';
+import RobotoRegular from '../components/roboto/Roboto-Regular.ttf';
+import RobotoBold from '../components/roboto/Roboto-Bold.ttf';
 
-// Register Roboto font family from local files
+// Register Roboto font family
 Font.register({
   family: 'Roboto',
   fonts: [
     {
-      src: './components/roboto/Roboto-Regular.ttf',
+      src: RobotoRegular,
       fontWeight: 'normal',
     },
     {
-      src: './components/roboto/Roboto-Bold.ttf',
+      src: RobotoBold,
       fontWeight: 'bold',
     },
   ],
