@@ -253,11 +253,11 @@ export const page1Styles = StyleSheet.create({
   },
   topSection: {
     flexDirection: 'row',
-    marginBottom: spacing.md,
-    minHeight: 180,
+    marginBottom: spacing.sm,
   },
+  // Chart on the RIGHT side (top-right)
   chartSection: {
-    width: '62%',
+    width: '50%',
     backgroundColor: colors.white,
     borderWidth: 2,
     borderColor: colors.brown,
@@ -267,13 +267,14 @@ export const page1Styles = StyleSheet.create({
     alignItems: 'center',
   },
   chartImage: {
-    width: '95%',
-    height: '95%',
+    width: '98%',
+    height: '98%',
     objectFit: 'contain',
   },
+  // Dasa on the LEFT side
   dasaSection: {
-    width: '38%',
-    marginLeft: spacing.sm,
+    flex: 1,
+    marginRight: spacing.sm,
   },
   currentDasha: {
     backgroundColor: colors.creamDark,
@@ -393,16 +394,6 @@ export const page2Styles = StyleSheet.create({
     color: colors.cream,
     textAlign: 'center',
     marginTop: spacing.xs,
-  },
-  footer: {
-    position: 'absolute',
-    bottom: spacing.lg,
-    left: spacing.lg,
-    right: spacing.lg,
-    textAlign: 'center',
-    fontFamily: fonts.oblique,
-    fontSize: fontSizes.tiny,
-    color: colors.textLight,
   },
   vargasGrid: {
     flexDirection: 'row',

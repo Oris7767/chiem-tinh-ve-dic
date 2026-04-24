@@ -87,7 +87,7 @@ export function transformBirthDataForPDF(birthData: any): PdfBirthData {
 
 /**
  * Main PDF Generation Function
- * 
+ *
  * @param chartData - Dữ liệu lá số từ ứng dụng
  * @param birthData - Dữ liệu sinh của user
  * @param options - Các tùy chọn bổ sung
@@ -114,9 +114,28 @@ export async function generatePDF(
     vargas
   );
 
+  // Merge vargas into chartData for Page 2
+  // Transform vargas to match PdfVargaChart format
+  const chartDataWithVargas: PdfVedicChartData = {
+    ...chartData,
+    vargas: vargas.map(v => ({
+      id: v.id,
+      name: v.id, // Will be converted in Page2
+      planets: v.planets.map((p: any) => ({
+        id: p.id || p.name,
+        name: p.name,
+        house: p.house || 1,
+        vargaSign: p.vargaSign || 0,
+        vargaDegree: p.vargaDegree || 0,
+        retrograde: p.retrograde || false,
+      })),
+      ascendantSign: v.ascendantSign || 0,
+    })),
+  };
+
   // Prepare PDF data
   const pdfData: PdfReportData = {
-    chartData,
+    chartData: chartDataWithVargas,
     birthData: birthData || null,
     mainChartImage,
     vargaChartImages,

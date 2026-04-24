@@ -209,43 +209,76 @@ const PlanetaryTable: React.FC<{ data: PdfReportData }> = ({ data }) => {
   );
 };
 
+// Get items from current position onwards (for future dasa display)
+function getFutureItems<T extends { startDate?: string }>(
+  items: T[],
+  maxItems: number = 7
+): T[] {
+  if (!items || items.length === 0) return [];
+
+  const now = new Date();
+
+  // Find current index (first item where startDate <= now)
+  let currentIndex = 0;
+  for (let i = 0; i < items.length; i++) {
+    const startDate = items[i]?.startDate ? new Date(items[i].startDate) : null;
+    if (startDate && startDate <= now) {
+      currentIndex = i;
+    } else {
+      break;
+    }
+  }
+
+  // Return 7 items starting from current
+  return items.slice(currentIndex, currentIndex + maxItems);
+}
+
 // Main Page 1 Component
 export const Page1: React.FC<Page1Props> = ({ data }) => {
-  // Maha Dasa sequence
-  const mahaDashas = data.chartData.dashas?.sequence?.map(d => ({
-    planet: d.planet,
-    startDate: d.startDate
-  })) || [];
+  // Maha Dasa sequence - show from current onwards, max 12
+  const mahaDashas = getFutureItems(
+    data.chartData.dashas?.sequence?.map(d => ({
+      planet: d.planet,
+      startDate: d.startDate
+    })) || [],
+    12
+  );
 
-  // Antar Dasa (sub-periods of current Maha Dasa)
-  const antarDashas = data.chartData.dashas?.current?.antardashas?.map(d => ({
-    planet: d.planet,
-    startDate: d.startDate
-  })) || [];
+  // Antar Dasa (sub-periods) - only 7 future items from current
+  const antarDashas = getFutureItems(
+    data.chartData.dashas?.current?.antardashas?.map(d => ({
+      planet: d.planet,
+      startDate: d.startDate
+    })) || [],
+    7
+  );
 
-  // Pratyantar Dasa (sub-sub-periods) - from first Antardasa if available
-  const pratyantarDashas = data.chartData.dashas?.current?.antardashas?.[0]?.pratyantars?.map(d => ({
-    planet: d.planet,
-    startDate: d.startDate
-  })) || [];
+  // Pratyantar Dasa - from first antardasha, only 7 future
+  const pratyantarDashas = getFutureItems(
+    data.chartData.dashas?.current?.antardashas?.[0]?.pratyantars?.map(d => ({
+      planet: d.planet,
+      startDate: d.startDate
+    })) || [],
+    7
+  );
 
   return (
     <View style={page1Styles.container}>
       {/* Header */}
       <Header data={data} />
       
-      {/* Top Section: Chart + Dasa */}
+      {/* Top Section: Dasa (left) + Chart (right) */}
       <View style={page1Styles.topSection}>
-        {/* Left: Main Chart */}
-        <MainChart image={data.mainChartImage} />
-        
-        {/* Right: Dasa Tables */}
+        {/* Left: Dasa Tables */}
         <View style={page1Styles.dasaSection}>
           <CurrentDasha data={data} />
           <DasaTable title="VIMSHOTTARI MAHA DASA" items={mahaDashas} />
-          <DasaTable title="ANTAR DASA (TIEU VAN)" items={antarDashas} />
+          <DasaTable title="ANTAR DASA" items={antarDashas} />
           <DasaTable title="PRATYANTAR DASA" items={pratyantarDashas} />
         </View>
+
+        {/* Right: Main Chart */}
+        <MainChart image={data.mainChartImage} />
       </View>
       
       {/* Bottom: Planetary Details */}

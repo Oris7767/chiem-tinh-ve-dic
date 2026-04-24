@@ -26,9 +26,6 @@ const pdfStyles = StyleSheet.create({
  * Component chính của document PDF
  */
 export const VedicPdfReport: React.FC<{ data: PdfReportData }> = ({ data }) => {
-  // Check if we have vargas data
-  const hasVargas = data.chartData.vargas && data.chartData.vargas.length > 0;
-
   return (
     <Document
       title={`La So Chiem Tinh Ve Da - ${data.birthData?.name || 'Unknown'}`}
@@ -46,16 +43,14 @@ export const VedicPdfReport: React.FC<{ data: PdfReportData }> = ({ data }) => {
         <Page1 data={data} />
       </Page>
 
-      {/* Page 2: 16 D-Varga Charts - only render if we have vargas */}
-      {hasVargas && (
-        <Page
-          size="A4"
-          orientation="portrait"
-          style={pdfStyles.page}
-        >
-          <Page2 data={data} />
-        </Page>
-      )}
+      {/* Page 2: 16 D-Varga Charts */}
+      <Page
+        size="A4"
+        orientation="portrait"
+        style={pdfStyles.page}
+      >
+        <Page2 data={data} />
+      </Page>
     </Document>
   );
 };
