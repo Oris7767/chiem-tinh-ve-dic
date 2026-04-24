@@ -21,7 +21,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { Json } from '@/integrations/supabase/types';
 import { DateTime } from 'luxon';
 import { downloadCompleteSVG, downloadSeparateSVGs } from '@/utils/svgExportUtils';
-import { downloadAsPNG, exportVedicChartPDF, openPrintablePage, printVedicChart } from '@/utils/imageExportUtils';
+import { downloadAsPNG, openPrintablePage, printVedicChart } from '@/utils/imageExportUtils';
+import { generatePDFFromAppData } from '@/pdf';
+import { calculateAllVargas } from '@/utils/vargaCalculations';
 import { Progress } from "@/components/ui/progress";
 import PlanetAspectsTable from './PlanetAspectsTable';
 import PlanetDetailsTable from './PlanetDetailsTable';
@@ -499,20 +501,50 @@ const VedicChart = () => {
       return;
     }
 
-    // Check if SVG chart exists
-    const svgElement = document.getElementById('birth-chart-svg');
-    if (!svgElement) {
-      toast({
-        title: "Lỗi",
-        description: "Biểu đồ chưa được tải hoàn tất. Vui lòng đợi một chút và thử lại.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
-      console.log('Starting PDF download with chart data:', chartData);
-      await exportVedicChartPDF(chartData, formData);
+      console.log('Starting PDF download with new PDF module...');
+      
+      // Calculate Varga charts
+      const planetsInput = chartData.planets.map(planet => ({
+        id: planet.id,
+        name: planet.name,
+        longitude: parseFloat(String(planet.longitude)) || 0,
+        house: planet.house,
+        sign: planet.sign,
+        retrograde: planet.retrograde,
+      }));
+      
+      const vargaCharts = calculateAllVargas(
+        planetsInput,
+        parseFloat(String(chartData.ascendant)) || 0
+      );
+
+      // Prepare Varga data for PDF
+      const vargas = [
+        { id: 'D1', planets: vargaCharts.D1.planets, ascendantSign: vargaCharts.D1.ascendantSign },
+        { id: 'D2', planets: vargaCharts.D2.planets, ascendantSign: vargaCharts.D2.ascendantSign },
+        { id: 'D3', planets: vargaCharts.D3.planets, ascendantSign: vargaCharts.D3.ascendantSign },
+        { id: 'D4', planets: vargaCharts.D4.planets, ascendantSign: vargaCharts.D4.ascendantSign },
+        { id: 'D7', planets: vargaCharts.D7.planets, ascendantSign: vargaCharts.D7.ascendantSign },
+        { id: 'D9', planets: vargaCharts.D9.planets, ascendantSign: vargaCharts.D9.ascendantSign },
+        { id: 'D10', planets: vargaCharts.D10.planets, ascendantSign: vargaCharts.D10.ascendantSign },
+        { id: 'D12', planets: vargaCharts.D12.planets, ascendantSign: vargaCharts.D12.ascendantSign },
+        { id: 'D16', planets: vargaCharts.D16.planets, ascendantSign: vargaCharts.D16.ascendantSign },
+        { id: 'D20', planets: vargaCharts.D20.planets, ascendantSign: vargaCharts.D20.ascendantSign },
+        { id: 'D24', planets: vargaCharts.D24.planets, ascendantSign: vargaCharts.D24.ascendantSign },
+        { id: 'D27', planets: vargaCharts.D27.planets, ascendantSign: vargaCharts.D27.ascendantSign },
+        { id: 'D30', planets: vargaCharts.D30.planets, ascendantSign: vargaCharts.D30.ascendantSign },
+        { id: 'D40', planets: vargaCharts.D40.planets, ascendantSign: vargaCharts.D40.ascendantSign },
+        { id: 'D45', planets: vargaCharts.D45.planets, ascendantSign: vargaCharts.D45.ascendantSign },
+        { id: 'D60', planets: vargaCharts.D60.planets, ascendantSign: vargaCharts.D60.ascendantSign },
+      ];
+
+      // Generate PDF with new module
+      await generatePDFFromAppData(
+        chartData,
+        formData,
+        { vargas }
+      );
       
       toast({
         title: "Tải xuống thành công",
