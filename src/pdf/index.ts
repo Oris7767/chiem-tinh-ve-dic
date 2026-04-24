@@ -3,6 +3,8 @@
  * Tách biệt hoàn toàn với web UI components
  */
 
+// Polyfills are initialized in main.tsx before this module is loaded
+
 // Components
 export { VedicPdfReport } from './VedicPdfReport';
 
