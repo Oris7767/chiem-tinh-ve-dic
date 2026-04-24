@@ -38,10 +38,10 @@ export const colors = {
 
 // Typography
 export const fonts = {
-  regular: 'Helvetica',
-  bold: 'Helvetica-Bold',
-  oblique: 'Helvetica-Oblique',
-  boldOblique: 'Helvetica-BoldOblique',
+  regular: 'Roboto',
+  bold: 'Roboto',
+  oblique: 'Roboto',
+  boldOblique: 'Roboto',
 };
 
 // Font sizes
@@ -258,11 +258,11 @@ export const page1Styles = StyleSheet.create({
   },
   chartSection: {
     width: '62%',
-    aspectRatio: 1,
     backgroundColor: colors.white,
     borderWidth: 2,
     borderColor: colors.brown,
     borderStyle: 'solid',
+    aspectRatio: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -348,19 +348,18 @@ export const page1Styles = StyleSheet.create({
   },
   planetaryTableHeaderText: {
     fontFamily: fonts.bold,
-    fontSize: fontSizes.tiny,
+    fontSize: 9,
     color: colors.textDark,
   },
   planetaryTableRow: {
     flexDirection: 'row',
     paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.xs,
     borderBottomWidth: 0.5,
     borderBottomColor: colors.border,
   },
   planetaryTableCell: {
     fontFamily: fonts.regular,
-    fontSize: fontSizes.tiny,
+    fontSize: 9,
     color: colors.textDark,
   },
   motionDirect: {
@@ -429,6 +428,17 @@ export const page2Styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     objectFit: 'contain',
+  },
+  vargaPlaceholder: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: colors.creamLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  vargaPlaceholderText: {
+    fontSize: fontSizes.small,
+    color: colors.textLight,
   },
 });
 

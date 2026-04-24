@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { View, Text, Image, StyleSheet } from '@react-pdf/renderer';
-import { page1Styles, colors, fonts, fontSizes, spacing } from '../styles';
+import { page1Styles, commonStyles, colors, fonts, fontSizes, spacing } from '../styles';
 import { PdfReportData } from '../types';
 
 // Planet name mapping (Vietnamese ASCII)
@@ -76,9 +76,9 @@ function getPlanetShort(name: string): string {
 
 // Header Component
 const Header: React.FC<{ data: PdfReportData }> = ({ data }) => (
-  <View style={page1Styles.header}>
-    <Text style={page1Styles.headerTitle}>LÁ SỐ CHIÊM TINH VỆ ĐÀ</Text>
-    <Text style={page1Styles.headerSubtitle}>
+  <View style={commonStyles.header}>
+    <Text style={commonStyles.headerTitle}>LA SO CHIEM TINH VE DA</Text>
+    <Text style={commonStyles.headerSubtitle}>
       {data.birthData?.name || 'Khong ten'} - {data.birthData?.birthDate || ''} {data.birthData?.birthTime || ''} - {data.birthData?.location || ''}
     </Text>
   </View>
@@ -98,18 +98,18 @@ const MainChart: React.FC<{ image: string | undefined }> = ({ image }) => (
 // Current Dasha Component
 const CurrentDasha: React.FC<{ data: PdfReportData }> = ({ data }) => {
   const current = data.chartData.dashas?.current;
-  
+
   if (!current) return null;
-  
+
   return (
     <View style={page1Styles.currentDasha}>
-      <Text style={page1Styles.currentDashaTitle}>ĐẠI VẬN HIỆN TẠI</Text>
+      <Text style={page1Styles.currentDashaTitle}>DAI VAN HIEN TAI</Text>
       <Text style={page1Styles.currentDashaPlanet}>{getPlanetName(current.planet)}</Text>
       <Text style={page1Styles.currentDashaDate}>
         {formatDate(current.startDate)} - {formatDate(current.endDate)}
       </Text>
       <Text style={page1Styles.currentDashaDate}>
-        Qua: {current.elapsed?.years || 0}y {current.elapsed?.months || 0}m | Còn: {current.remaining?.years || 0}y {current.remaining?.months || 0}m
+        Qua: {current.elapsed?.years || 0}y {current.elapsed?.months || 0}m | Con: {current.remaining?.years || 0}y {current.remaining?.months || 0}m
       </Text>
     </View>
   );
@@ -125,15 +125,15 @@ const DasaTable: React.FC<{
       <Text style={page1Styles.dashaTableTitle}>{title}</Text>
     </View>
     <View style={page1Styles.dashaTableRow}>
-      <Text style={[page1Styles.dashaTableCellBold, { width: '50%' }]}>Hành Tinh</Text>
-      <Text style={[page1Styles.dashaTableCellBold, { width: '50%' }]}>Bắt Đầu</Text>
+      <Text style={[page1Styles.dashaTableCellBold, { flex: 1 }]}>Hanh Tinh</Text>
+      <Text style={[page1Styles.dashaTableCellBold, { flex: 1, textAlign: 'right' }]}>Bat Dau</Text>
     </View>
     {items.slice(0, 12).map((item, index) => (
       <View key={index} style={[page1Styles.dashaTableRow, index % 2 === 1 && { backgroundColor: colors.creamLight }]}>
-        <Text style={[page1Styles.dashaTableCell, { width: '50%' }]}>
+        <Text style={[page1Styles.dashaTableCell, { flex: 1 }]}>
           {getPlanetName(item.planet)}
         </Text>
-        <Text style={[page1Styles.dashaTableCell, { width: '50%' }]}>
+        <Text style={[page1Styles.dashaTableCell, { flex: 1, textAlign: 'right' }]}>
           {formatDate(item.startDate).substring(0, 10)}
         </Text>
       </View>
@@ -141,32 +141,29 @@ const DasaTable: React.FC<{
   </View>
 );
 
-// Planetary Details Table Component
+// Planetary Details Table Component - Fixed layout with proper flex columns
 const PlanetaryTable: React.FC<{ data: PdfReportData }> = ({ data }) => {
-  const columns = ['HT', 'Cung', 'Vị Trí', 'Nhã', 'Nakshatra', 'Chủ Nhà', 'Pd', 'Cd'];
-  const colWidths = [18, 12, 18, 10, 20, 14, 8, 10];
-  
+  // Column widths as flex values for proper alignment
+  const colWidths = { ht: 8, cung: 8, viTri: 14, nha: 6, nakshatra: 20, chuNha: 10, pd: 6, cd: 6 };
+
   return (
     <View style={page1Styles.planetarySection}>
       <View style={page1Styles.planetaryHeader}>
-        <Text style={page1Styles.planetaryTitle}>CHI TIẾT CÁC HÀNH TINH (GRAHA)</Text>
+        <Text style={page1Styles.planetaryTitle}>CHI TIET CAC HANH TINH (GRAHA)</Text>
       </View>
-      
-      {/* Table Header */}
+
+      {/* Table Header - Fixed structure with flex */}
       <View style={page1Styles.planetaryTableHeader}>
-        {columns.map((col, i) => (
-          <Text
-            key={i}
-            style={[
-              page1Styles.planetaryTableHeaderText,
-              { width: colWidths[i], textAlign: i === 0 ? 'left' : 'center' }
-            ]}
-          >
-            {col}
-          </Text>
-        ))}
+        <Text style={[page1Styles.planetaryTableHeaderText, { flex: colWidths.ht }]}>HT</Text>
+        <Text style={[page1Styles.planetaryTableHeaderText, { flex: colWidths.cung, textAlign: 'center' }]}>Cung</Text>
+        <Text style={[page1Styles.planetaryTableHeaderText, { flex: colWidths.viTri, textAlign: 'center' }]}>Vi Tri</Text>
+        <Text style={[page1Styles.planetaryTableHeaderText, { flex: colWidths.nha, textAlign: 'center' }]}>Nha</Text>
+        <Text style={[page1Styles.planetaryTableHeaderText, { flex: colWidths.nakshatra, textAlign: 'center' }]}>Nakshatra</Text>
+        <Text style={[page1Styles.planetaryTableHeaderText, { flex: colWidths.chuNha, textAlign: 'center' }]}>Chu Nha</Text>
+        <Text style={[page1Styles.planetaryTableHeaderText, { flex: colWidths.pd, textAlign: 'center' }]}>Pd</Text>
+        <Text style={[page1Styles.planetaryTableHeaderText, { flex: colWidths.cd, textAlign: 'center' }]}>Cd</Text>
       </View>
-      
+
       {/* Table Rows */}
       {data.chartData.planets.map((planet, index) => (
         <View
@@ -176,31 +173,31 @@ const PlanetaryTable: React.FC<{ data: PdfReportData }> = ({ data }) => {
             index % 2 === 1 && { backgroundColor: colors.creamLight }
           ]}
         >
-          <Text style={[page1Styles.planetaryTableCell, { width: colWidths[0] }]}>
+          <Text style={[page1Styles.planetaryTableCell, { flex: colWidths.ht }]}>
             {getPlanetShort(planet.name)}
           </Text>
-          <Text style={[page1Styles.planetaryTableCell, { width: colWidths[1], textAlign: 'center' }]}>
+          <Text style={[page1Styles.planetaryTableCell, { flex: colWidths.cung, textAlign: 'center' }]}>
             {ZODIAC_SIGNS_SHORT[planet.sign]}
           </Text>
-          <Text style={[page1Styles.planetaryTableCell, { width: colWidths[2], textAlign: 'center' }]}>
+          <Text style={[page1Styles.planetaryTableCell, { flex: colWidths.viTri, textAlign: 'center' }]}>
             {formatDegree(planet.longitude)}
           </Text>
-          <Text style={[page1Styles.planetaryTableCell, { width: colWidths[3], textAlign: 'center' }]}>
+          <Text style={[page1Styles.planetaryTableCell, { flex: colWidths.nha, textAlign: 'center' }]}>
             {planet.house}
           </Text>
-          <Text style={[page1Styles.planetaryTableCell, { width: colWidths[4], textAlign: 'center' }]}>
+          <Text style={[page1Styles.planetaryTableCell, { flex: colWidths.nakshatra, textAlign: 'center' }]}>
             {planet.nakshatra.name}
           </Text>
-          <Text style={[page1Styles.planetaryTableCell, { width: colWidths[5], textAlign: 'center' }]}>
+          <Text style={[page1Styles.planetaryTableCell, { flex: colWidths.chuNha, textAlign: 'center' }]}>
             {planet.nakshatra.lord}
           </Text>
-          <Text style={[page1Styles.planetaryTableCell, { width: colWidths[6], textAlign: 'center' }]}>
+          <Text style={[page1Styles.planetaryTableCell, { flex: colWidths.pd, textAlign: 'center' }]}>
             {planet.nakshatra.pada}
           </Text>
           <Text
             style={[
               page1Styles.planetaryTableCell,
-              { width: colWidths[7], textAlign: 'center' },
+              { flex: colWidths.cd, textAlign: 'center' },
               planet.retrograde ? page1Styles.motionRetrograde : page1Styles.motionDirect
             ]}
           >
@@ -214,16 +211,19 @@ const PlanetaryTable: React.FC<{ data: PdfReportData }> = ({ data }) => {
 
 // Main Page 1 Component
 export const Page1: React.FC<Page1Props> = ({ data }) => {
+  // Maha Dasa sequence
   const mahaDashas = data.chartData.dashas?.sequence?.map(d => ({
     planet: d.planet,
     startDate: d.startDate
   })) || [];
-  
+
+  // Antar Dasa (sub-periods of current Maha Dasa)
   const antarDashas = data.chartData.dashas?.current?.antardashas?.map(d => ({
     planet: d.planet,
     startDate: d.startDate
   })) || [];
-  
+
+  // Pratyantar Dasa (sub-sub-periods) - from first Antardasa if available
   const pratyantarDashas = data.chartData.dashas?.current?.antardashas?.[0]?.pratyantars?.map(d => ({
     planet: d.planet,
     startDate: d.startDate
@@ -252,7 +252,7 @@ export const Page1: React.FC<Page1Props> = ({ data }) => {
       <PlanetaryTable data={data} />
       
       {/* Footer */}
-      <Text style={page1Styles.footer}>Chiêm Tinh Vệ Đà - Vedic Astrology</Text>
+      <Text style={commonStyles.footer}>Generated by Votive VedicVN 2026, All rights reserved</Text>
     </View>
   );
 };

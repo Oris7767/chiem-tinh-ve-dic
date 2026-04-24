@@ -3,6 +3,9 @@
  * Sử dụng @react-pdf/renderer
  */
 
+// Register fonts first - must be before any Document rendering
+import './fonts';
+
 import React from 'react';
 import { Document, Page, StyleSheet } from '@react-pdf/renderer';
 import { Page1 } from './components/Page1';
@@ -23,10 +26,13 @@ const pdfStyles = StyleSheet.create({
  * Component chính của document PDF
  */
 export const VedicPdfReport: React.FC<{ data: PdfReportData }> = ({ data }) => {
+  // Check if we have vargas data
+  const hasVargas = data.chartData.vargas && data.chartData.vargas.length > 0;
+
   return (
     <Document
       title={`La So Chiem Tinh Ve Da - ${data.birthData?.name || 'Unknown'}`}
-      author="Chiêm Tinh Vệ Đà"
+      author="Votive VedicVN"
       subject="Vedic Birth Chart"
       creator="Vedic Astrology App"
       producer="Vedic Astrology App"
@@ -40,14 +46,16 @@ export const VedicPdfReport: React.FC<{ data: PdfReportData }> = ({ data }) => {
         <Page1 data={data} />
       </Page>
 
-      {/* Page 2: 16 D-Varga Charts */}
-      <Page
-        size="A4"
-        orientation="portrait"
-        style={pdfStyles.page}
-      >
-        <Page2 data={data} />
-      </Page>
+      {/* Page 2: 16 D-Varga Charts - only render if we have vargas */}
+      {hasVargas && (
+        <Page
+          size="A4"
+          orientation="portrait"
+          style={pdfStyles.page}
+        >
+          <Page2 data={data} />
+        </Page>
+      )}
     </Document>
   );
 };
