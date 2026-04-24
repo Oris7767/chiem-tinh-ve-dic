@@ -50,6 +50,7 @@ function getPlanetShort(name: string): string {
 
 /**
  * Generate South Indian Chart SVG for Main Chart
+ * Optimized to fit within border with minimal padding
  */
 export function generateMainChartSVG(
   ascendant: number,
@@ -69,10 +70,15 @@ export function generateMainChartSVG(
     return acc;
   }, {});
 
-  // Grid settings
+  // Grid settings - minimal padding for maximum fill
   const gridSize = size / 4;
-  const offsetX = gridSize * 0.5;
-  const offsetY = gridSize * 0.5;
+  const offsetX = 0;
+  const offsetY = 0;
+
+  // Font sizes - smaller for compact fit
+  const signFontSize = size * 0.028;
+  const ascFontSize = size * 0.02;
+  const planetFontSize = size * 0.02;
 
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">
     <rect x="0" y="0" width="${size}" height="${size}" fill="${WHITE}"/>
@@ -92,28 +98,29 @@ export function generateMainChartSVG(
     // Cell border
     svg += `<rect x="${x}" y="${y}" width="${gridSize}" height="${gridSize}" fill="none" stroke="${BROWN}" stroke-width="2"/>`;
 
-    // Sign and house number
-    svg += `<text x="${x + 8}" y="${y + 24}" font-size="${size * 0.03}" fill="${BROWN}" font-weight="bold" font-family="Arial">${ZODIAC_SIGNS_SHORT[signIndex]} ${houseNumber}</text>`;
+    // Sign and house number - positioned in top-left of cell
+    svg += `<text x="${x + 4}" y="${y + 18}" font-size="${signFontSize}" fill="${BROWN}" font-weight="bold" font-family="Arial">${ZODIAC_SIGNS_SHORT[signIndex]} ${houseNumber}</text>`;
 
     // ASC coordinates
     if (isAscendant) {
-      svg += `<text x="${x + 8}" y="${y + 45}" font-size="${size * 0.022}" fill="${BROWN}" font-family="Arial">ASC ${formatDegree(ascendant)}</text>`;
+      svg += `<text x="${x + 4}" y="${y + 34}" font-size="${ascFontSize}" fill="${BROWN}" font-family="Arial">ASC ${formatDegree(ascendant)}</text>`;
     }
 
-    // Planets
+    // Planets - compact positioning
+    const planetStartY = isAscendant ? 48 : 28;
     planetsInHouse.slice(0, 3).forEach((planet, idx) => {
-      const planetY = y + 65 + idx * 22;
+      const planetY = y + planetStartY + idx * 18;
       const suffix = planet.retrograde ? 'R' : '';
-      svg += `<text x="${x + 8}" y="${planetY}" font-size="${size * 0.022}" fill="${BLACK}" font-family="Arial">${getPlanetShort(planet.name)}${suffix} ${formatDegree(planet.longitude)}</text>`;
+      svg += `<text x="${x + 4}" y="${planetY}" font-size="${planetFontSize}" fill="${BLACK}" font-family="Arial">${getPlanetShort(planet.name)}${suffix} ${formatDegree(planet.longitude)}</text>`;
     });
   }
 
-  // Center - draw a simple decorative element
+  // Center - decorative element with Ashtakavarga symbol
   const centerX = size / 2;
   const centerY = size / 2;
-  const centerSize = gridSize * 0.8;
+  const centerSize = gridSize * 0.7;
   svg += `<circle cx="${centerX}" cy="${centerY}" r="${centerSize / 2}" fill="${BROWN_PALE}" stroke="${BROWN}" stroke-width="2"/>`;
-  svg += `<text x="${centerX}" y="${centerY + 5}" font-size="${size * 0.025}" fill="${BROWN}" font-family="Arial" text-anchor="middle">☸</text>`;
+  svg += `<text x="${centerX}" y="${centerY + 5}" font-size="${size * 0.022}" fill="${BROWN}" font-family="Arial" text-anchor="middle">☸</text>`;
 
   svg += '</g></svg>';
   return svg;

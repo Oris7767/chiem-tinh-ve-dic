@@ -77,12 +77,13 @@ export const page1Styles = StyleSheet.create({
     width: '33%',
   },
 
-  // Chart: 100% width, aspectRatio 1
+  // Chart: compact fit with small padding
   chartSection: {
     width: '100%',
     aspectRatio: 1,
     border: '2pt solid #8B4513',
     backgroundColor: '#FFFFFF',
+    padding: 2,
   },
   chartImage: {
     width: '100%',
