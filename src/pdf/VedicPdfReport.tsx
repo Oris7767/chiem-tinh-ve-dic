@@ -3,9 +3,6 @@
  * Sử dụng @react-pdf/renderer
  */
 
-// Register fonts first - must be before any Document rendering
-import './fonts';
-
 import React from 'react';
 import { Document, Page, StyleSheet } from '@react-pdf/renderer';
 import { Page1 } from './components/Page1';
@@ -29,7 +26,7 @@ export const VedicPdfReport: React.FC<{ data: PdfReportData }> = ({ data }) => {
   return (
     <Document
       title={`La So Chiem Tinh Ve Da - ${data.birthData?.name || 'Unknown'}`}
-      author="Votive VedicVN"
+      author="Chiêm Tinh Vệ Đà"
       subject="Vedic Birth Chart"
       creator="Vedic Astrology App"
       producer="Vedic Astrology App"

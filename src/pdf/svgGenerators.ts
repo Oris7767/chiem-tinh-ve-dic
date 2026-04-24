@@ -5,50 +5,6 @@
 
 import { PdfPlanet, PdfHouse, PdfVargaPlanet } from './types';
 
-// Logo as base64 data URL
-const LOGO_DATA_URL = '/images/logo.png';
-
-/**
- * Load image and convert to base64 data URL
- */
-async function loadImageAsDataUrl(src: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        reject(new Error('Cannot get canvas context'));
-        return;
-      }
-      ctx.drawImage(img, 0, 0);
-      resolve(canvas.toDataURL('image/png'));
-    };
-    img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
-    img.src = src;
-  });
-}
-
-// Cache for logo data URL
-let logoDataUrlCache: string | null = null;
-
-/**
- * Get logo as data URL (cached)
- */
-async function getLogoDataUrl(): Promise<string> {
-  if (logoDataUrlCache) return logoDataUrlCache;
-  try {
-    logoDataUrlCache = await loadImageAsDataUrl(LOGO_DATA_URL);
-    return logoDataUrlCache;
-  } catch (e) {
-    console.warn('Failed to load logo, using fallback symbol');
-    return '';
-  }
-}
-
 // Zodiac signs short
 const ZODIAC_SIGNS_SHORT = [
   'Ar', 'Ta', 'Ge', 'Ca', 'Le', 'Vi',
@@ -94,7 +50,6 @@ function getPlanetShort(name: string): string {
 
 /**
  * Generate South Indian Chart SVG for Main Chart
- * Returns SVG with optional logo placeholder
  */
 export function generateMainChartSVG(
   ascendant: number,
@@ -153,52 +108,15 @@ export function generateMainChartSVG(
     });
   }
 
-  // Center circle - decorative background
+  // Center - draw a simple decorative element
   const centerX = size / 2;
   const centerY = size / 2;
   const centerSize = gridSize * 0.8;
   svg += `<circle cx="${centerX}" cy="${centerY}" r="${centerSize / 2}" fill="${BROWN_PALE}" stroke="${BROWN}" stroke-width="2"/>`;
-  // Logo placeholder - will be replaced with actual image in async version
-  svg += `<text x="${centerX}" y="${centerY + 5}" font-size="${size * 0.025}" fill="${BROWN}" font-family="Arial" text-anchor="middle">LOGO</text>`;
+  svg += `<text x="${centerX}" y="${centerY + 5}" font-size="${size * 0.025}" fill="${BROWN}" font-family="Arial" text-anchor="middle">☸</text>`;
 
   svg += '</g></svg>';
   return svg;
-}
-
-/**
- * Generate Main Chart SVG with Logo (async version)
- */
-export async function generateMainChartSVGWithLogo(
-  ascendant: number,
-  planets: PdfPlanet[],
-  houses: PdfHouse[],
-  size: number = 600
-): Promise<string> {
-  // Generate base SVG
-  const baseSvg = generateMainChartSVG(ascendant, planets, houses, size);
-
-  // Try to load logo
-  try {
-    const logoDataUrl = await getLogoDataUrl();
-    if (logoDataUrl) {
-      // Replace the LOGO placeholder with actual image
-      const centerX = size / 2;
-      const centerY = size / 2;
-      const logoSize = size * 0.12; // Logo takes 12% of chart size
-
-      const logoImage = `<image href="${logoDataUrl}" x="${centerX - logoSize / 2}" y="${centerY - logoSize / 2}" width="${logoSize}" height="${logoSize}" preserveAspectRatio="xMidYMid meet"/>`;
-
-      // Find and replace the LOGO text with actual image
-      return baseSvg.replace(
-        /<text x="[^"]*" y="[^"]*" font-size="[^"]*" fill="[^"]*" font-family="Arial" text-anchor="middle">LOGO<\/text>/,
-        logoImage
-      );
-    }
-  } catch (e) {
-    console.warn('Could not load logo:', e);
-  }
-
-  return baseSvg;
 }
 
 /**
@@ -292,7 +210,7 @@ export async function svgToBase64PNG(svgString: string, size: number = 600): Pro
 }
 
 /**
- * Generate all chart images for PDF (with logo)
+ * Generate all chart images for PDF
  */
 export async function generatePDFChartImages(
   ascendant: number,
@@ -303,8 +221,8 @@ export async function generatePDFChartImages(
   mainChartImage: string;
   vargaChartImages: Record<string, string>;
 }> {
-  // Generate main chart SVG with logo
-  const mainSvg = await generateMainChartSVGWithLogo(ascendant, planets, houses, 600);
+  // Generate main chart SVG
+  const mainSvg = generateMainChartSVG(ascendant, planets, houses, 600);
   const mainChartImage = await svgToBase64PNG(mainSvg, 600);
 
   // Generate varga chart images in parallel

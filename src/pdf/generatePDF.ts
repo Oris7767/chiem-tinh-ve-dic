@@ -56,20 +56,6 @@ export function transformChartDataForPDF(chartData: any): PdfVedicChartData {
       },
       sequence: chartData.dashas.sequence || [],
     } : undefined,
-    // Include vargas if available
-    vargas: chartData.vargas ? chartData.vargas.map((v: any) => ({
-      id: v.id,
-      name: v.name,
-      planets: v.planets.map((p: any) => ({
-        id: p.id,
-        name: p.name,
-        house: p.house,
-        vargaSign: p.vargaSign || 0,
-        vargaDegree: p.vargaDegree || 0,
-        retrograde: p.retrograde || false,
-      })),
-      ascendantSign: v.ascendantSign || 0,
-    })) : undefined,
   };
 }
 
