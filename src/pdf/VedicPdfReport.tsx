@@ -3,6 +3,9 @@
  * Sử dụng @react-pdf/renderer
  */
 
+// Register fonts first
+import './fonts';
+
 import React from 'react';
 import { Document, Page, StyleSheet } from '@react-pdf/renderer';
 import { Page1 } from './components/Page1';

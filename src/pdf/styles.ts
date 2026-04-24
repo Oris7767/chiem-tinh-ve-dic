@@ -1,83 +1,55 @@
 /**
- * PDF Styles - StyleSheet.create() cho @react-pdf/renderer
- * Màu sắc cổ điển: Kem nhạt (#FDF5E6) và Nâu trầm (#8B4513)
+ * PDF Styles - @react-pdf/renderer
+ * Layout: Chart LEFT (2/3) | DASA RIGHT (1/3) | Planet table under Chart
  */
 
 import { StyleSheet } from '@react-pdf/renderer';
 
-// Màu sắc cổ điển
+// Colors
 export const colors = {
-  // Background
   cream: '#FDF5E6',
   creamLight: '#FFF8F0',
   creamDark: '#F5E6D3',
-  
-  // Primary - Nâu trầm
   brown: '#8B4513',
   brownDark: '#6B3410',
   brownLight: '#A0522D',
   brownPale: '#DEB887',
-  
-  // Text
   textDark: '#2C1810',
   textMedium: '#5C4033',
   textLight: '#8B7355',
-  
-  // Borders
   border: '#C4A77D',
-  borderDark: '#8B7355',
-  
-  // Status
   retrograde: '#B22222',
   direct: '#228B22',
-  
-  // White
   white: '#FFFFFF',
   black: '#000000',
 };
 
-// Typography
+// Typography - Using Roboto (registered in fonts.ts)
 export const fonts = {
-  regular: 'Helvetica',
-  bold: 'Helvetica-Bold',
-  oblique: 'Helvetica-Oblique',
-  boldOblique: 'Helvetica-BoldOblique',
+  regular: 'Roboto',
+  bold: 'Roboto',
 };
 
 // Font sizes
 export const fontSizes = {
-  title: 18,
-  subtitle: 14,
-  section: 11,
+  title: 16,
+  subtitle: 12,
+  section: 10,
   body: 9,
-  small: 7,
-  tiny: 5,
+  small: 8,
+  tiny: 6,
 };
 
 // Spacing
 export const spacing = {
-  xs: 2,
-  sm: 4,
-  md: 6,
-  lg: 10,
-  xl: 15,
-  xxl: 20,
+  xs: 1,
+  sm: 2,
+  md: 4,
+  lg: 6,
 };
 
 // Common styles
 export const commonStyles = StyleSheet.create({
-  // Containers
-  page: {
-    backgroundColor: colors.cream,
-    padding: spacing.lg,
-    fontFamily: fonts.regular,
-  },
-  pageWithMargin: {
-    backgroundColor: colors.cream,
-    padding: spacing.md,
-  },
-  
-  // Header
   header: {
     backgroundColor: colors.brown,
     padding: spacing.md,
@@ -85,197 +57,69 @@ export const commonStyles = StyleSheet.create({
   },
   headerTitle: {
     fontFamily: fonts.bold,
-    fontSize: fontSizes.subtitle,
+    fontSize: 14,
     color: colors.white,
     textAlign: 'center',
   },
   headerSubtitle: {
     fontFamily: fonts.regular,
-    fontSize: fontSizes.small,
+    fontSize: 8,
     color: colors.cream,
     textAlign: 'center',
     marginTop: spacing.xs,
   },
-  
-  // Sections
-  section: {
-    backgroundColor: colors.creamLight,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderStyle: 'solid',
-    marginBottom: spacing.md,
-  },
-  sectionHeader: {
-    backgroundColor: colors.brown,
-    padding: spacing.sm,
-  },
-  sectionTitle: {
-    fontFamily: fonts.bold,
-    fontSize: fontSizes.body,
-    color: colors.white,
-    textAlign: 'center',
-  },
-  sectionContent: {
-    padding: spacing.sm,
-  },
-  
-  // Table styles
-  table: {
-    width: '100%',
-  },
-  tableHeader: {
-    flexDirection: 'row',
-    backgroundColor: colors.brownPale,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.xs,
-  },
-  tableHeaderText: {
-    fontFamily: fonts.bold,
-    fontSize: fontSizes.tiny,
-    color: colors.textDark,
-  },
-  tableRow: {
-    flexDirection: 'row',
-    borderBottomWidth: 0.5,
-    borderBottomColor: colors.border,
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.xs,
-  },
-  tableRowAlt: {
-    flexDirection: 'row',
-    backgroundColor: colors.creamLight,
-    borderBottomWidth: 0.5,
-    borderBottomColor: colors.border,
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.xs,
-  },
-  tableCell: {
-    fontFamily: fonts.regular,
-    fontSize: fontSizes.tiny,
-    color: colors.textDark,
-  },
-  tableCellBold: {
-    fontFamily: fonts.bold,
-    fontSize: fontSizes.tiny,
-    color: colors.textDark,
-  },
-  
-  // Text styles
-  text: {
-    fontFamily: fonts.regular,
-    fontSize: fontSizes.body,
-    color: colors.textDark,
-  },
-  textBold: {
-    fontFamily: fonts.bold,
-    fontSize: fontSizes.body,
-    color: colors.textDark,
-  },
-  textSmall: {
-    fontFamily: fonts.regular,
-    fontSize: fontSizes.small,
-    color: colors.textMedium,
-  },
-  textTitle: {
-    fontFamily: fonts.bold,
-    fontSize: fontSizes.title,
-    color: colors.brown,
-  },
-  
-  // Flex helpers
-  row: {
-    flexDirection: 'row',
-  },
-  column: {
-    flexDirection: 'column',
-  },
-  center: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  between: {
-    justifyContent: 'space-between',
-  },
-  around: {
-    justifyContent: 'space-around',
-  },
-  
-  // Spacing helpers
-  mt: {
-    marginTop: spacing.md,
-  },
-  mb: {
-    marginBottom: spacing.md,
-  },
-  ml: {
-    marginLeft: spacing.md,
-  },
-  mr: {
-    marginRight: spacing.md,
-  },
-  pa: {
-    padding: spacing.md,
-  },
-  
-  // Border helpers
-  border: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderStyle: 'solid',
-  },
-  borderRadius: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderStyle: 'solid',
-    borderRadius: 4,
-  },
-  
-  // Footer
   footer: {
     position: 'absolute',
-    bottom: spacing.lg,
-    left: spacing.lg,
-    right: spacing.lg,
+    bottom: spacing.md,
+    left: spacing.md,
+    right: spacing.md,
     textAlign: 'center',
-    fontFamily: fonts.oblique,
-    fontSize: fontSizes.tiny,
+    fontFamily: fonts.regular,
+    fontSize: 6,
     color: colors.textLight,
   },
 });
 
-// Page 1 specific styles
+// Page 1 styles
 export const page1Styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.cream,
   },
+
+  // Top section: Chart (LEFT, 2/3) + Dasa (RIGHT, 1/3)
   topSection: {
     flexDirection: 'row',
     marginBottom: spacing.sm,
   },
-  // Chart on the RIGHT side (top-right)
-  chartSection: {
-    width: '62%',
-    aspectRatio: 1,
-    backgroundColor: colors.white,
-    borderWidth: 2,
-    borderColor: colors.brown,
-    borderStyle: 'solid',
+
+  // Chart container - 2/3 width, centered
+  chartWrapper: {
+    width: '65%',
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
   },
+  chartSection: {
+    width: 260,
+    height: 260,
+    backgroundColor: colors.white,
+    borderWidth: 2,
+    borderColor: colors.brown,
+  },
   chartImage: {
-    width: '98%',
-    height: '98%',
+    width: '100%',
+    height: '100%',
     objectFit: 'contain',
   },
-  // Dasa on the LEFT side
+
+  // Dasa section - 1/3 width
   dasaSection: {
     flex: 1,
-    marginRight: spacing.sm,
+    marginLeft: spacing.sm,
   },
+
+  // Current dasha info
   currentDasha: {
     backgroundColor: colors.creamDark,
     borderWidth: 1,
@@ -285,59 +129,64 @@ export const page1Styles = StyleSheet.create({
   },
   currentDashaTitle: {
     fontFamily: fonts.bold,
-    fontSize: fontSizes.small,
+    fontSize: 7,
     color: colors.brown,
-    marginBottom: spacing.xs,
+    marginBottom: 1,
   },
   currentDashaPlanet: {
     fontFamily: fonts.bold,
-    fontSize: fontSizes.body,
+    fontSize: 8,
     color: colors.textDark,
   },
   currentDashaDate: {
     fontFamily: fonts.regular,
-    fontSize: fontSizes.tiny,
+    fontSize: 6,
     color: colors.textMedium,
-    marginTop: spacing.xs,
+    marginTop: 1,
   },
+
+  // Dasa table styles - compact
   dashaTableHeader: {
     backgroundColor: colors.brown,
     padding: spacing.xs,
   },
   dashaTableTitle: {
     fontFamily: fonts.bold,
-    fontSize: fontSizes.tiny,
+    fontSize: 6,
     color: colors.white,
   },
   dashaTableRow: {
     flexDirection: 'row',
-    paddingVertical: 2,
+    paddingVertical: 1,
     paddingHorizontal: spacing.xs,
     borderBottomWidth: 0.5,
     borderBottomColor: colors.border,
   },
   dashaTableCell: {
     fontFamily: fonts.regular,
-    fontSize: fontSizes.tiny,
+    fontSize: 6,
     color: colors.textDark,
   },
   dashaTableCellBold: {
     fontFamily: fonts.bold,
-    fontSize: fontSizes.tiny,
+    fontSize: 6,
     color: colors.textDark,
   },
+
+  // Planetary table - under chart, only 2/3 width
   planetarySection: {
+    width: '65%',
     backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: colors.brown,
   },
   planetaryHeader: {
     backgroundColor: colors.brown,
-    padding: spacing.sm,
+    padding: spacing.xs,
   },
   planetaryTitle: {
     fontFamily: fonts.bold,
-    fontSize: fontSizes.small,
+    fontSize: 7,
     color: colors.white,
     textAlign: 'center',
   },
@@ -349,8 +198,9 @@ export const page1Styles = StyleSheet.create({
   },
   planetaryTableHeaderText: {
     fontFamily: fonts.bold,
-    fontSize: fontSizes.tiny,
+    fontSize: 6,
     color: colors.textDark,
+    textAlign: 'center',
   },
   planetaryTableRow: {
     flexDirection: 'row',
@@ -361,8 +211,9 @@ export const page1Styles = StyleSheet.create({
   },
   planetaryTableCell: {
     fontFamily: fonts.regular,
-    fontSize: fontSizes.tiny,
+    fontSize: 6,
     color: colors.textDark,
+    textAlign: 'center',
   },
   motionDirect: {
     color: colors.direct,
@@ -372,7 +223,7 @@ export const page1Styles = StyleSheet.create({
   },
 });
 
-// Page 2 specific styles (Vargas)
+// Page 2 styles
 export const page2Styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -381,17 +232,17 @@ export const page2Styles = StyleSheet.create({
   header: {
     backgroundColor: colors.brown,
     padding: spacing.md,
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
   },
   headerTitle: {
     fontFamily: fonts.bold,
-    fontSize: fontSizes.subtitle,
+    fontSize: 12,
     color: colors.white,
     textAlign: 'center',
   },
   headerSubtitle: {
     fontFamily: fonts.regular,
-    fontSize: fontSizes.small,
+    fontSize: 8,
     color: colors.cream,
     textAlign: 'center',
     marginTop: spacing.xs,
@@ -399,7 +250,6 @@ export const page2Styles = StyleSheet.create({
   vargasGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'flex-start',
   },
   vargaCell: {
     width: '25%',
@@ -407,14 +257,13 @@ export const page2Styles = StyleSheet.create({
     padding: spacing.xs,
     justifyContent: 'center',
     alignItems: 'center',
-    // NO border for maximum space
   },
   vargaTitle: {
     fontFamily: fonts.bold,
-    fontSize: fontSizes.tiny,
+    fontSize: 6,
     color: colors.brown,
     textAlign: 'center',
-    marginBottom: 2,
+    marginBottom: 1,
   },
   vargaImage: {
     width: '100%',
@@ -422,15 +271,3 @@ export const page2Styles = StyleSheet.create({
     objectFit: 'contain',
   },
 });
-
-// Helper function to get column widths for planetary table
-export const getPlanetaryColumnWidths = () => [
-  25, // Planet name
-  15, // Sign
-  20, // Position
-  10, // House
-  25, // Nakshatra
-  15, // Lord
-  8,  // Pada
-  12, // Motion
-];
