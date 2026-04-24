@@ -23,6 +23,18 @@ const PLANET_NAMES: Record<string, string> = {
 
 const ZODIAC_SHORT = ['Ar', 'Ta', 'Ge', 'Ca', 'Le', 'Vi', 'Li', 'Sc', 'Sg', 'Cp', 'Aq', 'Pi'];
 
+// Planet table column widths: HT(10%), Cung(10%), ViTri(15%), Nha(8%), Nakshatra(25%), ChuNha(15%), Pd(8%), Cd(9%)
+const PLANET_COL_WIDTHS = {
+  ht: '10%',
+  cung: '10%',
+  viTri: '15%',
+  nha: '8%',
+  nakshatra: '25%',
+  chuNha: '15%',
+  pd: '8%',
+  cd: '9%',
+};
+
 interface Page1Props {
   data: PdfReportData;
 }
@@ -126,35 +138,35 @@ const DasaTable: React.FC<{
   </View>
 );
 
-// Planet Table
+// Planet Table with specific % widths
 const PlanetaryTable: React.FC<{ data: PdfReportData }> = ({ data }) => (
   <View style={page1Styles.planetarySection}>
     <View style={page1Styles.planetaryHeader}>
       <Text style={page1Styles.planetaryTitle}>CHI TIET CAC HANH TINH</Text>
     </View>
     <View style={page1Styles.planetaryTableHeader}>
-      <Text style={[page1Styles.planetaryTableHeaderText, { flex: 1 }]}>HT</Text>
-      <Text style={[page1Styles.planetaryTableHeaderText, { flex: 1 }]}>Cung</Text>
-      <Text style={[page1Styles.planetaryTableHeaderText, { flex: 1.2 }]}>Vi Tri</Text>
-      <Text style={[page1Styles.planetaryTableHeaderText, { flex: 0.8 }]}>Nha</Text>
-      <Text style={[page1Styles.planetaryTableHeaderText, { flex: 1.5 }]}>Nakshatra</Text>
-      <Text style={[page1Styles.planetaryTableHeaderText, { flex: 1 }]}>Chu Nha</Text>
-      <Text style={[page1Styles.planetaryTableHeaderText, { flex: 0.6 }]}>Pd</Text>
-      <Text style={[page1Styles.planetaryTableHeaderText, { flex: 0.6 }]}>Cd</Text>
+      <Text style={[page1Styles.planetaryTableHeaderText, { width: PLANET_COL_WIDTHS.ht }]}>HT</Text>
+      <Text style={[page1Styles.planetaryTableHeaderText, { width: PLANET_COL_WIDTHS.cung }]}>Cung</Text>
+      <Text style={[page1Styles.planetaryTableHeaderText, { width: PLANET_COL_WIDTHS.viTri }]}>Vi Tri</Text>
+      <Text style={[page1Styles.planetaryTableHeaderText, { width: PLANET_COL_WIDTHS.nha }]}>Nha</Text>
+      <Text style={[page1Styles.planetaryTableHeaderText, { width: PLANET_COL_WIDTHS.nakshatra }]}>Nakshatra</Text>
+      <Text style={[page1Styles.planetaryTableHeaderText, { width: PLANET_COL_WIDTHS.chuNha }]}>Chu Nha</Text>
+      <Text style={[page1Styles.planetaryTableHeaderText, { width: PLANET_COL_WIDTHS.pd }]}>Pd</Text>
+      <Text style={[page1Styles.planetaryTableHeaderText, { width: PLANET_COL_WIDTHS.cd }]}>Cd</Text>
     </View>
     {data.chartData.planets.map((planet, index) => (
       <View key={planet.id} style={[
         page1Styles.planetaryTableRow,
         index % 2 === 1 && { backgroundColor: colors.creamLight }
       ]}>
-        <Text style={[page1Styles.planetaryTableCell, { flex: 1 }]}>{PLANET_SHORT[planet.name] || planet.name}</Text>
-        <Text style={[page1Styles.planetaryTableCell, { flex: 1 }]}>{ZODIAC_SHORT[planet.sign]}</Text>
-        <Text style={[page1Styles.planetaryTableCell, { flex: 1.2 }]}>{formatDegree(planet.longitude)}</Text>
-        <Text style={[page1Styles.planetaryTableCell, { flex: 0.8 }]}>{planet.house}</Text>
-        <Text style={[page1Styles.planetaryTableCell, { flex: 1.5 }]}>{planet.nakshatra.name}</Text>
-        <Text style={[page1Styles.planetaryTableCell, { flex: 1 }]}>{planet.nakshatra.lord}</Text>
-        <Text style={[page1Styles.planetaryTableCell, { flex: 0.6 }]}>{planet.nakshatra.pada}</Text>
-        <Text style={[page1Styles.planetaryTableCell, { flex: 0.6 }]}>
+        <Text style={[page1Styles.planetaryTableCell, { width: PLANET_COL_WIDTHS.ht }]}>{PLANET_SHORT[planet.name] || planet.name}</Text>
+        <Text style={[page1Styles.planetaryTableCell, { width: PLANET_COL_WIDTHS.cung }]}>{ZODIAC_SHORT[planet.sign]}</Text>
+        <Text style={[page1Styles.planetaryTableCell, { width: PLANET_COL_WIDTHS.viTri }]}>{formatDegree(planet.longitude)}</Text>
+        <Text style={[page1Styles.planetaryTableCell, { width: PLANET_COL_WIDTHS.nha }]}>{planet.house}</Text>
+        <Text style={[page1Styles.planetaryTableCell, { width: PLANET_COL_WIDTHS.nakshatra }]}>{planet.nakshatra.name}</Text>
+        <Text style={[page1Styles.planetaryTableCell, { width: PLANET_COL_WIDTHS.chuNha }]}>{planet.nakshatra.lord}</Text>
+        <Text style={[page1Styles.planetaryTableCell, { width: PLANET_COL_WIDTHS.pd }]}>{planet.nakshatra.pada}</Text>
+        <Text style={[page1Styles.planetaryTableCell, { width: PLANET_COL_WIDTHS.cd }]}>
           {planet.retrograde ? 'Ng' : 'Th'}
         </Text>
       </View>
@@ -164,7 +176,7 @@ const PlanetaryTable: React.FC<{ data: PdfReportData }> = ({ data }) => (
 
 // Main Page 1
 export const Page1: React.FC<Page1Props> = ({ data }) => {
-  // Maha Dasa - from sequence array (each has planet, startDate, endDate)
+  // Maha Dasa
   const mahaDashas = getFutureItems(
     (data.chartData.dashas?.sequence || []).map(d => ({
       planet: d.planet,
@@ -174,7 +186,7 @@ export const Page1: React.FC<Page1Props> = ({ data }) => {
     12
   );
 
-  // Antar Dasa - from current.antardashas array
+  // Antar Dasa
   const antarDashas = getFutureItems(
     (data.chartData.dashas?.current?.antardashas || []).map(d => ({
       planet: d.planet,
@@ -184,7 +196,7 @@ export const Page1: React.FC<Page1Props> = ({ data }) => {
     9
   );
 
-  // Pratyantar Dasa - from first antardasha's pratyantars
+  // Pratyantar Dasa
   const pratyantarDashas = getFutureItems(
     (data.chartData.dashas?.current?.antardashas?.[0]?.pratyantars || []).map(d => ({
       planet: d.planet,

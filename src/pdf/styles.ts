@@ -77,14 +77,12 @@ export const page1Styles = StyleSheet.create({
     width: '33%',
   },
 
-  // Chart: Fixed 280x280, centered
+  // Chart: 100% width, aspectRatio 1
   chartSection: {
-    width: 280,
-    height: 280,
+    width: '100%',
+    aspectRatio: 1,
     border: '2pt solid #8B4513',
     backgroundColor: '#FFFFFF',
-    alignSelf: 'center',
-    marginBottom: 10,
   },
   chartImage: {
     width: '100%',
@@ -113,6 +111,7 @@ export const page1Styles = StyleSheet.create({
     paddingVertical: 2,
     paddingHorizontal: 4,
   },
+  // Specific widths: HT(10%), Cung(10%), ViTri(15%), Nha(8%), Nakshatra(25%), ChuNha(15%), Pd(8%), Cd(9%)
   planetaryTableHeaderText: {
     fontFamily: 'Roboto',
     fontSize: 6,
