@@ -1,10 +1,10 @@
 /**
- * Page 1: Chart LEFT + DASA RIGHT | Planet table under Chart
+ * Page 1: LEFT (Chart + Planet Table) | RIGHT (DASA)
  */
 
 import React from 'react';
 import { View, Text, Image } from '@react-pdf/renderer';
-import { page1Styles, commonStyles, colors, spacing } from '../styles';
+import { page1Styles, commonStyles, colors } from '../styles';
 import { PdfReportData } from '../types';
 
 // Planet mappings
@@ -47,12 +47,8 @@ function getPlanetName(name: string): string {
   return PLANET_NAMES[name] || name;
 }
 
-function getPlanetShort(name: string): string {
-  return PLANET_SHORT[name] || name.substring(0, 2);
-}
-
 // Get items from current position onwards
-function getFutureItems<T extends { startDate?: string }>(items: T[], maxItems: number = 7): T[] {
+function getFutureItems<T extends { startDate?: string }>(items: T[], maxItems: number = 12): T[] {
   if (!items || items.length === 0) return [];
   const now = new Date();
   let currentIndex = 0;
@@ -77,20 +73,18 @@ const Header: React.FC<{ data: PdfReportData }> = ({ data }) => (
   </View>
 );
 
-// Main Chart - LEFT side
+// Main Chart
 const MainChart: React.FC<{ image?: string }> = ({ image }) => (
-  <View style={page1Styles.chartWrapper}>
-    <View style={page1Styles.chartSection}>
-      {image ? (
-        <Image src={image} style={page1Styles.chartImage} />
-      ) : (
-        <Text style={{ color: colors.textLight, fontSize: 8 }}>Dang tai bieu do...</Text>
-      )}
-    </View>
+  <View style={page1Styles.chartSection}>
+    {image ? (
+      <Image src={image} style={page1Styles.chartImage} />
+    ) : (
+      <Text style={{ color: colors.textLight, fontFamily: 'Roboto', fontSize: 8 }}>Dang tai bieu do...</Text>
+    )}
   </View>
 );
 
-// Current Dasha
+// Current Dasha Info
 const CurrentDasha: React.FC<{ data: PdfReportData }> = ({ data }) => {
   const current = data.chartData.dashas?.current;
   if (!current) return null;
@@ -109,32 +103,30 @@ const CurrentDasha: React.FC<{ data: PdfReportData }> = ({ data }) => {
   );
 };
 
-// Dasa Table - compact with Planet + Start Date on same row
+// DASA Table - Planet | StartDate - EndDate
 const DasaTable: React.FC<{
   title: string;
-  items: Array<{ planet: string; startDate: string }>;
+  items: Array<{ planet: string; startDate: string; endDate?: string }>;
 }> = ({ title, items }) => (
-  <View style={{ marginBottom: spacing.xs }}>
-    <View style={page1Styles.dashaTableHeader}>
-      <Text style={page1Styles.dashaTableTitle}>{title}</Text>
+  <View style={page1Styles.dasaTable}>
+    <View style={page1Styles.dasaTableHeader}>
+      <Text style={page1Styles.dasaTableTitle}>{title}</Text>
     </View>
     {items.map((item, index) => (
       <View key={index} style={[
-        page1Styles.dashaTableRow,
+        page1Styles.dasaRow,
         index % 2 === 1 && { backgroundColor: colors.creamLight }
       ]}>
-        <Text style={[page1Styles.dashaTableCell, { flex: 1 }]}>
-          {getPlanetName(item.planet)}
-        </Text>
-        <Text style={[page1Styles.dashaTableCell, { flex: 1, textAlign: 'right' }]}>
-          {formatDate(item.startDate).substring(0, 10)}
+        <Text style={page1Styles.dasaText}>{getPlanetName(item.planet)}</Text>
+        <Text style={page1Styles.dasaText}>
+          {formatDate(item.startDate)} - {item.endDate ? formatDate(item.endDate) : '-'}
         </Text>
       </View>
     ))}
   </View>
 );
 
-// Planetary Table - under chart, compact
+// Planet Table
 const PlanetaryTable: React.FC<{ data: PdfReportData }> = ({ data }) => (
   <View style={page1Styles.planetarySection}>
     <View style={page1Styles.planetaryHeader}>
@@ -155,7 +147,7 @@ const PlanetaryTable: React.FC<{ data: PdfReportData }> = ({ data }) => (
         page1Styles.planetaryTableRow,
         index % 2 === 1 && { backgroundColor: colors.creamLight }
       ]}>
-        <Text style={[page1Styles.planetaryTableCell, { flex: 1 }]}>{getPlanetShort(planet.name)}</Text>
+        <Text style={[page1Styles.planetaryTableCell, { flex: 1 }]}>{PLANET_SHORT[planet.name] || planet.name}</Text>
         <Text style={[page1Styles.planetaryTableCell, { flex: 1 }]}>{ZODIAC_SHORT[planet.sign]}</Text>
         <Text style={[page1Styles.planetaryTableCell, { flex: 1.2 }]}>{formatDegree(planet.longitude)}</Text>
         <Text style={[page1Styles.planetaryTableCell, { flex: 0.8 }]}>{planet.house}</Text>
@@ -172,21 +164,33 @@ const PlanetaryTable: React.FC<{ data: PdfReportData }> = ({ data }) => (
 
 // Main Page 1
 export const Page1: React.FC<Page1Props> = ({ data }) => {
-  // Maha Dasa - from current, max 12
+  // Maha Dasa - from sequence array (each has planet, startDate, endDate)
   const mahaDashas = getFutureItems(
-    data.chartData.dashas?.sequence?.map(d => ({ planet: d.planet, startDate: d.startDate })) || [],
+    (data.chartData.dashas?.sequence || []).map(d => ({
+      planet: d.planet,
+      startDate: d.startDate,
+      endDate: d.endDate
+    })),
     12
   );
 
-  // Antar Dasa - from current, max 9
+  // Antar Dasa - from current.antardashas array
   const antarDashas = getFutureItems(
-    data.chartData.dashas?.current?.antardashas?.map(d => ({ planet: d.planet, startDate: d.startDate })) || [],
+    (data.chartData.dashas?.current?.antardashas || []).map(d => ({
+      planet: d.planet,
+      startDate: d.startDate,
+      endDate: d.endDate
+    })),
     9
   );
 
-  // Pratyantar Dasa - from first antar, max 9
+  // Pratyantar Dasa - from first antardasha's pratyantars
   const pratyantarDashas = getFutureItems(
-    data.chartData.dashas?.current?.antardashas?.[0]?.pratyantars?.map(d => ({ planet: d.planet, startDate: d.startDate })) || [],
+    (data.chartData.dashas?.current?.antardashas?.[0]?.pratyantars || []).map(d => ({
+      planet: d.planet,
+      startDate: d.startDate,
+      endDate: d.endDate
+    })),
     9
   );
 
@@ -194,22 +198,24 @@ export const Page1: React.FC<Page1Props> = ({ data }) => {
     <View style={page1Styles.container}>
       <Header data={data} />
 
-      {/* Top Section: Chart (LEFT, 2/3) + DASA (RIGHT, 1/3) */}
-      <View style={page1Styles.topSection}>
-        {/* LEFT: Main Chart */}
-        <MainChart image={data.mainChartImage} />
+      {/* Main Layout: LEFT 65% | RIGHT 33% */}
+      <View style={page1Styles.mainLayout}>
 
-        {/* RIGHT: Dasa Tables */}
-        <View style={page1Styles.dasaSection}>
+        {/* LEFT Column: Chart + Planet Table */}
+        <View style={page1Styles.leftColumn}>
+          <MainChart image={data.mainChartImage} />
+          <PlanetaryTable data={data} />
+        </View>
+
+        {/* RIGHT Column: All DASA tables */}
+        <View style={page1Styles.rightColumn}>
           <CurrentDasha data={data} />
           <DasaTable title="VIMSHOTTARI MAHA DASA" items={mahaDashas} />
           <DasaTable title="ANTAR DASA" items={antarDashas} />
           <DasaTable title="PRATYANTAR DASA" items={pratyantarDashas} />
         </View>
-      </View>
 
-      {/* Bottom: Planetary Table - under chart only */}
-      <PlanetaryTable data={data} />
+      </View>
 
       {/* Footer */}
       <Text style={commonStyles.footer}>Generated by Votive VedicVN 2026, All rights reserved</Text>

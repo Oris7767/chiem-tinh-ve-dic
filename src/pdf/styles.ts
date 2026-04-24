@@ -1,6 +1,6 @@
 /**
  * PDF Styles - @react-pdf/renderer
- * Layout: Chart LEFT (2/3) | DASA RIGHT (1/3) | Planet table under Chart
+ * Layout: LEFT 65% (Chart + Planet Table) | RIGHT 33% (DASA)
  */
 
 import { StyleSheet } from '@react-pdf/renderer';
@@ -11,8 +11,6 @@ export const colors = {
   creamLight: '#FFF8F0',
   creamDark: '#F5E6D3',
   brown: '#8B4513',
-  brownDark: '#6B3410',
-  brownLight: '#A0522D',
   brownPale: '#DEB887',
   textDark: '#2C1810',
   textMedium: '#5C4033',
@@ -21,91 +19,72 @@ export const colors = {
   retrograde: '#B22222',
   direct: '#228B22',
   white: '#FFFFFF',
-  black: '#000000',
-};
-
-// Typography - Using Roboto (registered in fonts.ts)
-export const fonts = {
-  regular: 'Roboto',
-  bold: 'Roboto',
-};
-
-// Font sizes
-export const fontSizes = {
-  title: 16,
-  subtitle: 12,
-  section: 10,
-  body: 9,
-  small: 8,
-  tiny: 6,
-};
-
-// Spacing
-export const spacing = {
-  xs: 1,
-  sm: 2,
-  md: 4,
-  lg: 6,
 };
 
 // Common styles
 export const commonStyles = StyleSheet.create({
   header: {
-    backgroundColor: colors.brown,
-    padding: spacing.md,
-    marginBottom: spacing.md,
+    backgroundColor: '#8B4513',
+    padding: 8,
+    marginBottom: 10,
   },
   headerTitle: {
-    fontFamily: fonts.bold,
+    fontFamily: 'Roboto',
     fontSize: 14,
-    color: colors.white,
+    color: '#FFFFFF',
     textAlign: 'center',
   },
   headerSubtitle: {
-    fontFamily: fonts.regular,
+    fontFamily: 'Roboto',
     fontSize: 8,
-    color: colors.cream,
+    color: '#FDF5E6',
     textAlign: 'center',
-    marginTop: spacing.xs,
+    marginTop: 2,
   },
   footer: {
     position: 'absolute',
-    bottom: spacing.md,
-    left: spacing.md,
-    right: spacing.md,
+    bottom: 15,
+    left: 20,
+    right: 20,
     textAlign: 'center',
-    fontFamily: fonts.regular,
-    fontSize: 6,
-    color: colors.textLight,
+    fontFamily: 'Roboto',
+    fontSize: 7,
+    color: '#8B7355',
   },
 });
 
 // Page 1 styles
 export const page1Styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: colors.cream,
+    padding: 20,
+    backgroundColor: '#FDF5E6',
+    fontFamily: 'Roboto',
   },
 
-  // Top section: Chart (LEFT, 2/3) + Dasa (RIGHT, 1/3)
-  topSection: {
+  // Main Layout: LEFT 65% | RIGHT 33%
+  mainLayout: {
     flexDirection: 'row',
-    marginBottom: spacing.sm,
+    justifyContent: 'space-between',
   },
 
-  // Chart container - 2/3 width, centered
-  chartWrapper: {
+  // LEFT Column: Chart + Planet Table
+  leftColumn: {
     width: '65%',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
+
+  // RIGHT Column: All DASA tables
+  rightColumn: {
+    width: '33%',
+  },
+
+  // Chart: Fixed 280x280, centered
   chartSection: {
-    width: 260,
-    height: 260,
-    backgroundColor: colors.white,
-    borderWidth: 2,
-    borderColor: colors.brown,
+    width: 280,
+    height: 280,
+    border: '2pt solid #8B4513',
+    backgroundColor: '#FFFFFF',
+    alignSelf: 'center',
+    marginBottom: 10,
   },
   chartImage: {
     width: '100%',
@@ -113,139 +92,122 @@ export const page1Styles = StyleSheet.create({
     objectFit: 'contain',
   },
 
-  // Dasa section - 1/3 width
-  dasaSection: {
-    flex: 1,
-    marginLeft: spacing.sm,
-  },
-
-  // Current dasha info
-  currentDasha: {
-    backgroundColor: colors.creamDark,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.sm,
-    marginBottom: spacing.sm,
-  },
-  currentDashaTitle: {
-    fontFamily: fonts.bold,
-    fontSize: 7,
-    color: colors.brown,
-    marginBottom: 1,
-  },
-  currentDashaPlanet: {
-    fontFamily: fonts.bold,
-    fontSize: 8,
-    color: colors.textDark,
-  },
-  currentDashaDate: {
-    fontFamily: fonts.regular,
-    fontSize: 6,
-    color: colors.textMedium,
-    marginTop: 1,
-  },
-
-  // Dasa table styles - compact
-  dashaTableHeader: {
-    backgroundColor: colors.brown,
-    padding: spacing.xs,
-  },
-  dashaTableTitle: {
-    fontFamily: fonts.bold,
-    fontSize: 6,
-    color: colors.white,
-  },
-  dashaTableRow: {
-    flexDirection: 'row',
-    paddingVertical: 1,
-    paddingHorizontal: spacing.xs,
-    borderBottomWidth: 0.5,
-    borderBottomColor: colors.border,
-  },
-  dashaTableCell: {
-    fontFamily: fonts.regular,
-    fontSize: 6,
-    color: colors.textDark,
-  },
-  dashaTableCellBold: {
-    fontFamily: fonts.bold,
-    fontSize: 6,
-    color: colors.textDark,
-  },
-
-  // Planetary table - under chart, only 2/3 width
+  // Planet Table
   planetarySection: {
-    width: '65%',
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.brown,
+    marginTop: 5,
+    border: '1pt solid #8B4513',
   },
   planetaryHeader: {
-    backgroundColor: colors.brown,
-    padding: spacing.xs,
+    backgroundColor: '#8B4513',
+    padding: 4,
   },
   planetaryTitle: {
-    fontFamily: fonts.bold,
-    fontSize: 7,
-    color: colors.white,
+    fontFamily: 'Roboto',
+    fontSize: 9,
+    color: '#FFFFFF',
     textAlign: 'center',
   },
   planetaryTableHeader: {
     flexDirection: 'row',
-    backgroundColor: colors.brownPale,
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.xs,
+    backgroundColor: '#DEB887',
+    paddingVertical: 2,
+    paddingHorizontal: 4,
   },
   planetaryTableHeaderText: {
-    fontFamily: fonts.bold,
+    fontFamily: 'Roboto',
     fontSize: 6,
-    color: colors.textDark,
+    color: '#2C1810',
     textAlign: 'center',
   },
   planetaryTableRow: {
     flexDirection: 'row',
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.xs,
-    borderBottomWidth: 0.5,
-    borderBottomColor: colors.border,
+    paddingVertical: 2,
+    paddingHorizontal: 4,
+    borderBottom: '0.5pt solid #C4A77D',
   },
   planetaryTableCell: {
-    fontFamily: fonts.regular,
+    fontFamily: 'Roboto',
     fontSize: 6,
-    color: colors.textDark,
+    color: '#2C1810',
     textAlign: 'center',
   },
-  motionDirect: {
-    color: colors.direct,
+
+  // Current Dasha
+  currentDasha: {
+    backgroundColor: '#F5E6D3',
+    border: '1pt solid #C4A77D',
+    padding: 6,
+    marginBottom: 8,
   },
-  motionRetrograde: {
-    color: colors.retrograde,
+  currentDashaTitle: {
+    fontFamily: 'Roboto',
+    fontSize: 8,
+    color: '#8B4513',
+    marginBottom: 2,
+  },
+  currentDashaPlanet: {
+    fontFamily: 'Roboto',
+    fontSize: 9,
+    color: '#2C1810',
+  },
+  currentDashaDate: {
+    fontFamily: 'Roboto',
+    fontSize: 7,
+    color: '#5C4033',
+    marginTop: 2,
+  },
+
+  // DASA Tables - Compact
+  dasaTable: {
+    marginBottom: 8,
+  },
+  dasaTableHeader: {
+    backgroundColor: '#8B4513',
+    padding: 3,
+  },
+  dasaTableTitle: {
+    fontFamily: 'Roboto',
+    fontSize: 7,
+    color: '#FFFFFF',
+  },
+  dasaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 1,
+    borderBottom: '0.5pt solid #C4A77D',
+  },
+  dasaText: {
+    fontFamily: 'Roboto',
+    fontSize: 7,
+    color: '#2C1810',
+    lineHeight: 1.2,
   },
 });
 
 // Page 2 styles
 export const page2Styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: colors.cream,
+    padding: 20,
+    backgroundColor: '#FDF5E6',
+    fontFamily: 'Roboto',
   },
   header: {
-    backgroundColor: colors.brown,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
+    backgroundColor: '#8B4513',
+    padding: 8,
+    marginBottom: 10,
   },
   headerTitle: {
-    fontFamily: fonts.bold,
+    fontFamily: 'Roboto',
     fontSize: 12,
-    color: colors.white,
+    color: '#FFFFFF',
     textAlign: 'center',
   },
   headerSubtitle: {
-    fontFamily: fonts.regular,
+    fontFamily: 'Roboto',
     fontSize: 8,
-    color: colors.cream,
+    color: '#FDF5E6',
     textAlign: 'center',
-    marginTop: spacing.xs,
+    marginTop: 2,
   },
   vargasGrid: {
     flexDirection: 'row',
@@ -254,16 +216,16 @@ export const page2Styles = StyleSheet.create({
   vargaCell: {
     width: '25%',
     aspectRatio: 1,
-    padding: spacing.xs,
+    padding: 2,
     justifyContent: 'center',
     alignItems: 'center',
   },
   vargaTitle: {
-    fontFamily: fonts.bold,
-    fontSize: 6,
-    color: colors.brown,
+    fontFamily: 'Roboto',
+    fontSize: 7,
+    color: '#8B4513',
     textAlign: 'center',
-    marginBottom: 1,
+    marginBottom: 2,
   },
   vargaImage: {
     width: '100%',
