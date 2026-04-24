@@ -43,7 +43,7 @@ export const commonStyles = StyleSheet.create({
   },
   footer: {
     position: 'absolute',
-    bottom: 15,
+    bottom: 20,
     left: 20,
     right: 20,
     textAlign: 'center',
@@ -57,14 +57,17 @@ export const commonStyles = StyleSheet.create({
 export const page1Styles = StyleSheet.create({
   container: {
     padding: 20,
+    paddingBottom: 40, // Extra padding for footer
     backgroundColor: '#FDF5E6',
     fontFamily: 'Roboto',
+    minHeight: '100%',
   },
 
   // Main Layout: LEFT 65% | RIGHT 33%
   mainLayout: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    flexGrow: 1,
   },
 
   // LEFT Column: Chart + Planet Table
@@ -188,8 +191,10 @@ export const page1Styles = StyleSheet.create({
 export const page2Styles = StyleSheet.create({
   container: {
     padding: 20,
+    paddingBottom: 40, // Extra padding for footer
     backgroundColor: '#FDF5E6',
     fontFamily: 'Roboto',
+    minHeight: '100%',
   },
   header: {
     backgroundColor: '#8B4513',

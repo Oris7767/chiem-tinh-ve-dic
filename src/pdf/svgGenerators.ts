@@ -5,17 +5,31 @@
 
 import { PdfPlanet, PdfHouse, PdfVargaPlanet } from './types';
 
-// Zodiac signs short
+// Zodiac signs short (Vietnamese with diacritics)
 const ZODIAC_SIGNS_SHORT = [
-  'Ar', 'Ta', 'Ge', 'Ca', 'Le', 'Vi',
-  'Li', 'Sc', 'Sg', 'Cp', 'Aq', 'Pi'
+  'Ma', 'Kim', 'Song', 'Cua', 'Su', 'Xuong',
+  'Thien', 'Hinh', 'Nhan', 'MaK', 'Bao', 'Duong'
+];
+
+// Zodiac signs full Vietnamese
+const ZODIAC_SIGNS_FULL = [
+  'Bach Duong', 'Kim Nguu', 'Song Tu', 'Cu Giai', 'Su Tu', 'Xuong Nu',
+  'Thien Xa', 'Thien Hinh', 'Nhan Ma', 'Ma Ket', 'Bao Phuong', 'Duong Phu'
 ];
 
 // Planet short names
 const PLANET_SHORT: Record<string, string> = {
-  'Sun': 'Su', 'Moon': 'Mo', 'Mars': 'Ma', 'Mercury': 'Me',
-  'Jupiter': 'Ju', 'Venus': 'Ve', 'Saturn': 'Sa',
-  'Rahu': 'Ra', 'Ketu': 'Ke', 'Uranus': 'Ur', 'Neptune': 'Ne', 'Pluto': 'Pl'
+  'Sun': 'Mt', 'Moon': 'Mt', 'Mars': 'Hoa', 'Mercury': 'Thuy',
+  'Jupiter': 'Moc', 'Venus': 'Kim', 'Saturn': 'Tho',
+  'Rahu': 'Ra', 'Ketu': 'Ke', 'Uranus': 'TV', 'Neptune': 'HV', 'Pluto': 'DV'
+};
+
+// Planet full names (Vietnamese with diacritics)
+const PLANET_NAMES: Record<string, string> = {
+  'Sun': 'Mat Troi', 'Moon': 'Mat Trang', 'Mars': 'Hoa Tin',
+  'Mercury': 'Thuy Tin', 'Jupiter': 'Moc Tin', 'Venus': 'Kim Tin',
+  'Saturn': 'Tho Tin', 'Rahu': 'Rahu', 'Ketu': 'Ketu',
+  'Uranus': 'Thien Vuong', 'Neptune': 'Hai Vuong', 'Pluto': 'Diem Vuong'
 };
 
 // South Indian chart positions (row, col) - 4x4 grid
@@ -75,10 +89,10 @@ export function generateMainChartSVG(
   const offsetX = 0;
   const offsetY = 0;
 
-  // Font sizes - smaller for compact fit
-  const signFontSize = size * 0.028;
-  const ascFontSize = size * 0.02;
-  const planetFontSize = size * 0.02;
+  // Font sizes - adjusted for better spacing
+  const signFontSize = size * 0.026;
+  const ascFontSize = size * 0.018;
+  const planetFontSize = size * 0.018;
 
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">
     <rect x="0" y="0" width="${size}" height="${size}" fill="${WHITE}"/>
@@ -98,29 +112,32 @@ export function generateMainChartSVG(
     // Cell border
     svg += `<rect x="${x}" y="${y}" width="${gridSize}" height="${gridSize}" fill="none" stroke="${BROWN}" stroke-width="2"/>`;
 
-    // Sign and house number - positioned in top-left of cell
-    svg += `<text x="${x + 4}" y="${y + 18}" font-size="${signFontSize}" fill="${BROWN}" font-weight="bold" font-family="Arial">${ZODIAC_SIGNS_SHORT[signIndex]} ${houseNumber}</text>`;
+    // Sign name - top of cell
+    svg += `<text x="${x + gridSize * 0.1}" y="${y + gridSize * 0.12}" font-size="${signFontSize}" fill="${BROWN}" font-weight="bold" font-family="Arial" text-anchor="middle">${ZODIAC_SIGNS_SHORT[signIndex]}</text>`;
+
+    // House number - below sign name
+    svg += `<text x="${x + gridSize * 0.1}" y="${y + gridSize * 0.22}" font-size="${signFontSize * 0.8}" fill="${BROWN}" font-family="Arial" text-anchor="middle">Nha ${houseNumber}</text>`;
 
     // ASC coordinates
     if (isAscendant) {
-      svg += `<text x="${x + 4}" y="${y + 34}" font-size="${ascFontSize}" fill="${BROWN}" font-family="Arial">ASC ${formatDegree(ascendant)}</text>`;
+      svg += `<text x="${x + 4}" y="${y + gridSize * 0.3}" font-size="${ascFontSize}" fill="${BROWN}" font-family="Arial">MC ${formatDegree(ascendant)}</text>`;
     }
 
-    // Planets - compact positioning
-    const planetStartY = isAscendant ? 48 : 28;
+    // Planets - with increased spacing
+    const planetStartY = isAscendant ? gridSize * 0.38 : gridSize * 0.32;
     planetsInHouse.slice(0, 3).forEach((planet, idx) => {
-      const planetY = y + planetStartY + idx * 18;
-      const suffix = planet.retrograde ? 'R' : '';
-      svg += `<text x="${x + 4}" y="${planetY}" font-size="${planetFontSize}" fill="${BLACK}" font-family="Arial">${getPlanetShort(planet.name)}${suffix} ${formatDegree(planet.longitude)}</text>`;
+      const planetY = y + planetStartY + idx * (gridSize * 0.14);
+      const suffix = planet.retrograde ? 'N' : '';
+      svg += `<text x="${x + 4}" y="${planetY}" font-size="${planetFontSize}" fill="${BLACK}" font-family="Arial">${getPlanetShort(planet.name)}${suffix}</text>`;
     });
   }
 
-  // Center - decorative element with Ashtakavarga symbol
+  // Center - Logo image
   const centerX = size / 2;
   const centerY = size / 2;
-  const centerSize = gridSize * 0.7;
-  svg += `<circle cx="${centerX}" cy="${centerY}" r="${centerSize / 2}" fill="${BROWN_PALE}" stroke="${BROWN}" stroke-width="2"/>`;
-  svg += `<text x="${centerX}" y="${centerY + 5}" font-size="${size * 0.022}" fill="${BROWN}" font-family="Arial" text-anchor="middle">☸</text>`;
+  const logoSize = gridSize * 0.6;
+  svg += `<circle cx="${centerX}" cy="${centerY}" r="${logoSize / 2 + 5}" fill="${BROWN_PALE}" stroke="${BROWN}" stroke-width="2"/>`;
+  svg += `<image href="/images/logo.png" x="${centerX - logoSize / 2}" y="${centerY - logoSize / 2}" width="${logoSize}" height="${logoSize}" preserveAspectRatio="xMidYMid meet"/>`;
 
   svg += '</g></svg>';
   return svg;
@@ -166,14 +183,17 @@ export function generateMiniChartSVG(
     // Cell border - thin
     svg += `<rect x="${x}" y="${y}" width="${gridSize}" height="${gridSize}" fill="none" stroke="${BROWN}" stroke-width="0.5"/>`;
 
-    // Sign and house number - scaled
-    svg += `<text x="${x + gridSize * 0.1}" y="${y + gridSize * 0.2}" font-size="${size * 0.028}" fill="${BROWN}" font-family="Arial">${ZODIAC_SIGNS_SHORT[signIndex]}${houseNumber}</text>`;
+    // Sign name - top of cell
+    svg += `<text x="${x + gridSize * 0.5}" y="${y + gridSize * 0.25}" font-size="${size * 0.026}" fill="${BROWN}" font-weight="bold" font-family="Arial" text-anchor="middle">${ZODIAC_SIGNS_SHORT[signIndex]}</text>`;
+
+    // House number - below sign
+    svg += `<text x="${x + gridSize * 0.5}" y="${y + gridSize * 0.4}" font-size="${size * 0.022}" fill="${BROWN}" font-family="Arial" text-anchor="middle">N${houseNumber}</text>`;
 
     // Planets
-    planetsInHouse.slice(0, 3).forEach((planet, idx) => {
-      const planetY = y + gridSize * (0.4 + idx * 0.22);
-      const suffix = planet.retrograde ? 'R' : '';
-      svg += `<text x="${x + gridSize * 0.1}" y="${planetY}" font-size="${size * 0.024}" fill="${BLACK}" font-family="Arial">${getPlanetShort(planet.name)}${suffix}</text>`;
+    planetsInHouse.slice(0, 2).forEach((planet, idx) => {
+      const planetY = y + gridSize * (0.6 + idx * 0.2);
+      const suffix = planet.retrograde ? 'N' : '';
+      svg += `<text x="${x + gridSize * 0.1}" y="${planetY}" font-size="${size * 0.022}" fill="${BLACK}" font-family="Arial">${getPlanetShort(planet.name)}${suffix}</text>`;
     });
   }
 
