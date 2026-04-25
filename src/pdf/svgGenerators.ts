@@ -137,7 +137,13 @@ export function generateMiniChartSVG(
   ascendantSign: number,
   size: number = 200
 ): string {
-  console.log('generateMiniChartSVG - planets count:', planets.length, 'ascendantSign:', ascendantSign);
+  // Debug: show planets by house
+  const planetsByHouse: Record<number, string> = {};
+  planets.forEach(p => {
+    if (!planetsByHouse[p.house]) planetsByHouse[p.house] = [];
+    planetsByHouse[p.house] += `${p.name}(${p.vargaSign}) `;
+  });
+  console.log(`SVG ${ascendantSign}: planets by house:`, JSON.stringify(planetsByHouse));
   
   const getHouseNumber = (signIndex: number) => ((signIndex - ascendantSign + 12) % 12) + 1;
 
@@ -255,17 +261,22 @@ export async function generatePDFChartImages(
   const mainChartImage = await svgToBase64PNG(mainSvg, 600);
 
   // Generate varga chart images in parallel
-  const vargaPromises = vargas.map(async (varga) => {
+  const vargaPromises = vargas.map(async (varga, idx) => {
+    console.log(`[${idx}] Generating SVG for ${varga.id}`);
     const vargaSvg = generateMiniChartSVG(varga.planets, varga.ascendantSign, 200);
+    console.log(`[${idx}] Converting to PNG for ${varga.id}`);
     const vargaImage = await svgToBase64PNG(vargaSvg, 200);
+    console.log(`[${idx}] Done ${varga.id}`);
     return { key: varga.id, image: vargaImage };
   });
 
   const vargaResults = await Promise.all(vargaPromises);
+  console.log('vargaResults:', vargaResults.map(r => r.key));
   const vargaChartImages: Record<string, string> = {};
   vargaResults.forEach(({ key, image }) => {
     vargaChartImages[key] = image;
   });
+  console.log('vargaChartImages keys:', Object.keys(vargaChartImages));
 
   return { mainChartImage, vargaChartImages };
 }
