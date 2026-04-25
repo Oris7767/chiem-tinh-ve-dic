@@ -13,6 +13,24 @@ import { generatePDFChartImages } from './svgGenerators';
  * Transform VedicChartData from app to PDF format
  */
 export function transformChartDataForPDF(chartData: any): PdfVedicChartData {
+  // Extract dasha data
+  const dashas = chartData.dashas;
+  
+  // Current maha dasha info
+  const currentMaha = dashas?.current;
+  
+  // Build antardashas for current maha from sequence
+  // Find current maha in sequence and get its antardashas
+  let currentAntardashas: any[] = [];
+  if (dashas?.sequence && currentMaha?.planet) {
+    const mahaIndex = dashas.sequence.findIndex(
+      (m: any) => m.planet === currentMaha.planet
+    );
+    if (mahaIndex >= 0 && dashas.sequence[mahaIndex]?.antardashas) {
+      currentAntardashas = dashas.sequence[mahaIndex].antardashas;
+    }
+  }
+  
   return {
     ascendant: chartData.ascendant,
     ascendantNakshatra: chartData.ascendantNakshatra,
@@ -45,19 +63,19 @@ export function transformChartDataForPDF(chartData: any): PdfVedicChartData {
     })),
     moonNakshatra: chartData.moonNakshatra || '',
     lunarDay: chartData.lunarDay || 0,
-    dashas: chartData.dashas ? {
+    dashas: dashas ? {
       current: {
-        planet: chartData.dashas.current.planet,
-        startDate: chartData.dashas.current.startDate,
-        endDate: chartData.dashas.current.endDate,
-        elapsed: chartData.dashas.current.elapsed,
-        remaining: chartData.dashas.current.remaining,
-        currentAntardasha: chartData.dashas.current.currentAntardasha,
-        currentPratyantar: chartData.dashas.current.currentPratyantar,
-        currentSookshma: chartData.dashas.current.currentSookshma,
-        antardashas: chartData.dashas.current.antardashas || [],
+        planet: currentMaha.planet,
+        startDate: currentMaha.startDate,
+        endDate: currentMaha.endDate,
+        elapsed: currentMaha.elapsed,
+        remaining: currentMaha.remaining,
+        currentAntardasha: currentMaha.currentAntardasha,
+        currentPratyantar: currentMaha.currentPratyantar,
+        currentSookshma: currentMaha.currentSookshma,
+        antardashas: currentAntardashas,
       },
-      sequence: chartData.dashas.sequence || [],
+      sequence: dashas.sequence || [],
     } : undefined,
   };
 }
