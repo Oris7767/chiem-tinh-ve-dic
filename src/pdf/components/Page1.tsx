@@ -98,24 +98,51 @@ function debugDashaData(dashas: any) {
 
 // Get 9 Antardashas starting from current position
 function getAntarDashas(current: any, sequence: any[]): Array<{ planet: string; startDate: string; endDate: string }> {
-  // First try from sequence[0].antardashas (where antardashas actually live)
-  const firstMaha = sequence[0];
-  if (!firstMaha?.antardashas || firstMaha.antardashas.length === 0) {
-    console.log('WARN: No antardashas in sequence[0]');
+  if (!current?.currentAntardasha || !sequence || sequence.length === 0) {
+    console.log('WARN: No current antardasha or sequence');
     return [];
   }
 
   const result: Array<{ planet: string; startDate: string; endDate: string }> = [];
+  const currentAntarPlanet = current.currentAntardasha.planet;
   
-  // Find current antardasha index based on currentAntardasha.planet
-  const currentAntarPlanet = current?.currentAntardasha?.planet || '';
-  let startIdx = firstMaha.antardashas.findIndex((a: any) => a.planet === currentAntarPlanet);
-  if (startIdx < 0) startIdx = 0;
-
-  // Get 9 antardashas from current position
-  for (let i = startIdx; i < firstMaha.antardashas.length && result.length < 9; i++) {
-    const a = firstMaha.antardashas[i];
-    result.push({ planet: a.planet, startDate: a.startDate, endDate: a.endDate });
+  // Find current maha dasha index
+  let mahaIdx = sequence.findIndex((m: any) => m.planet === current.planet);
+  if (mahaIdx < 0) {
+    console.log('WARN: Current maha not found:', current.planet);
+    return [];
+  }
+  
+  // Get antardashas from current maha onwards, starting from current antar
+  let remainingInMaha = 9;
+  
+  while (remainingInMaha > 0 && mahaIdx < sequence.length) {
+    const maha = sequence[mahaIdx];
+    const antardashas = maha.antardashas || [];
+    
+    if (result.length === 0) {
+      // First iteration: start from current antar
+      const startIdx = antardashas.findIndex((a: any) => a.planet === currentAntarPlanet);
+      if (startIdx < 0) {
+        console.log('WARN: Current antar not found in maha:', currentAntarPlanet);
+        return [];
+      }
+      
+      for (let i = startIdx; i < antardashas.length && result.length < 9; i++) {
+        const a = antardashas[i];
+        result.push({ planet: a.planet, startDate: a.startDate, endDate: a.endDate });
+        remainingInMaha--;
+      }
+    } else {
+      // Subsequent maha: take all antardashas
+      for (let i = 0; i < antardashas.length && result.length < 9; i++) {
+        const a = antardashas[i];
+        result.push({ planet: a.planet, startDate: a.startDate, endDate: a.endDate });
+        remainingInMaha--;
+      }
+    }
+    
+    mahaIdx++;
   }
 
   console.log('antarDashas result:', result.length, 'items');
@@ -124,26 +151,61 @@ function getAntarDashas(current: any, sequence: any[]): Array<{ planet: string; 
 
 // Get 9 Pratyantars starting from current position
 function getPratyantarDashas(current: any, sequence: any[]): Array<{ planet: string; startDate: string; endDate: string }> {
-  // First try from sequence[0].antardashas[0].pratyantars
-  const firstMaha = sequence[0];
-  const firstAntar = firstMaha?.antardashas?.[0];
-  
-  if (!firstAntar?.pratyantars || firstAntar.pratyantars.length === 0) {
-    console.log('WARN: No pratyantars found');
+  if (!current?.currentPratyantar || !sequence || sequence.length === 0) {
+    console.log('WARN: No current pratyantar or sequence');
     return [];
   }
 
   const result: Array<{ planet: string; startDate: string; endDate: string }> = [];
+  const currentPratPlanet = current.currentPratyantar.planet;
   
-  // Find current pratyantar index
-  const currentPratPlanet = current?.currentPratyantar?.planet || '';
-  let startIdx = firstAntar.pratyantars.findIndex((p: any) => p.planet === currentPratPlanet);
-  if (startIdx < 0) startIdx = 0;
-
-  // Get 9 pratyantars from current position
-  for (let i = startIdx; i < firstAntar.pratyantars.length && result.length < 9; i++) {
-    const p = firstAntar.pratyantars[i];
-    result.push({ planet: p.planet, startDate: p.startDate, endDate: p.endDate });
+  // Find current maha dasha index
+  let mahaIdx = sequence.findIndex((m: any) => m.planet === current.planet);
+  if (mahaIdx < 0) {
+    console.log('WARN: Current maha not found:', current.planet);
+    return [];
+  }
+  
+  const maha = sequence[mahaIdx];
+  const antardashas = maha.antardashas || [];
+  
+  // Find current antar index
+  let antarIdx = antardashas.findIndex((a: any) => a.planet === current.currentAntardasha.planet);
+  if (antarIdx < 0) {
+    console.log('WARN: Current antar not found:', current.currentAntardasha.planet);
+    return [];
+  }
+  
+  // Collect 9 pratyantars from current position
+  let remainingCount = 9;
+  
+  while (remainingCount > 0 && antarIdx < antardashas.length) {
+    const antar = antardashas[antarIdx];
+    const pratyantars = antar.pratyantars || [];
+    
+    if (result.length === 0) {
+      // First iteration: start from current pratyantar
+      const startIdx = pratyantars.findIndex((p: any) => p.planet === currentPratPlanet);
+      if (startIdx < 0) {
+        console.log('WARN: Current pratyantar not found:', currentPratPlanet);
+        return [];
+      }
+      
+      for (let i = startIdx; i < pratyantars.length && result.length < 9; i++) {
+        const p = pratyantars[i];
+        result.push({ planet: p.planet, startDate: p.startDate, endDate: p.endDate });
+        remainingCount--;
+      }
+    } else {
+      // Subsequent antars: take all pratyantars
+      for (let i = 0; i < pratyantars.length && result.length < 9; i++) {
+        const p = pratyantars[i];
+        result.push({ planet: p.planet, startDate: p.startDate, endDate: p.endDate });
+        remainingCount--;
+      }
+    }
+    
+    antarIdx++;
   }
 
   console.log('pratyantarDashas result:', result.length, 'items');
