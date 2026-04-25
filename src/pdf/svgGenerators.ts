@@ -102,23 +102,20 @@ export function generateMainChartSVG(
     // Cell border
     svg += `<rect x="${x}" y="${y}" width="${gridSize}" height="${gridSize}" fill="none" stroke="${BROWN}" stroke-width="2"/>`;
 
-    // Sign name - top of cell
-    svg += `<text x="${x + gridSize * 0.1}" y="${y + gridSize * 0.12}" font-size="${signFontSize}" fill="${BROWN}" font-weight="bold" font-family="Arial" text-anchor="middle">${ZODIAC_SIGNS_SHORT[signIndex]}</text>`;
-
-    // House number - below sign name
-    svg += `<text x="${x + gridSize * 0.1}" y="${y + gridSize * 0.22}" font-size="${signFontSize * 0.8}" fill="${BROWN}" font-family="Arial" text-anchor="middle">${houseNumber}</text>`;
+    // Sign name + House number - combined in one line
+    svg += `<text x="${x + gridSize * 0.5}" y="${y + gridSize * 0.14}" font-size="${signFontSize}" fill="${BROWN}" font-weight="bold" font-family="Arial" text-anchor="middle">${ZODIAC_SIGNS_SHORT[signIndex]} ${houseNumber}</text>`;
 
     // ASC coordinates
     if (isAscendant) {
-      svg += `<text x="${x + 4}" y="${y + gridSize * 0.3}" font-size="${ascFontSize}" fill="${BROWN}" font-family="Arial">ASC ${formatDegree(ascendant)}</text>`;
+      svg += `<text x="${x + gridSize * 0.5}" y="${y + gridSize * 0.24}" font-size="${ascFontSize}" fill="${BROWN}" font-family="Arial" text-anchor="middle">ASC ${formatDegree(ascendant)}</text>`;
     }
 
-    // Planets - with increased spacing
-    const planetStartY = isAscendant ? gridSize * 0.38 : gridSize * 0.32;
+    // Planets - with coordinates
+    const planetStartY = isAscendant ? gridSize * 0.34 : gridSize * 0.28;
     planetsInHouse.slice(0, 3).forEach((planet, idx) => {
-      const planetY = y + planetStartY + idx * (gridSize * 0.14);
+      const planetY = y + planetStartY + idx * (gridSize * 0.12);
       const suffix = planet.retrograde ? 'N' : '';
-      svg += `<text x="${x + 4}" y="${planetY}" font-size="${planetFontSize}" fill="${BLACK}" font-family="Arial">${getPlanetShort(planet.name)}${suffix}</text>`;
+      svg += `<text x="${x + 4}" y="${planetY}" font-size="${planetFontSize}" fill="${BLACK}" font-family="Arial">${getPlanetShort(planet.name)}${suffix} ${formatDegree(planet.longitude)}</text>`;
     });
   }
 
