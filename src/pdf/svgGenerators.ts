@@ -178,8 +178,8 @@ export function generateMiniChartSVG(
     svg += `<text x="${x + 3}" y="${y + 8}" font-size="6" fill="${BROWN}" font-weight="bold" font-family="Arial">${ZODIAC_SIGNS_SHORT[signIndex]} ${houseNumber}</text>`;
 
     // Build render items: ASC first (if house 1), then planets
-    let currentY = y + 16;
-    const lineHeight = 7;
+    let currentY = y + 14;
+    const lineHeight = 6;
     
     // ASC with coordinates (house 1)
     if (houseNumber === 1) {
@@ -190,9 +190,8 @@ export function generateMiniChartSVG(
       currentY += lineHeight;
     }
 
-    // Planets - compact (no coordinates, just symbol + R)
-    const maxPlanets = houseNumber === 1 ? 1 : 2;
-    planetsInHouse.slice(0, maxPlanets).forEach((planet) => {
+    // Planets - show all, compact format
+    planetsInHouse.forEach((planet) => {
       const suffix = planet.retrograde ? 'R' : '';
       svg += `<text x="${x + 3}" y="${currentY}" font-size="5" fill="${BLACK}" font-family="Arial">${getPlanetShort(planet.name)}${suffix}</text>`;
       currentY += lineHeight;
