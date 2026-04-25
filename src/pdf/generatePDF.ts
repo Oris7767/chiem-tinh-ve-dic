@@ -16,6 +16,14 @@ export function transformChartDataForPDF(chartData: any): PdfVedicChartData {
   // Extract dasha data
   const dashas = chartData.dashas;
   
+  // Debug raw dasha data
+  console.log('=== TRANSFORM DEBUG ===');
+  console.log('dashas?.current keys:', dashas?.current ? Object.keys(dashas.current) : 'null');
+  console.log('dashas?.current.currentAntardasha:', dashas?.current?.currentAntardasha);
+  console.log('dashas?.current.currentPratyantar:', dashas?.current?.currentPratyantar);
+  console.log('dashas?.current.antardashas:', dashas?.current?.antardashas ? 'exists' : 'undefined');
+  console.log('========================');
+  
   // Current maha dasha info
   const currentMaha = dashas?.current;
   
@@ -26,8 +34,10 @@ export function transformChartDataForPDF(chartData: any): PdfVedicChartData {
     const mahaIndex = dashas.sequence.findIndex(
       (m: any) => m.planet === currentMaha.planet
     );
+    console.log('mahaIndex:', mahaIndex);
     if (mahaIndex >= 0 && dashas.sequence[mahaIndex]?.antardashas) {
       currentAntardashas = dashas.sequence[mahaIndex].antardashas;
+      console.log('Found antardashas from sequence[' + mahaIndex + '], count:', currentAntardashas.length);
     }
   }
   
