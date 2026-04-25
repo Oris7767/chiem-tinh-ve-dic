@@ -72,6 +72,21 @@ export interface PdfDashaPeriod {
     months: number;
     days: number;
   };
+  currentAntardasha?: {
+    planet: string;
+    startDate: string;
+    endDate: string;
+  };
+  currentPratyantar?: {
+    planet: string;
+    startDate: string;
+    endDate: string;
+  };
+  currentSookshma?: {
+    planet: string;
+    startDate: string;
+    endDate: string;
+  };
   antardashas?: PdfAntarDasha[];
 }
 

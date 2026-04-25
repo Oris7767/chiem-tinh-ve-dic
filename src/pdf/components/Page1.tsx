@@ -59,6 +59,13 @@ function getPlanetName(name: string): string {
   return PLANET_NAMES[name] || name;
 }
 
+// Get current index in antardashas based on currentAntardasha planet
+function getCurrentAntarIndex(antardashas: any[], currentPlanet: string): number {
+  if (!antardashas || antardashas.length === 0) return 0;
+  const idx = antardashas.findIndex(a => a.planet === currentPlanet);
+  return idx >= 0 ? idx : 0;
+}
+
 // Get items from current position onwards
 function getFutureItems<T extends { startDate?: string }>(items: T[], maxItems: number = 12): T[] {
   if (!items || items.length === 0) return [];
@@ -73,6 +80,55 @@ function getFutureItems<T extends { startDate?: string }>(items: T[], maxItems: 
     }
   }
   return items.slice(currentIndex, currentIndex + maxItems);
+}
+
+// Get 9 Antardashas starting from current position
+function getAntarDashas(current: any, sequence: any[]): Array<{ planet: string; startDate: string; endDate: string }> {
+  if (!current?.antardashas || current.antardashas.length === 0) return [];
+
+  const result: Array<{ planet: string; startDate: string; endDate: string }> = [];
+  const startIdx = getCurrentAntarIndex(current.antardashas, current.currentAntardasha?.planet || '');
+
+  // Get from current antardashas
+  for (let i = startIdx; i < current.antardashas.length && result.length < 9; i++) {
+    const a = current.antardashas[i];
+    result.push({ planet: a.planet, startDate: a.startDate, endDate: a.endDate });
+  }
+
+  // If not enough, get from next maha dashas
+  if (result.length < 9 && sequence) {
+    const currentMahaIdx = sequence.findIndex(s => s.planet === current.planet);
+    for (let j = currentMahaIdx + 1; j < sequence.length && result.length < 9; j++) {
+      const nextMaha = sequence[j];
+      if (nextMaha.antardashas) {
+        for (const a of nextMaha.antardashas) {
+          result.push({ planet: a.planet, startDate: a.startDate, endDate: a.endDate });
+          if (result.length >= 9) break;
+        }
+      }
+      if (result.length >= 9) break;
+    }
+  }
+
+  return result.slice(0, 9);
+}
+
+// Get 9 Pratyantars starting from current position
+function getPratyantarDashas(current: any): Array<{ planet: string; startDate: string; endDate: string }> {
+  if (!current?.currentAntardasha?.pratyantars || current.currentAntardasha.pratyantars.length === 0) return [];
+
+  const result: Array<{ planet: string; startDate: string; endDate: string }> = [];
+  const startIdx = getCurrentAntarIndex(current.currentAntardasha.pratyantars, current.currentPratyantar?.planet || '');
+
+  // Get from current pratyantars
+  for (let i = startIdx; i < current.currentAntardasha.pratyantars.length && result.length < 9; i++) {
+    const p = current.currentAntardasha.pratyantars[i];
+    result.push({ planet: p.planet, startDate: p.startDate, endDate: p.endDate });
+  }
+
+  // If not enough, try to get from other antardashas
+  // (simplified - just return what we have)
+  return result.slice(0, 9);
 }
 
 // Header
@@ -111,6 +167,16 @@ const CurrentDasha: React.FC<{ data: PdfReportData }> = ({ data }) => {
       <Text style={page1Styles.currentDashaDate}>
         Qua: {current.elapsed?.years || 0}y {current.elapsed?.months || 0}m | Con: {current.remaining?.years || 0}y {current.remaining?.months || 0}m
       </Text>
+      {current.currentAntardasha && (
+        <Text style={page1Styles.currentDashaDate}>
+          Ant: {getPlanetName(current.currentAntardasha.planet)} ({formatDate(current.currentAntardasha.startDate)})
+        </Text>
+      )}
+      {current.currentPratyantar && (
+        <Text style={page1Styles.currentDashaDate}>
+          Praty: {getPlanetName(current.currentPratyantar.planet)} ({formatDate(current.currentPratyantar.startDate)})
+        </Text>
+      )}
     </View>
   );
 };
@@ -176,9 +242,13 @@ const PlanetaryTable: React.FC<{ data: PdfReportData }> = ({ data }) => (
 
 // Main Page 1
 export const Page1: React.FC<Page1Props> = ({ data }) => {
-  // Maha Dasa
+  const dashas = data.chartData.dashas;
+  const sequence = dashas?.sequence || [];
+  const current = dashas?.current;
+
+  // Maha Dasa - 12 items
   const mahaDashas = getFutureItems(
-    (data.chartData.dashas?.sequence || []).map(d => ({
+    sequence.map(d => ({
       planet: d.planet,
       startDate: d.startDate,
       endDate: d.endDate
@@ -186,25 +256,11 @@ export const Page1: React.FC<Page1Props> = ({ data }) => {
     12
   );
 
-  // Antar Dasa
-  const antarDashas = getFutureItems(
-    (data.chartData.dashas?.current?.antardashas || []).map(d => ({
-      planet: d.planet,
-      startDate: d.startDate,
-      endDate: d.endDate
-    })),
-    9
-  );
+  // Antar Dasa - 9 items starting from current
+  const antarDashas = getAntarDashas(current, sequence);
 
-  // Pratyantar Dasa
-  const pratyantarDashas = getFutureItems(
-    (data.chartData.dashas?.current?.antardashas?.[0]?.pratyantars || []).map(d => ({
-      planet: d.planet,
-      startDate: d.startDate,
-      endDate: d.endDate
-    })),
-    9
-  );
+  // Pratyantar Dasa - 9 items starting from current
+  const pratyantarDashas = getPratyantarDashas(current);
 
   return (
     <View style={page1Styles.container}>
