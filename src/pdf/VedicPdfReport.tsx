@@ -9,7 +9,7 @@ import './fonts';
 import React from 'react';
 import { Document, Page, StyleSheet } from '@react-pdf/renderer';
 import { Page1 } from './components/Page1';
-import { Page2 } from './components/Page2';
+import { Page2a, Page2b } from './components/Page2';
 import { PdfReportData } from './types';
 import { colors } from './styles';
 
@@ -43,13 +43,22 @@ export const VedicPdfReport: React.FC<{ data: PdfReportData }> = ({ data }) => {
         <Page1 data={data} />
       </Page>
 
-      {/* Page 2: 16 D-Varga Charts */}
+      {/* Page 2: 16 D-Varga Charts - Part 1 */}
       <Page
         size="A4"
         orientation="portrait"
         style={pdfStyles.page}
       >
-        <Page2 data={data} />
+        <Page2a data={data} />
+      </Page>
+
+      {/* Page 2: 16 D-Varga Charts - Part 2 */}
+      <Page
+        size="A4"
+        orientation="portrait"
+        style={pdfStyles.page}
+      >
+        <Page2b data={data} />
       </Page>
     </Document>
   );

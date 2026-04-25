@@ -159,6 +159,35 @@ export const page1Styles = StyleSheet.create({
     color: '#5C4033',
     marginTop: 2,
   },
+  currentDashaProgress: {
+    marginTop: 4,
+  },
+  progressBarContainer: {
+    flexDirection: 'row',
+    height: 8,
+    backgroundColor: '#E0D0C0',
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginVertical: 2,
+  },
+  progressBarElapsed: {
+    backgroundColor: '#2E7D32',
+    height: '100%',
+  },
+  progressBarRemaining: {
+    backgroundColor: '#D0D0D0',
+    height: '100%',
+  },
+  progressLabel: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 2,
+  },
+  progressLabelText: {
+    fontFamily: 'Roboto',
+    fontSize: 6,
+    color: '#5C4033',
+  },
 
   // DASA Tables - Compact
   dasaTable: {
@@ -232,6 +261,62 @@ export const page2Styles = StyleSheet.create({
   vargaTitle: {
     fontFamily: 'Roboto',
     fontSize: 8,
+    color: '#8B4513',
+    textAlign: 'center',
+    marginBottom: 2,
+  },
+  vargaImage: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'contain',
+  },
+});
+
+// Page 2b styles (for 3 rows)
+export const page2bStyles = StyleSheet.create({
+  container: {
+    padding: 15,
+    paddingBottom: 40,
+    backgroundColor: '#FDF5E6',
+    fontFamily: 'Roboto',
+    minHeight: '100%',
+  },
+  header: {
+    backgroundColor: '#8B4513',
+    padding: 6,
+    marginBottom: 8,
+  },
+  headerTitle: {
+    fontFamily: 'Roboto',
+    fontSize: 11,
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
+  headerSubtitle: {
+    fontFamily: 'Roboto',
+    fontSize: 7,
+    color: '#FDF5E6',
+    textAlign: 'center',
+    marginTop: 2,
+  },
+  vargasGrid: {
+    flexDirection: 'column',
+    gap: 6,
+  },
+  vargaRow: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  vargaCell: {
+    flex: 1,
+    aspectRatio: 1,
+    padding: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  vargaTitle: {
+    fontFamily: 'Roboto',
+    fontSize: 9,
     color: '#8B4513',
     textAlign: 'center',
     marginBottom: 2,

@@ -82,40 +82,76 @@ function getFutureItems<T extends { startDate?: string }>(items: T[], maxItems: 
   return items.slice(currentIndex, currentIndex + maxItems);
 }
 
-// DEBUG: Log dasha data
-function debugDashaData(dashas: any) {
-  console.log('=== DASHA DEBUG ===');
-  console.log('current:', dashas?.current ? {
-    planet: dashas.current.planet,
-    hasCurrentAntar: !!dashas.current.currentAntardasha,
-    currentAntarPlanet: dashas.current.currentAntardasha?.planet
-  } : 'null');
-  console.log('sequence length:', dashas?.sequence?.length);
-  console.log('sequence[0].planet:', dashas?.sequence?.[0]?.planet);
-  console.log('sequence[0].antardashas:', dashas?.sequence?.[0]?.antardashas?.length);
-  console.log('===================');
+// Find current antar and pratyantar based on current date
+function getCurrentAntarAndPratyantar(antardashas: any[]): { currentAntar: any; currentPratyantar: any } | null {
+  if (!antardashas || antardashas.length === 0) return null;
+  
+  const now = new Date();
+  
+  // Find current antar
+  let currentAntar = null;
+  for (const antar of antardashas) {
+    const startDate = new Date(antar.startDate);
+    const endDate = new Date(antar.endDate);
+    if (startDate <= now && now <= endDate) {
+      currentAntar = antar;
+      break;
+    }
+  }
+  
+  // If no current antar found, the current antar is the first one if now is before its start
+  if (!currentAntar && new Date(antardashas[0].startDate) > now) {
+    currentAntar = antardashas[0];
+  }
+  
+  if (!currentAntar) return null;
+  
+  // Find current pratyantar within current antar
+  let currentPratyantar = null;
+  const pratyantars = currentAntar.pratyantars || [];
+  for (const pratyantar of pratyantars) {
+    const startDate = new Date(pratyantar.startDate);
+    const endDate = new Date(pratyantar.endDate);
+    if (startDate <= now && now <= endDate) {
+      currentPratyantar = pratyantar;
+      break;
+    }
+  }
+  
+  // If no current pratyantar found
+  if (!currentPratyantar && pratyantars.length > 0) {
+    currentPratyantar = pratyantars[0];
+  }
+  
+  return { currentAntar, currentPratyantar };
 }
 
 // Get 9 Antardashas starting from current position
-function getAntarDashas(current: any, sequence: any[]): Array<{ planet: string; startDate: string; endDate: string }> {
-  // First try from sequence[0].antardashas (where antardashas actually live)
-  const firstMaha = sequence[0];
-  if (!firstMaha?.antardashas || firstMaha.antardashas.length === 0) {
-    console.log('WARN: No antardashas in sequence[0]');
+function getAntarDashas(currentAntardasha: any, antardashas: any[]): Array<{ planet: string; startDate: string; endDate: string }> {
+  if (!currentAntardasha || !antardashas || antardashas.length === 0) {
+    console.log('WARN: No current antardasha or antardashas array');
     return [];
   }
 
   const result: Array<{ planet: string; startDate: string; endDate: string }> = [];
+  const currentAntarPlanet = currentAntardasha.planet;
   
-  // Find current antardasha index based on currentAntardasha.planet
-  const currentAntarPlanet = current?.currentAntardasha?.planet || '';
-  let startIdx = firstMaha.antardashas.findIndex((a: any) => a.planet === currentAntarPlanet);
+  // Find current antar index
+  let startIdx = antardashas.findIndex((a: any) => a.planet === currentAntarPlanet);
   if (startIdx < 0) startIdx = 0;
-
+  
   // Get 9 antardashas from current position
-  for (let i = startIdx; i < firstMaha.antardashas.length && result.length < 9; i++) {
-    const a = firstMaha.antardashas[i];
+  for (let i = startIdx; i < antardashas.length && result.length < 9; i++) {
+    const a = antardashas[i];
     result.push({ planet: a.planet, startDate: a.startDate, endDate: a.endDate });
+  }
+  
+  // If still need more, wrap around to beginning
+  if (result.length < 9) {
+    for (let i = 0; i < startIdx && result.length < 9; i++) {
+      const a = antardashas[i];
+      result.push({ planet: a.planet, startDate: a.startDate, endDate: a.endDate });
+    }
   }
 
   console.log('antarDashas result:', result.length, 'items');
@@ -123,27 +159,63 @@ function getAntarDashas(current: any, sequence: any[]): Array<{ planet: string; 
 }
 
 // Get 9 Pratyantars starting from current position
-function getPratyantarDashas(current: any, sequence: any[]): Array<{ planet: string; startDate: string; endDate: string }> {
-  // First try from sequence[0].antardashas[0].pratyantars
-  const firstMaha = sequence[0];
-  const firstAntar = firstMaha?.antardashas?.[0];
-  
-  if (!firstAntar?.pratyantars || firstAntar.pratyantars.length === 0) {
-    console.log('WARN: No pratyantars found');
+function getPratyantarDashas(currentPratyantar: any, antardashas: any[]): Array<{ planet: string; startDate: string; endDate: string }> {
+  if (!currentPratyantar || !antardashas || antardashas.length === 0) {
+    console.log('WARN: No current pratyantar or antardashas array');
     return [];
   }
 
   const result: Array<{ planet: string; startDate: string; endDate: string }> = [];
+  const currentPratPlanet = currentPratyantar.planet;
   
-  // Find current pratyantar index
-  const currentPratPlanet = current?.currentPratyantar?.planet || '';
-  let startIdx = firstAntar.pratyantars.findIndex((p: any) => p.planet === currentPratPlanet);
-  if (startIdx < 0) startIdx = 0;
-
-  // Get 9 pratyantars from current position
-  for (let i = startIdx; i < firstAntar.pratyantars.length && result.length < 9; i++) {
-    const p = firstAntar.pratyantars[i];
-    result.push({ planet: p.planet, startDate: p.startDate, endDate: p.endDate });
+  // Find current antar index
+  let antarIdx = antardashas.findIndex((a: any) => {
+    const startDate = new Date(a.startDate);
+    const endDate = new Date(a.endDate);
+    const now = new Date();
+    return startDate <= now && now <= endDate;
+  });
+  
+  if (antarIdx < 0) antarIdx = 0;
+  
+  const currentAntarPlanet = antardashas[antarIdx].planet;
+  const currentAntarPlanetFromPrat = currentPratyantar.planet;
+  
+  // Collect 9 pratyantars from current position
+  let remainingCount = 9;
+  let foundCurrent = false;
+  
+  while (remainingCount > 0) {
+    const antar = antardashas[antarIdx % antardashas.length];
+    const pratyantars = antar.pratyantars || [];
+    
+    for (let i = 0; i < pratyantars.length && remainingCount > 0; i++) {
+      const p = pratyantars[i];
+      
+      if (!foundCurrent && p.planet === currentPratPlanet) {
+        foundCurrent = true;
+      }
+      
+      if (foundCurrent) {
+        result.push({ planet: p.planet, startDate: p.startDate, endDate: p.endDate });
+        remainingCount--;
+      }
+    }
+    
+    // If we haven't found the current pratyantar yet, continue searching
+    if (!foundCurrent) {
+      antarIdx++;
+    } else {
+      // We found it and collected some, now just continue with remaining antars
+      antarIdx++;
+      if (antarIdx >= antardashas.length && !foundCurrent) {
+        // Wrap around
+        antarIdx = 0;
+      }
+    }
+    
+    // Safety break to prevent infinite loop
+    if (result.length === 0 && antarIdx > antardashas.length) break;
   }
 
   console.log('pratyantarDashas result:', result.length, 'items');
@@ -171,10 +243,21 @@ const MainChart: React.FC<{ image?: string }> = ({ image }) => (
   </View>
 );
 
-// Current Dasha Info
+// Current Dasha Info with progress bar
 const CurrentDasha: React.FC<{ data: PdfReportData }> = ({ data }) => {
   const current = data.chartData.dashas?.current;
   if (!current) return null;
+
+  // Calculate progress percentage
+  const totalYears = current.elapsed?.years || 0;
+  const totalMonths = current.elapsed?.months || 0;
+  const remainingYears = current.remaining?.years || 0;
+  const remainingMonths = current.remaining?.months || 0;
+  
+  // Get total duration in years (approximate)
+  const totalDuration = totalYears + totalMonths / 12 + remainingYears + remainingMonths / 12;
+  const elapsed = totalYears + totalMonths / 12;
+  const progressPercent = totalDuration > 0 ? (elapsed / totalDuration) * 100 : 0;
 
   return (
     <View style={page1Styles.currentDasha}>
@@ -183,19 +266,25 @@ const CurrentDasha: React.FC<{ data: PdfReportData }> = ({ data }) => {
       <Text style={page1Styles.currentDashaDate}>
         {formatDate(current.startDate)} - {formatDate(current.endDate)}
       </Text>
-      <Text style={page1Styles.currentDashaDate}>
-        Qua: {current.elapsed?.years || 0}y {current.elapsed?.months || 0}m | Con: {current.remaining?.years || 0}y {current.remaining?.months || 0}m
-      </Text>
-      {current.currentAntardasha && (
-        <Text style={page1Styles.currentDashaDate}>
-          Ant: {getPlanetName(current.currentAntardasha.planet)} ({formatDate(current.currentAntardasha.startDate)})
-        </Text>
-      )}
-      {current.currentPratyantar && (
-        <Text style={page1Styles.currentDashaDate}>
-          Praty: {getPlanetName(current.currentPratyantar.planet)} ({formatDate(current.currentPratyantar.startDate)})
-        </Text>
-      )}
+      
+      {/* Progress Bar */}
+      <View style={page1Styles.currentDashaProgress}>
+        <View style={page1Styles.progressBarContainer}>
+          <View style={[page1Styles.progressBarElapsed, { width: `${Math.min(progressPercent, 100)}%` }]} />
+          <View style={[page1Styles.progressBarRemaining, { flex: 1 }]} />
+        </View>
+        <View style={page1Styles.progressLabel}>
+          <Text style={page1Styles.progressLabelText}>
+            Qua: {current.elapsed?.years || 0}y {current.elapsed?.months || 0}m {current.elapsed?.days || 0}d
+          </Text>
+          <Text style={page1Styles.progressLabelText}>
+            {Math.round(progressPercent)}%
+          </Text>
+          <Text style={page1Styles.progressLabelText}>
+            Còn: {current.remaining?.years || 0}y {current.remaining?.months || 0}m {current.remaining?.days || 0}d
+          </Text>
+        </View>
+      </View>
     </View>
   );
 };
@@ -262,28 +351,33 @@ const PlanetaryTable: React.FC<{ data: PdfReportData }> = ({ data }) => (
 // Main Page 1
 export const Page1: React.FC<Page1Props> = ({ data }) => {
   const dashas = data.chartData.dashas;
-  const sequence = dashas?.sequence || [];
   const current = dashas?.current;
+  const antardashas = current?.antardashas || [];
 
-  // DEBUG
-  debugDashaData(dashas);
+  // Find current antar and pratyantar based on date
+  const { currentAntar, currentPratyantar } = getCurrentAntarAndPratyantar(antardashas) || { currentAntar: null, currentPratyantar: null };
+  
+  console.log('=== DASHA CALC ===');
+  console.log('currentAntar:', currentAntar?.planet);
+  console.log('currentPratyantar:', currentPratyantar?.planet);
+  console.log('====================');
 
   // Maha Dasa - 12 items
   const mahaDashas = getFutureItems(
-    sequence.map(d => ({
+    dashas?.sequence?.map((d: any) => ({
       planet: d.planet,
       startDate: d.startDate,
       endDate: d.endDate
-    })),
+    })) || [],
     12
   );
 
   // Antar Dasa - 9 items starting from current
-  const antarDashas = getAntarDashas(current, sequence);
+  const antarDashas = getAntarDashas(currentAntar, antardashas);
   console.log('antarDashas result:', antarDashas);
 
   // Pratyantar Dasa - 9 items starting from current
-  const pratyantarDashas = getPratyantarDashas(current, sequence);
+  const pratyantarDashas = getPratyantarDashas(currentPratyantar, antardashas);
   console.log('pratyantarDashas result:', pratyantarDashas);
 
   return (
