@@ -146,15 +146,18 @@ export async function generatePDF(
 export async function downloadPDF(
   chartData: PdfVedicChartData,
   birthData?: PdfBirthData | null,
-  fileName?: string
+  options?: {
+    vargas?: Array<{ id: string; planets: any[]; ascendantSign: number }>;
+    fileName?: string;
+  }
 ): Promise<void> {
-  const blob = await generatePDF(chartData, birthData);
+  const blob = await generatePDF(chartData, birthData, options);
 
   // Create download link
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = fileName || `vedic-chart-${birthData?.name || 'unknown'}.pdf`;
+  link.download = options?.fileName || `vedic-chart-${birthData?.name || 'unknown'}.pdf`;
   
   // Trigger download
   document.body.appendChild(link);
@@ -185,6 +188,9 @@ export async function generatePDFFromAppData(
   await downloadPDF(
     chartData,
     birthData,
-    options?.fileName || `vedic-chart-${birthData.name || 'unknown'}.pdf`
+    {
+      vargas: options?.vargas,
+      fileName: options?.fileName || `vedic-chart-${birthData.name || 'unknown'}.pdf`
+    }
   );
 }
