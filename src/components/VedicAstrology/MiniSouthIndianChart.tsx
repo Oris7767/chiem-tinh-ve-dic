@@ -156,7 +156,8 @@ const MiniSouthIndianChart: React.FC<MiniSouthIndianChartProps> = ({
                 });
               }
               
-              planetsInHouse.slice(0, 3).forEach(planet => {
+              // Show all planets (no slice limit)
+              planetsInHouse.forEach(planet => {
                 renderItems.push({
                   id: planet.id,
                   label: `${getPlanetAbbr(planet.name)}${planet.retrograde ? 'ᴿ' : ''}`,
@@ -164,6 +165,13 @@ const MiniSouthIndianChart: React.FC<MiniSouthIndianChartProps> = ({
                   subLabel: showCoordinates ? formatDegree(planet.vargaDegree || planet.longitude % 30) : undefined,
                 });
               });
+              
+              // Dynamic font sizing based on item count
+              const itemCount = renderItems.length;
+              const needsCompact = itemCount > 4;
+              const fontSize = needsCompact ? 5 : 7;
+              const subFontSize = needsCompact ? 3.5 : 5;
+              const lineHeight = needsCompact ? 7 : 11;
               
               return (
                 <g key={`cell-${row}-${col}`}>
@@ -194,14 +202,14 @@ const MiniSouthIndianChart: React.FC<MiniSouthIndianChartProps> = ({
                       <text
                         key={item.id}
                         x={x + 3}
-                        y={y + 24 + idx * 11}
-                        fontSize="7"
+                        y={y + 22 + idx * lineHeight}
+                        fontSize={fontSize}
                         fontWeight="normal"
                         fill={item.color}
                       >
                         {item.label}
                         {item.subLabel && (
-                          <tspan fontSize="5" fontWeight="normal" fill="#666">
+                          <tspan fontSize={subFontSize} fontWeight="normal" fill="#666">
                             {' '}{item.subLabel}
                           </tspan>
                         )}

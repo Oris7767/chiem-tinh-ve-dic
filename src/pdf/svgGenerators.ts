@@ -179,7 +179,6 @@ export function generateMiniChartSVG(
 
     // Build render items: ASC first (if house 1), then planets
     let currentY = y + 14;
-    const lineHeight = 6;
     
     // ASC with coordinates (house 1)
     if (houseNumber === 1) {
@@ -187,13 +186,22 @@ export function generateMiniChartSVG(
       const ascDeg = Math.floor(ascDegree);
       const ascMin = Math.floor((ascDegree % 1) * 60);
       svg += `<text x="${x + 3}" y="${currentY}" font-size="5" fill="${BROWN}" font-family="Arial">ASC ${ascDeg}°${ascMin}'</text>`;
-      currentY += lineHeight;
+      currentY += 7;
     }
 
-    // Planets - show all, compact format
+    // Calculate dynamic font sizing based on item count
+    const itemCount = planetsInHouse.length + (houseNumber === 1 ? 1 : 0);
+    const needsCompact = itemCount > 4;
+    const fontSize = needsCompact ? 4 : 5;
+    const subFontSize = needsCompact ? 3 : 3.5;
+    const lineHeight = needsCompact ? 5 : 6;
+
+    // Planets with coordinates (compact if many planets)
     planetsInHouse.forEach((planet) => {
       const suffix = planet.retrograde ? 'R' : '';
-      svg += `<text x="${x + 3}" y="${currentY}" font-size="5" fill="${BLACK}" font-family="Arial">${getPlanetShort(planet.name)}${suffix}</text>`;
+      const deg = Math.floor((planet.vargaDegree || 0));
+      const min = Math.floor(((planet.vargaDegree || 0) % 1) * 60);
+      svg += `<text x="${x + 3}" y="${currentY}" font-size="${fontSize}" fill="${BLACK}" font-family="Arial">${getPlanetShort(planet.name)}${suffix}<tspan font-size="${subFontSize}" fill="#666"> ${deg}°${min}'</tspan></text>`;
       currentY += lineHeight;
     });
   }
