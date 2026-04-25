@@ -169,6 +169,9 @@ export function generateMiniChartSVG(
     // Sign name + House number - combined
     svg += `<text x="${x + gridSize * 0.5}" y="${y + gridSize * 0.35}" font-size="${size * 0.03}" fill="${BROWN}" font-weight="bold" font-family="Arial" text-anchor="middle">${ZODIAC_SIGNS_SHORT[signIndex]} ${houseNumber}</text>`;
 
+    // Planet font size
+    const planetFontSize = size * 0.022;
+
     // Build render items: ASC first (if house 1), then planets
     const renderItems: Array<{ label: string; y: number; color: string; fontSize: number }> = [];
     
