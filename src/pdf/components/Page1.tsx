@@ -15,10 +15,10 @@ const PLANET_SHORT: Record<string, string> = {
 };
 
 const PLANET_NAMES: Record<string, string> = {
-  'Sun': 'Mat Troi', 'Moon': 'Mat Trang', 'Mars': 'Sao Hoa',
-  'Mercury': 'Sao Thuy', 'Jupiter': 'Sao Moc', 'Venus': 'Sao Kim',
-  'Saturn': 'Sao Tho', 'Rahu': 'Sao Rahu', 'Ketu': 'Sao Ketu',
-  'Uranus': 'Thien Vuong', 'Neptune': 'Hai Vuong', 'Pluto': 'Diem Vuong'
+  'Sun': 'Mặt Trời', 'Moon': 'Mặt Trăng', 'Mars': 'Sao Hỏa',
+  'Mercury': 'Sao Thủy', 'Jupiter': 'Sao Mộc', 'Venus': 'Sao Kim',
+  'Saturn': 'Sao Thổ', 'Rahu': 'Sao Rahu', 'Ketu': 'Sao Ketu',
+  'Uranus': 'Thiên Vương', 'Neptune': 'Hải Vương', 'Pluto': 'Diêm Vương'
 };
 
 const ZODIAC_SHORT = ['Ar', 'Ta', 'Ge', 'Ca', 'Le', 'Vi', 'Li', 'Sc', 'Sg', 'Cp', 'Aq', 'Pi'];
@@ -252,7 +252,7 @@ const PlanetaryTable: React.FC<{ data: PdfReportData }> = ({ data }) => (
         <Text style={[page1Styles.planetaryTableCell, { width: PLANET_COL_WIDTHS.chuNha }]}>{planet.nakshatra.lord}</Text>
         <Text style={[page1Styles.planetaryTableCell, { width: PLANET_COL_WIDTHS.pd }]}>{planet.nakshatra.pada}</Text>
         <Text style={[page1Styles.planetaryTableCell, { width: PLANET_COL_WIDTHS.cd }]}>
-          {planet.retrograde ? 'Ngh' : 'Thu'}
+          {planet.retrograde ? 'R' : ''}
         </Text>
       </View>
     ))}
