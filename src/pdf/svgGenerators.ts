@@ -138,12 +138,12 @@ export function generateMiniChartSVG(
   size: number = 200
 ): string {
   // Debug: show planets by house
-  const planetsByHouse: Record<number, string> = {};
+  const debugHouses: Record<number, string> = {};
   planets.forEach(p => {
-    if (!planetsByHouse[p.house]) planetsByHouse[p.house] = [];
-    planetsByHouse[p.house] += `${p.name}(${p.vargaSign}) `;
+    if (!debugHouses[p.house]) debugHouses[p.house] = '';
+    debugHouses[p.house] += `${p.name}(${p.vargaSign}) `;
   });
-  console.log(`SVG ${ascendantSign}: planets by house:`, JSON.stringify(planetsByHouse));
+  console.log(`SVG asc=${ascendantSign}:`, JSON.stringify(debugHouses));
   
   const getHouseNumber = (signIndex: number) => ((signIndex - ascendantSign + 12) % 12) + 1;
 
