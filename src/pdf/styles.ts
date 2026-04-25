@@ -190,36 +190,40 @@ export const page1Styles = StyleSheet.create({
 // Page 2 styles
 export const page2Styles = StyleSheet.create({
   container: {
-    padding: 20,
-    paddingBottom: 40, // Extra padding for footer
+    padding: 15,
+    paddingBottom: 40,
     backgroundColor: '#FDF5E6',
     fontFamily: 'Roboto',
     minHeight: '100%',
   },
   header: {
     backgroundColor: '#8B4513',
-    padding: 8,
-    marginBottom: 10,
+    padding: 6,
+    marginBottom: 8,
   },
   headerTitle: {
     fontFamily: 'Roboto',
-    fontSize: 12,
+    fontSize: 11,
     color: '#FFFFFF',
     textAlign: 'center',
   },
   headerSubtitle: {
     fontFamily: 'Roboto',
-    fontSize: 8,
+    fontSize: 7,
     color: '#FDF5E6',
     textAlign: 'center',
     marginTop: 2,
   },
   vargasGrid: {
+    flexDirection: 'column',
+    gap: 4,
+  },
+  vargaRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    gap: 4,
   },
   vargaCell: {
-    width: '25%',
+    flex: 1,
     aspectRatio: 1,
     padding: 2,
     justifyContent: 'center',
@@ -227,7 +231,7 @@ export const page2Styles = StyleSheet.create({
   },
   vargaTitle: {
     fontFamily: 'Roboto',
-    fontSize: 7,
+    fontSize: 8,
     color: '#8B4513',
     textAlign: 'center',
     marginBottom: 2,
