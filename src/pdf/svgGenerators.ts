@@ -121,12 +121,12 @@ export function generateMainChartSVG(
     });
   }
 
-  // Center - Logo image
+  // Center - Logo image (use base64 data URI for PDF compatibility)
   const centerX = size / 2;
   const centerY = size / 2;
   const logoSize = gridSize * 0.6;
   svg += `<circle cx="${centerX}" cy="${centerY}" r="${logoSize / 2 + 5}" fill="${BROWN_PALE}" stroke="${BROWN}" stroke-width="2"/>`;
-  svg += `<image href="/images/logo.png" x="${centerX - logoSize / 2}" y="${centerY - logoSize / 2}" width="${logoSize}" height="${logoSize}" preserveAspectRatio="xMidYMid meet"/>`;
+  svg += `<image href="${LOGO_BASE64}" x="${centerX - logoSize / 2}" y="${centerY - logoSize / 2}" width="${logoSize}" height="${logoSize}" preserveAspectRatio="xMidYMid meet"/>`;
 
   svg += '</g></svg>';
   return svg;
