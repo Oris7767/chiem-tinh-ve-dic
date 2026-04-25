@@ -5,23 +5,15 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import BirthChartForm, { BirthDataFormValues } from './BirthChartForm';
 import { LoginForm, RegisterForm } from './AuthForms';
 import { useToast } from "@/components/ui/use-toast";
-import { Download, Loader2, LogOut, ChevronDown, Image, FileText } from 'lucide-react';
+import { Loader2, LogOut, FileText } from 'lucide-react';
 import SouthIndianChart from './SouthIndianChart';
 import DashaCalculator from './DashaCalculator';
 import VargasCharts from './VargasCharts';
 import { calculateVedicChart } from '@/services/vedicAstroService';
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { supabase } from '@/integrations/supabase/client';
 import { Json } from '@/integrations/supabase/types';
 import { DateTime } from 'luxon';
-import { downloadCompleteSVG, downloadSeparateSVGs } from '@/utils/svgExportUtils';
-import { downloadAsPNG, openPrintablePage, printVedicChart } from '@/utils/imageExportUtils';
 import { generatePDFFromAppData } from '@/pdf';
 import { calculateAllVargas } from '@/utils/vargaCalculations';
 import { Progress } from "@/components/ui/progress";
@@ -377,120 +369,6 @@ const VedicChart = () => {
     });
   };
 
-  const downloadChartAsSVG = () => {
-    if (!chartData) return;
-
-    try {
-      downloadCompleteSVG(chartData, formData);
-      
-      toast({
-        title: "Tải xuống thành công",
-        description: "Bản đồ sao hoàn chỉnh đã được tải về với tất cả thông tin chi tiết.",
-      });
-    } catch (error) {
-      console.error('Error downloading complete SVG:', error);
-      
-      // Fallback to original simple SVG download
-      const svgElement = document.getElementById('birth-chart-svg');
-      if (!svgElement) return;
-
-      const svgClone = svgElement.cloneNode(true) as SVGSVGElement;
-      svgClone.setAttribute('width', '800');
-      svgClone.setAttribute('height', '800');
-
-      const serializer = new XMLSerializer();
-      let source = serializer.serializeToString(svgClone);
-
-      if (!source.match(/^<\?xml/)) {
-        source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
-      }
-
-      const svgBlob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
-      const url = URL.createObjectURL(svgBlob);
-
-      const downloadLink = document.createElement('a');
-      downloadLink.href = url;
-
-      const fileName = formData 
-        ? `vedic-chart-${formData.name?.replace(/\s+/g, '-')}-${formData.birthDate}.svg`
-        : 'vedic-birth-chart.svg';
-
-      downloadLink.download = fileName;
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
-
-      URL.revokeObjectURL(url);
-      
-      toast({
-        title: "Tải xuống cơ bản",
-        description: "Đã tải về bản đồ sao cơ bản. Chức năng hoàn chỉnh đang được cập nhật.",
-      });
-    }
-  };
-
-  const downloadSeparateFiles = () => {
-    if (!chartData) return;
-
-    try {
-      downloadSeparateSVGs(chartData, formData);
-      
-      toast({
-        title: "Tải xuống thành công",
-        description: "Đã tải về 2 file SVG riêng biệt: bản đồ sao và thông tin chi tiết.",
-      });
-    } catch (error) {
-      console.error('Error downloading separate SVGs:', error);
-      toast({
-        title: "Lỗi tải xuống",
-        description: "Không thể tải file riêng biệt. Vui lòng thử lại.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const downloadAsPNGFile = async () => {
-    if (!chartData) {
-      toast({
-        title: "Lỗi",
-        description: "Không có dữ liệu biểu đồ để tải xuống.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Check if SVG chart exists
-    const svgElement = document.getElementById('birth-chart-svg');
-    if (!svgElement) {
-      toast({
-        title: "Lỗi",
-        description: "Biểu đồ chưa được tải hoàn tất. Vui lòng đợi một chút và thử lại.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      console.log('Starting PNG download with chart data:', chartData);
-      
-      // Use downloadAsPNG with Grid 2x2 layout
-      await downloadAsPNG(chartData, formData);
-      console.log('PNG download successful');
-      
-      toast({
-        title: "Tải xuống thành công",
-        description: "Bản đồ sao đã được tải về dạng PNG chất lượng cao, dễ xem trên điện thoại.",
-      });
-    } catch (error) {
-      console.error('Error downloading PNG:', error);
-      toast({
-        title: "Lỗi tải xuống",
-        description: error.message || "Không thể tải file PNG. Vui lòng thử lại.",
-        variant: "destructive",
-      });
-    }
-  };
-
   const downloadAsPDFFile = async () => {
     if (!chartData) {
       toast({
@@ -558,16 +436,6 @@ const VedicChart = () => {
         variant: "destructive",
       });
     }
-  };
-
-  const handleOpenPrintable = () => {
-    if (!chartData) return;
-    openPrintablePage(chartData, formData);
-  };
-
-  const handlePrint = () => {
-    if (!chartData) return;
-    printVedicChart(chartData, formData);
   };
 
   return (
@@ -704,9 +572,6 @@ const VedicChart = () => {
             <ChartDisplay 
               chartData={chartData} 
               userData={formData} 
-              onDownload={downloadChartAsSVG}
-              onDownloadSeparate={downloadSeparateFiles}
-              onDownloadPNG={downloadAsPNGFile}
               onDownloadPDF={downloadAsPDFFile}
               showModernPlanets={showModernPlanets}
               onToggleModernPlanets={setShowModernPlanets}
@@ -737,15 +602,12 @@ const VedicChart = () => {
 interface ChartDisplayProps {
   chartData: VedicChartData;
   userData?: BirthDataFormValues | null;
-  onDownload?: () => void;
-  onDownloadSeparate?: () => void;
-  onDownloadPNG?: () => void;
   onDownloadPDF?: () => void;
   showModernPlanets?: boolean;
   onToggleModernPlanets?: (show: boolean) => void;
 }
 
-const ChartDisplay = ({ chartData, userData, onDownload, onDownloadSeparate, onDownloadPNG, onDownloadPDF, showModernPlanets, onToggleModernPlanets }: ChartDisplayProps) => {
+const ChartDisplay = ({ chartData, userData, onDownloadPDF, showModernPlanets, onToggleModernPlanets }: ChartDisplayProps) => {
   // Format birth info for display in the chart
   const getBirthInfo = () => {
     if (!userData) return '';
@@ -785,46 +647,11 @@ const ChartDisplay = ({ chartData, userData, onDownload, onDownloadSeparate, onD
                 </span>
               </div>
             )}
-            {onDownload && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Download className="h-4 w-4 mr-2" />
-                    Tải bản đồ
-                    <ChevronDown className="h-4 w-4 ml-2" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64">
-                  <DropdownMenuItem onClick={onDownloadPNG}>
-                    <Image className="h-4 w-4 mr-2" />
-                    <div className="flex flex-col">
-                      <span>Tải PNG (Khuyến nghị)</span>
-                      <span className="text-xs text-gray-500">Đẹp, dễ xem trên điện thoại</span>
-                    </div>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={onDownloadPDF}>
-                    <FileText className="h-4 w-4 mr-2" />
-                    <div className="flex flex-col">
-                      <span>Tải PDF</span>
-                      <span className="text-xs text-gray-500">Dễ in và chia sẻ</span>
-                    </div>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={onDownload}>
-                    <Download className="h-4 w-4 mr-2" />
-                    <div className="flex flex-col">
-                      <span>Tải SVG hoàn chỉnh</span>
-                      <span className="text-xs text-gray-500">Vector, có thể chỉnh sửa</span>
-                    </div>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={onDownloadSeparate}>
-                    <Download className="h-4 w-4 mr-2" />
-                    <div className="flex flex-col">
-                      <span>Tải SVG riêng biệt</span>
-                      <span className="text-xs text-gray-500">2 file SVG tách biệt</span>
-                    </div>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+            {onDownloadPDF && (
+              <Button variant="outline" size="sm" onClick={onDownloadPDF}>
+                <FileText className="h-4 w-4 mr-2" />
+                Tải PDF
+              </Button>
             )}
           </div>
         </CardHeader>

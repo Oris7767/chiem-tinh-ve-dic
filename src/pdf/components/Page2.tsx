@@ -38,7 +38,7 @@ const VargaCell: React.FC<{
 // Header
 const Page2Header: React.FC = () => (
   <View style={page2Styles.header}>
-    <Text style={page2Styles.headerTitle}>HỆ THỐNG 15 D-VARGA (PHÂN CUNG)</Text>
+    <Text style={page2Styles.headerTitle}>HỆ THỐNG 16 D-VARGA (PHÂN CUNG)</Text>
     <Text style={page2Styles.headerSubtitle}>Theo hệ thống Parashara - Biểu đồ Chia phần (D1 xem trang trước)</Text>
   </View>
 );
