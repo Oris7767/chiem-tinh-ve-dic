@@ -137,6 +137,8 @@ export function generateMiniChartSVG(
   ascendantSign: number,
   size: number = 200
 ): string {
+  console.log('generateMiniChartSVG - planets count:', planets.length, 'ascendantSign:', ascendantSign);
+  
   const getHouseNumber = (signIndex: number) => ((signIndex - ascendantSign + 12) % 12) + 1;
 
   // Map planets to houses
@@ -242,6 +244,12 @@ export async function generatePDFChartImages(
   mainChartImage: string;
   vargaChartImages: Record<string, string>;
 }> {
+  // Debug: log vargas data
+  console.log('generatePDFChartImages - vargas count:', vargas.length);
+  vargas.forEach((v, i) => {
+    console.log(`  varga[${i}]: id=${v.id}, planets=${v.planets.length}, ascendantSign=${v.ascendantSign}`);
+  });
+
   // Generate main chart SVG
   const mainSvg = generateMainChartSVG(ascendant, planets, houses, 600);
   const mainChartImage = await svgToBase64PNG(mainSvg, 600);
