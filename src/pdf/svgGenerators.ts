@@ -130,12 +130,12 @@ export function generateMainChartSVG(
 }
 
 /**
- * Generate Mini Chart SVG for Varga Charts
+ * Generate Mini Chart SVG for Varga Charts (compact, no overlap)
  */
 export function generateMiniChartSVG(
   planets: PdfVargaPlanet[],
   ascendantSign: number,
-  size: number = 180
+  size: number = 200
 ): string {
   const getHouseNumber = (signIndex: number) => ((signIndex - ascendantSign + 12) % 12) + 1;
 
@@ -166,48 +166,28 @@ export function generateMiniChartSVG(
     // Cell border - thin
     svg += `<rect x="${x}" y="${y}" width="${gridSize}" height="${gridSize}" fill="none" stroke="${BROWN}" stroke-width="0.5"/>`;
 
-    // Sign name + House number - combined
-    svg += `<text x="${x + gridSize * 0.5}" y="${y + gridSize * 0.35}" font-size="${size * 0.03}" fill="${BROWN}" font-weight="bold" font-family="Arial" text-anchor="middle">${ZODIAC_SIGNS_SHORT[signIndex]} ${houseNumber}</text>`;
-
-    // Planet font size
-    const planetFontSize = size * 0.022;
+    // Sign name + House number - combined (top)
+    svg += `<text x="${x + 3}" y="${y + 8}" font-size="6" fill="${BROWN}" font-weight="bold" font-family="Arial">${ZODIAC_SIGNS_SHORT[signIndex]} ${houseNumber}</text>`;
 
     // Build render items: ASC first (if house 1), then planets
-    const renderItems: Array<{ label: string; y: number; color: string; fontSize: number }> = [];
+    let currentY = y + 16;
+    const lineHeight = 7;
     
     // ASC with coordinates (house 1)
     if (houseNumber === 1) {
       const ascDegree = ascendantSign % 30;
       const ascDeg = Math.floor(ascDegree);
       const ascMin = Math.floor((ascDegree % 1) * 60);
-      renderItems.push({
-        label: `ASC ${ascDeg}°${ascMin.toString().padStart(2, '0')}'`,
-        y: gridSize * 0.55,
-        color: BROWN,
-        fontSize: planetFontSize
-      });
+      svg += `<text x="${x + 3}" y="${currentY}" font-size="5" fill="${BROWN}" font-family="Arial">ASC ${ascDeg}°${ascMin}'</text>`;
+      currentY += lineHeight;
     }
 
-    // Planets - with coordinates (limit based on ASC presence)
+    // Planets - compact (no coordinates, just symbol + R)
     const maxPlanets = houseNumber === 1 ? 1 : 2;
-    planetsInHouse.slice(0, maxPlanets).forEach((planet, idx) => {
+    planetsInHouse.slice(0, maxPlanets).forEach((planet) => {
       const suffix = planet.retrograde ? 'R' : '';
-      const degree = Math.floor((planet.vargaDegree || 0) % 30);
-      const min = Math.floor(((planet.vargaDegree || 0) % 1) * 60);
-      const planetY = houseNumber === 1 
-        ? gridSize * (0.70 + idx * 0.18) 
-        : gridSize * (0.55 + idx * 0.18);
-      renderItems.push({
-        label: `${getPlanetShort(planet.name)}${suffix} ${degree}°${min.toString().padStart(2, '0')}'`,
-        y: planetY,
-        color: BLACK,
-        fontSize: planetFontSize
-      });
-    });
-
-    // Render items
-    renderItems.forEach((item) => {
-      svg += `<text x="${x + 4}" y="${item.y}" font-size="${item.fontSize}" fill="${item.color}" font-family="Arial">${item.label}</text>`;
+      svg += `<text x="${x + 3}" y="${currentY}" font-size="5" fill="${BLACK}" font-family="Arial">${getPlanetShort(planet.name)}${suffix}</text>`;
+      currentY += lineHeight;
     });
   }
 
