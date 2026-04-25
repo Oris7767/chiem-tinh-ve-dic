@@ -16,7 +16,7 @@ interface House {
 }
 
 interface VedicChartData {
-  ascendant: number | { longitude: number; nakshatra?: { name: string; lord: string; startDegree: number; endDegree: number; pada: number } };
+  ascendant: number;
   planets: Planet[];
   houses: House[];
   moonNakshatra: string;
@@ -30,23 +30,22 @@ interface MiniSouthIndianChartProps {
   // Props tùy chọn cho Varga charts
   vargaPlanets?: Planet[];
   vargaAscendantSign?: number;
+  vargaAscendantLongitude?: number; // Longitude thực của ASC trong Varga chart
   title?: string;
   // Tùy chọn hiển thị
   showCoordinates?: boolean; // Hiển thị tọa độ độ của hành tinh
 }
 
-// Hàm trích xuất ascendant longitude từ API response
+// Hàm trích xuất ascendant longitude từ chart data
 const getAscendantLongitude = (ascendant: VedicChartData['ascendant']): number => {
-  if (typeof ascendant === 'number') {
-    return ascendant;
-  }
-  return (ascendant as any).longitude;
+  return ascendant;
 };
 
 const MiniSouthIndianChart: React.FC<MiniSouthIndianChartProps> = ({ 
   chartData, 
   vargaPlanets,
   vargaAscendantSign,
+  vargaAscendantLongitude,
   title = '',
   showCoordinates = true, // Mặc định bật hiển thị tọa độ
 }) => {
@@ -86,9 +85,13 @@ const MiniSouthIndianChart: React.FC<MiniSouthIndianChartProps> = ({
   // Nếu có vargaPlanets -> dùng vargaPlanets, ngược lại dùng chartData.planets
   const planetsToRender = vargaPlanets || chartData.planets;
   
-  // Xác định ascendant sign
-  // Nếu có vargaAscendantSign -> dùng nó, ngược lại tính từ chartData.ascendant
-  const ascendantSign = vargaAscendantSign ?? getAscendantLongitude(chartData.ascendant);
+  // Xác định ascendant sign (sign index 0-11) cho việc tính house
+  // Chỉ dùng vargaAscendantSign khi có, ngược lại tính từ longitude
+  const rawAscendant = getAscendantLongitude(chartData.ascendant);
+  const ascendantSignIndex = vargaAscendantSign ?? Math.floor(rawAscendant / 30);
+  
+  // Xác định ascendant longitude đầy đủ để hiển thị độ
+  const ascendantLongitudeValue = vargaAscendantLongitude ?? rawAscendant;
 
   // Map planets to houses
   const planetsByHouse = planetsToRender.reduce((acc, planet) => {
@@ -109,9 +112,12 @@ const MiniSouthIndianChart: React.FC<MiniSouthIndianChartProps> = ({
 
   // Calculate which house goes in each position
   const getHouseNumber = (signIndex: number) => {
-    const distance = (signIndex - ascendantSign + 12) % 12;
+    const distance = (signIndex - ascendantSignIndex + 12) % 12;
     return ((distance + 1) % 12) || 12;
   };
+
+  // Tính độ trong cung cho ASC
+  const ascDegree = ascendantSignIndex !== undefined ? (ascendantLongitudeValue % 30) : (ascendantLongitudeValue % 30);
 
   return (
     <div className="relative w-full h-full flex flex-col">
@@ -147,7 +153,6 @@ const MiniSouthIndianChart: React.FC<MiniSouthIndianChartProps> = ({
               const renderItems: Array<{ id: string; label: string; color: string; subLabel?: string }> = [];
               
               if (isAscendant) {
-                const ascDegree = ascendantSign % 30;
                 renderItems.push({
                   id: 'asc',
                   label: 'ASC',

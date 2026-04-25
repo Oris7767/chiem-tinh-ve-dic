@@ -3,23 +3,33 @@ import MiniSouthIndianChart from './MiniSouthIndianChart';
 import { calculateAllVargas, PlanetInput, VargaChartData } from '@/utils/vargaCalculations';
 import { LOGO_DATA_URL } from '@/utils/logoDataUrl';
 
-interface Planet {
+// Re-export the types from parent
+export interface NakshatraInfo {
+  name: string;
+  lord: string;
+  startDegree: number;
+  endDegree: number;
+  pada: number;
+}
+
+export interface Planet {
   id: string;
   name: string;
   longitude: number;
   house: number;
   sign: number;
   retrograde: boolean;
+  nakshatra?: NakshatraInfo;
 }
 
-interface House {
+export interface House {
   number: number;
   longitude: number;
   sign: number;
 }
 
-interface VedicChartData {
-  ascendant: number | { longitude: number; nakshatra?: { name: string; lord: string; startDegree: number; endDegree: number; pada: number } };
+export interface VedicChartData {
+  ascendant: number;
   ascendantNakshatra?: NakshatraInfo;
   planets: Planet[];
   houses: House[];
@@ -288,10 +298,8 @@ const VargasCharts: React.FC<VargasChartsProps> = ({ chartData, showModernPlanet
     }
   };
 
-  // Trích xuất ascendant longitude từ API response
-  const ascendantLongitude = typeof chartData.ascendant === 'number' 
-    ? chartData.ascendant 
-    : (chartData.ascendant as any).longitude;
+  // Trích xuất ascendant longitude từ chart data
+  const ascendantLongitude = chartData.ascendant;
 
   // Lọc hành tinh dựa trên showModernPlanets
   const filteredPlanets = useMemo(() => {
@@ -380,6 +388,7 @@ const VargasCharts: React.FC<VargasChartsProps> = ({ chartData, showModernPlanet
                 chartData={{ ...chartData, planets: filteredPlanets }}
                 vargaPlanets={vargaData.planets}
                 vargaAscendantSign={vargaData.ascendantSign}
+                vargaAscendantLongitude={vargaData.ascendantLongitude}
                 title={`${varga.id} - ${varga.name}`}
               />
             </div>

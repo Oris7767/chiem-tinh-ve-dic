@@ -295,7 +295,8 @@ export interface PlanetVarga {
 
 export interface VargaChartData {
   planets: PlanetVarga[];
-  ascendantSign: number; // Cung Mọc của lá số Varga này
+  ascendantSign: number; // Cung Mọc của lá số Varga này (0-11)
+  ascendantLongitude: number; // Longitude đầy đủ của ASC trong Varga chart
 }
 
 export interface VargaCharts {
@@ -322,6 +323,47 @@ const calculateHouse = (planetSign: number, ascendantSign: number): number => {
   return ((planetSign - ascendantSign + 12) % 12) + 1;
 };
 
+// Map Varga key to number of divisions
+const VAGA_DIVISIONS: Record<string, number> = {
+  D1: 1,
+  D2: 2,
+  D3: 3,
+  D4: 4,
+  D7: 7,
+  D9: 9,
+  D10: 10,
+  D12: 12,
+  D16: 16,
+  D20: 20,
+  D24: 24,
+  D27: 27,
+  D30: 30,
+  D40: 40,
+  D45: 45,
+  D60: 60,
+};
+
+/**
+ * Tính vargaDegree - độ thực trong phân cung Varga
+ * Ví dụ: D9 mỗi phần = 30/9 = 3.33°, nên vargaDegree nằm trong 0-3.33°
+ */
+const calculateVargaDegree = (longitude: number, vargaDivisions: number): number => {
+  // Kích thước mỗi division trong Varga (độ)
+  const divisionSize = 30 / vargaDivisions;
+  
+  // Tính vị trí tương đối trong Varga (0 đến vargaDivisions - 1)
+  const positionInVarga = (longitude * vargaDivisions) / 30;
+  
+  // Phần nguyên cho biết division hiện tại
+  const currentDivision = Math.floor(positionInVarga);
+  
+  // Độ trong division hiện tại
+  const degreeInDivision = (positionInVarga - currentDivision) * divisionSize;
+  
+  // Đảm bảo nằm trong khoảng [0, divisionSize)
+  return degreeInDivision % divisionSize;
+};
+
 export const calculateAllVargas = (
   planets: PlanetInput[],
   ascendantLongitude: number
@@ -344,7 +386,8 @@ export const calculateAllVargas = (
   const toVargaChart = (
     planets: PlanetInput[],
     calculator: (longitude: number) => number,
-    ascendantLong: number
+    ascendantLong: number,
+    divisions: number
   ): VargaChartData => {
     // 1. Tính Cung Mọc mới cho lá số Varga
     const newAscendantSign = calculator(ascendantLong);
@@ -354,7 +397,9 @@ export const calculateAllVargas = (
     const vargaPlanets: PlanetVarga[] = planets.map(planet => {
       const originalLongitude = parseFloat(String(planet.longitude)) || 0;
       const vargaSign = calculator(originalLongitude);
-      const { degreeInSign } = getBaseSignAndDegree(originalLongitude);
+      
+      // Tính vargaDegree - độ thực trong phân cung Varga
+      const vargaDegree = calculateVargaDegree(originalLongitude, divisions);
       
       return {
         id: planet.id,
@@ -364,32 +409,33 @@ export const calculateAllVargas = (
         house: calculateHouse(vargaSign, newAscendantSign), // GHI ĐÈ SỐ NHÀ MỚI
         retrograde: planet.retrograde || false,
         vargaSign,
-        vargaDegree: degreeInSign,
+        vargaDegree,
       };
     });
 
     return {
       planets: vargaPlanets,
-      ascendantSign: newAscendantSign
+      ascendantSign: newAscendantSign,
+      ascendantLongitude: calculator(ascendantLong) * 30 + calculateVargaDegree(ascendantLong, divisions),
     };
   };
 
   return {
-    D1: { planets: d1Planets, ascendantSign: d1AscendantSign },
-    D2: toVargaChart(planets, calculateD2Sign, ascendantLongitude),
-    D3: toVargaChart(planets, calculateD3Sign, ascendantLongitude),
-    D4: toVargaChart(planets, calculateD4Sign, ascendantLongitude),
-    D7: toVargaChart(planets, calculateD7Sign, ascendantLongitude),
-    D9: toVargaChart(planets, calculateD9Sign, ascendantLongitude),
-    D10: toVargaChart(planets, calculateD10Sign, ascendantLongitude),
-    D12: toVargaChart(planets, calculateD12Sign, ascendantLongitude),
-    D16: toVargaChart(planets, calculateD16Sign, ascendantLongitude),
-    D20: toVargaChart(planets, calculateD20Sign, ascendantLongitude),
-    D24: toVargaChart(planets, calculateD24Sign, ascendantLongitude),
-    D27: toVargaChart(planets, calculateD27Sign, ascendantLongitude),
-    D30: toVargaChart(planets, calculateD30Sign, ascendantLongitude),
-    D40: toVargaChart(planets, calculateD40Sign, ascendantLongitude),
-    D45: toVargaChart(planets, calculateD45Sign, ascendantLongitude),
-    D60: toVargaChart(planets, calculateD60Sign, ascendantLongitude),
+    D1: { planets: d1Planets, ascendantSign: d1AscendantSign, ascendantLongitude: ascendantLongitude },
+    D2: toVargaChart(planets, calculateD2Sign, ascendantLongitude, VAGA_DIVISIONS.D2),
+    D3: toVargaChart(planets, calculateD3Sign, ascendantLongitude, VAGA_DIVISIONS.D3),
+    D4: toVargaChart(planets, calculateD4Sign, ascendantLongitude, VAGA_DIVISIONS.D4),
+    D7: toVargaChart(planets, calculateD7Sign, ascendantLongitude, VAGA_DIVISIONS.D7),
+    D9: toVargaChart(planets, calculateD9Sign, ascendantLongitude, VAGA_DIVISIONS.D9),
+    D10: toVargaChart(planets, calculateD10Sign, ascendantLongitude, VAGA_DIVISIONS.D10),
+    D12: toVargaChart(planets, calculateD12Sign, ascendantLongitude, VAGA_DIVISIONS.D12),
+    D16: toVargaChart(planets, calculateD16Sign, ascendantLongitude, VAGA_DIVISIONS.D16),
+    D20: toVargaChart(planets, calculateD20Sign, ascendantLongitude, VAGA_DIVISIONS.D20),
+    D24: toVargaChart(planets, calculateD24Sign, ascendantLongitude, VAGA_DIVISIONS.D24),
+    D27: toVargaChart(planets, calculateD27Sign, ascendantLongitude, VAGA_DIVISIONS.D27),
+    D30: toVargaChart(planets, calculateD30Sign, ascendantLongitude, VAGA_DIVISIONS.D30),
+    D40: toVargaChart(planets, calculateD40Sign, ascendantLongitude, VAGA_DIVISIONS.D40),
+    D45: toVargaChart(planets, calculateD45Sign, ascendantLongitude, VAGA_DIVISIONS.D45),
+    D60: toVargaChart(planets, calculateD60Sign, ascendantLongitude, VAGA_DIVISIONS.D60),
   };
 };
