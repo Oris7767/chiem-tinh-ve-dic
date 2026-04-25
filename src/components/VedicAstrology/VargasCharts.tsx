@@ -388,7 +388,7 @@ const VargasCharts: React.FC<VargasChartsProps> = ({ chartData, showModernPlanet
                 chartData={{ ...chartData, planets: filteredPlanets }}
                 vargaPlanets={vargaData.planets}
                 vargaAscendantSign={vargaData.ascendantSign}
-                vargaAscendantLongitude={vargaData.ascendantSign * 30 + (ascendantLongitude % 30)}
+                vargaAscendantLongitude={vargaData.ascendantLongitude}
                 title={`${varga.id} - ${varga.name}`}
               />
             </div>
