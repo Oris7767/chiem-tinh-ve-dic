@@ -15,6 +15,19 @@ const POSITIONS = [
   [3, 0], [2, 0], [1, 0], [0, 0]
 ];
 
+// Zodiac signs short names
+const ZODIAC_SIGNS_SHORT = [
+  "Ar", "Ta", "Ge", "Ca", "Le", "Vi",
+  "Li", "Sc", "Sg", "Cp", "Aq", "Pi"
+];
+
+// Planet short names for South Indian chart
+const PLANET_SHORT: Record<string, string> = {
+  'Sun': 'Su', 'Moon': 'Mo', 'Mars': 'Ma', 'Mercury': 'Me',
+  'Jupiter': 'Ju', 'Venus': 'Ve', 'Saturn': 'Sa',
+  'Rahu': 'Ra', 'Ketu': 'Ke', 'Uranus': 'Ur', 'Neptune': 'Ne', 'Pluto': 'Pl'
+};
+
 // Colors matching PDF style
 const BROWN = '#8B4513';
 const BROWN_PALE = '#DEB887';
