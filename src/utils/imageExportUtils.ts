@@ -1,5 +1,5 @@
 // Re-export all export functions
-export { downloadAsPDF } from './pdfExportUtils';
+export { exportVedicChartPDF, exportVedicChartPNG, generatePrintableHTML, openPrintablePage, printVedicChart } from './pdfExportUtils';
 export { downloadAsPNG } from './pngExportUtils';
 
 import { VedicChartData } from './svgExportUtils';

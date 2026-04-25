@@ -398,10 +398,12 @@ export async function calculateVedicChart(formData: {
  * Convert API response format to app's VedicChartData format
  */
 function convertApiResponseToChartData(apiData: VedicChartResponse): VedicChartData {
-  // Ascendant
-  const ascSignIdx = SIGN_TO_INDEX[apiData.ascendant.sign.name] || 0;
-  const ascDeg = apiData.ascendant.sign.degree || 0;
-  const ascLongitude = ascSignIdx * 30 + ascDeg;
+  // Ascendant - Ưu tiên dùng longitude ở root (Float chính xác)
+  // Fallback về cách tính từ sign+degree nếu cần
+  const rawAscLongitude = apiData.ascendant.longitude;
+  const ascLongitude = typeof rawAscLongitude === 'number' && rawAscLongitude > 0
+    ? rawAscLongitude
+    : (SIGN_TO_INDEX[apiData.ascendant.sign.name] || 0) * 30 + (apiData.ascendant.sign.degree || 0);
 
   // Planets with aspects and nakshatra info first
   const planets: Planet[] = apiData.planets.map(p => {

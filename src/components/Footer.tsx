@@ -17,7 +17,7 @@ const Footer = () => {
                 Số học Vệ Đà
               </div>
               <p className="text-gray-500 max-w-md">
-                Khám phá ý nghĩa sâu sắc đằng sau những con số trong cuộc sống của bạn dựa trên nguyên lý cổ đại của số học Vệ Đà.
+              Nền tảng tra cứu Chiêm tinh Vệ Đà toàn diện. Khám phá ý nghĩa các vì sao, con số và năng lượng thời gian để làm chủ vận mệnh và định hướng cuộc sống.
               </p>
             </div>
           </div>

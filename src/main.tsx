@@ -5,6 +5,10 @@ import { HelmetProvider } from 'react-helmet-async';
 import App from './App.tsx';
 import './index.css';
 
+// Initialize PDF polyfills BEFORE any PDF-related imports
+import { initializePDFPolyfills } from './pdf/polyfills';
+initializePDFPolyfills();
+
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <HelmetProvider>
