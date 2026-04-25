@@ -243,10 +243,21 @@ const MainChart: React.FC<{ image?: string }> = ({ image }) => (
   </View>
 );
 
-// Current Dasha Info
+// Current Dasha Info with progress bar
 const CurrentDasha: React.FC<{ data: PdfReportData }> = ({ data }) => {
   const current = data.chartData.dashas?.current;
   if (!current) return null;
+
+  // Calculate progress percentage
+  const totalYears = current.elapsed?.years || 0;
+  const totalMonths = current.elapsed?.months || 0;
+  const remainingYears = current.remaining?.years || 0;
+  const remainingMonths = current.remaining?.months || 0;
+  
+  // Get total duration in years (approximate)
+  const totalDuration = totalYears + totalMonths / 12 + remainingYears + remainingMonths / 12;
+  const elapsed = totalYears + totalMonths / 12;
+  const progressPercent = totalDuration > 0 ? (elapsed / totalDuration) * 100 : 0;
 
   return (
     <View style={page1Styles.currentDasha}>
@@ -255,19 +266,25 @@ const CurrentDasha: React.FC<{ data: PdfReportData }> = ({ data }) => {
       <Text style={page1Styles.currentDashaDate}>
         {formatDate(current.startDate)} - {formatDate(current.endDate)}
       </Text>
-      <Text style={page1Styles.currentDashaDate}>
-        Qua: {current.elapsed?.years || 0}y {current.elapsed?.months || 0}m | Con: {current.remaining?.years || 0}y {current.remaining?.months || 0}m
-      </Text>
-      {current.currentAntardasha && (
-        <Text style={page1Styles.currentDashaDate}>
-          Ant: {getPlanetName(current.currentAntardasha.planet)} ({formatDate(current.currentAntardasha.startDate)})
-        </Text>
-      )}
-      {current.currentPratyantar && (
-        <Text style={page1Styles.currentDashaDate}>
-          Praty: {getPlanetName(current.currentPratyantar.planet)} ({formatDate(current.currentPratyantar.startDate)})
-        </Text>
-      )}
+      
+      {/* Progress Bar */}
+      <View style={page1Styles.currentDashaProgress}>
+        <View style={page1Styles.progressBarContainer}>
+          <View style={[page1Styles.progressBarElapsed, { width: `${Math.min(progressPercent, 100)}%` }]} />
+          <View style={[page1Styles.progressBarRemaining, { flex: 1 }]} />
+        </View>
+        <View style={page1Styles.progressLabel}>
+          <Text style={page1Styles.progressLabelText}>
+            Qua: {current.elapsed?.years || 0}y {current.elapsed?.months || 0}m {current.elapsed?.days || 0}d
+          </Text>
+          <Text style={page1Styles.progressLabelText}>
+            {Math.round(progressPercent)}%
+          </Text>
+          <Text style={page1Styles.progressLabelText}>
+            Còn: {current.remaining?.years || 0}y {current.remaining?.months || 0}m {current.remaining?.days || 0}d
+          </Text>
+        </View>
+      </View>
     </View>
   );
 };
