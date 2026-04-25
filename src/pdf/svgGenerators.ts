@@ -114,7 +114,7 @@ export function generateMainChartSVG(
     const planetStartY = isAscendant ? gridSize * 0.34 : gridSize * 0.28;
     planetsInHouse.slice(0, 3).forEach((planet, idx) => {
       const planetY = y + planetStartY + idx * (gridSize * 0.12);
-      const suffix = planet.retrograde ? 'N' : '';
+      const suffix = planet.retrograde ? 'R' : '';
       svg += `<text x="${x + 4}" y="${planetY}" font-size="${planetFontSize}" fill="${BLACK}" font-family="Arial">${getPlanetShort(planet.name)}${suffix} ${formatDegree(planet.longitude)}</text>`;
     });
   }
@@ -169,12 +169,42 @@ export function generateMiniChartSVG(
     // Sign name + House number - combined
     svg += `<text x="${x + gridSize * 0.5}" y="${y + gridSize * 0.35}" font-size="${size * 0.03}" fill="${BROWN}" font-weight="bold" font-family="Arial" text-anchor="middle">${ZODIAC_SIGNS_SHORT[signIndex]} ${houseNumber}</text>`;
 
-    // Planets - compact
-    const planetFontSize = size * 0.022;
-    planetsInHouse.slice(0, 2).forEach((planet, idx) => {
-      const planetY = y + gridSize * (0.55 + idx * 0.18);
-      const suffix = planet.retrograde ? 'N' : '';
-      svg += `<text x="${x + 4}" y="${planetY}" font-size="${planetFontSize}" fill="${BLACK}" font-family="Arial">${getPlanetShort(planet.name)}${suffix}</text>`;
+    // Build render items: ASC first (if house 1), then planets
+    const renderItems: Array<{ label: string; y: number; color: string; fontSize: number }> = [];
+    
+    // ASC with coordinates (house 1)
+    if (houseNumber === 1) {
+      const ascDegree = ascendantSign % 30;
+      const ascDeg = Math.floor(ascDegree);
+      const ascMin = Math.floor((ascDegree % 1) * 60);
+      renderItems.push({
+        label: `ASC ${ascDeg}°${ascMin.toString().padStart(2, '0')}'`,
+        y: gridSize * 0.55,
+        color: BROWN,
+        fontSize: planetFontSize
+      });
+    }
+
+    // Planets - with coordinates (limit based on ASC presence)
+    const maxPlanets = houseNumber === 1 ? 1 : 2;
+    planetsInHouse.slice(0, maxPlanets).forEach((planet, idx) => {
+      const suffix = planet.retrograde ? 'R' : '';
+      const degree = Math.floor((planet.vargaDegree || 0) % 30);
+      const min = Math.floor(((planet.vargaDegree || 0) % 1) * 60);
+      const planetY = houseNumber === 1 
+        ? gridSize * (0.70 + idx * 0.18) 
+        : gridSize * (0.55 + idx * 0.18);
+      renderItems.push({
+        label: `${getPlanetShort(planet.name)}${suffix} ${degree}°${min.toString().padStart(2, '0')}'`,
+        y: planetY,
+        color: BLACK,
+        fontSize: planetFontSize
+      });
+    });
+
+    // Render items
+    renderItems.forEach((item) => {
+      svg += `<text x="${x + 4}" y="${item.y}" font-size="${item.fontSize}" fill="${item.color}" font-family="Arial">${item.label}</text>`;
     });
   }
 

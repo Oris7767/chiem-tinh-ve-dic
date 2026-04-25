@@ -143,10 +143,12 @@ const LargeSouthIndianChart: React.FC<{
           const renderItems: Array<{ id: string; label: string; color: string; subLabel?: string }> = [];
           
           if (isAscendant) {
+            const ascDegree = vargaData.ascendantSign % 30;
             renderItems.push({
               id: 'asc',
               label: 'ASC',
               color: '#B45309',
+              subLabel: formatDegree(ascDegree),
             });
           }
           

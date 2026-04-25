@@ -147,10 +147,12 @@ const MiniSouthIndianChart: React.FC<MiniSouthIndianChartProps> = ({
               const renderItems: Array<{ id: string; label: string; color: string; subLabel?: string }> = [];
               
               if (isAscendant) {
+                const ascDegree = ascendantSign % 30;
                 renderItems.push({
                   id: 'asc',
                   label: 'ASC',
                   color: '#B45309',
+                  subLabel: formatDegree(ascDegree),
                 });
               }
               
