@@ -85,14 +85,24 @@ function getFutureItems<T extends { startDate?: string }>(items: T[], maxItems: 
 // DEBUG: Log dasha data
 function debugDashaData(dashas: any) {
   console.log('=== DASHA DEBUG ===');
-  console.log('current:', dashas?.current ? {
-    planet: dashas.current.planet,
-    hasCurrentAntar: !!dashas.current.currentAntardasha,
-    currentAntarPlanet: dashas.current.currentAntardasha?.planet
-  } : 'null');
+  console.log('dashas:', dashas);
+  console.log('current:', JSON.stringify(dashas?.current, null, 2));
+  console.log('currentAntardasha:', dashas?.current?.currentAntardasha);
+  console.log('currentPratyantar:', dashas?.current?.currentPratyantar);
   console.log('sequence length:', dashas?.sequence?.length);
-  console.log('sequence[0].planet:', dashas?.sequence?.[0]?.planet);
-  console.log('sequence[0].antardashas:', dashas?.sequence?.[0]?.antardashas?.length);
+  if (dashas?.sequence?.[0]) {
+    console.log('sequence[0].planet:', dashas.sequence[0].planet);
+    console.log('sequence[0].antardashas length:', dashas.sequence[0].antardashas?.length);
+  }
+  // Find current maha in sequence
+  if (dashas?.current?.planet && dashas?.sequence) {
+    const idx = dashas.sequence.findIndex((m: any) => m.planet === dashas.current.planet);
+    console.log('Current maha index in sequence:', idx);
+    if (idx >= 0) {
+      console.log('sequence[' + idx + '].planet:', dashas.sequence[idx].planet);
+      console.log('sequence[' + idx + '].antardashas:', dashas.sequence[idx].antardashas?.map((a: any) => a.planet));
+    }
+  }
   console.log('===================');
 }
 
