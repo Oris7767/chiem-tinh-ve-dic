@@ -150,12 +150,9 @@ export function generateMiniChartSVG(
 
   // Grid settings
   const gridSize = size / 4;
-  const offsetX = gridSize * 0.5;
-  const offsetY = gridSize * 0.5;
 
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">
-    <rect x="0" y="0" width="${size}" height="${size}" fill="${WHITE}"/>
-    <g transform="translate(${offsetX}, ${offsetY})">`;
+    <rect x="0" y="0" width="${size}" height="${size}" fill="${WHITE}"/>`;
 
   // Draw grid cells
   for (let index = 0; index < 12; index++) {
@@ -170,21 +167,19 @@ export function generateMiniChartSVG(
     // Cell border - thin
     svg += `<rect x="${x}" y="${y}" width="${gridSize}" height="${gridSize}" fill="none" stroke="${BROWN}" stroke-width="0.5"/>`;
 
-    // Sign name - top of cell
-    svg += `<text x="${x + gridSize * 0.5}" y="${y + gridSize * 0.25}" font-size="${size * 0.026}" fill="${BROWN}" font-weight="bold" font-family="Arial" text-anchor="middle">${ZODIAC_SIGNS_SHORT[signIndex]}</text>`;
+    // Sign name + House number - combined
+    svg += `<text x="${x + gridSize * 0.5}" y="${y + gridSize * 0.35}" font-size="${size * 0.03}" fill="${BROWN}" font-weight="bold" font-family="Arial" text-anchor="middle">${ZODIAC_SIGNS_SHORT[signIndex]} ${houseNumber}</text>`;
 
-    // House number - below sign
-    svg += `<text x="${x + gridSize * 0.5}" y="${y + gridSize * 0.4}" font-size="${size * 0.022}" fill="${BROWN}" font-family="Arial" text-anchor="middle">N${houseNumber}</text>`;
-
-    // Planets
+    // Planets - compact
+    const planetFontSize = size * 0.022;
     planetsInHouse.slice(0, 2).forEach((planet, idx) => {
-      const planetY = y + gridSize * (0.6 + idx * 0.2);
+      const planetY = y + gridSize * (0.55 + idx * 0.18);
       const suffix = planet.retrograde ? 'N' : '';
-      svg += `<text x="${x + gridSize * 0.1}" y="${planetY}" font-size="${size * 0.022}" fill="${BLACK}" font-family="Arial">${getPlanetShort(planet.name)}${suffix}</text>`;
+      svg += `<text x="${x + 4}" y="${planetY}" font-size="${planetFontSize}" fill="${BLACK}" font-family="Arial">${getPlanetShort(planet.name)}${suffix}</text>`;
     });
   }
 
-  svg += '</g></svg>';
+  svg += '</svg>';
   return svg;
 }
 
